@@ -20,18 +20,32 @@ from radar.adapters.base import (
     regimen_prospecto, serie_portada,
 )
 from radar.core.modelo import Dici, Documento, Procedencia, SerieDici
-from radar.core.numeros import es_monto, es_pct, mes_a_numero, monto
+from radar.core.numeros import MESES, es_monto, es_pct, mes_a_numero, monto, sin_acentos
 from radar.core.pdffilas import Fila, iterar_paginas, leer_pdf
 
-RE_FECHA = re.compile(r"Principales inversiones (?:en el|al) mes de:? (\w+) del (\d{4})")
+RE_FECHA = re.compile(r"(?:Principales inversiones (?:en el|al) mes de:?|^Informaci[oó]n a) (\w+) (?:del |de )?(\d{4})")
+
+
+# Principal / Skandia: "Cartera de inversión al :30/oct/2026"; Franklin: "Principales
+# inversiones al : 30 de octubre de 2026".
+RE_FECHA_DIA = re.compile(r"(?:Cartera de inversi[oó]n|Principales inversiones) al\s*:\s*(\d{1,2})"
+                          r"(?:/|\s+de\s+)([A-Za-zé]+)(?:/|\s+de\s+)(\d{4})")
+
+
+def _mes(nombre: str) -> int | None:
+    n = sin_acentos(nombre).lower().strip(" .")
+    return MESES.get(n) or next((v for k, v in MESES.items() if len(n) == 3 and k.startswith(n)), None)
 
 
 def fecha_dici(ruta: Path) -> date | None:
     for f in next(iterar_paginas(ruta)).filas():
         m = RE_FECHA.search(f.texto)
-        if m:
-            mes, anio = mes_a_numero(m.group(1)), int(m.group(2))
+        if m and _mes(m.group(1)):
+            mes, anio = _mes(m.group(1)), int(m.group(2))
             return date(anio, mes, calendar.monthrange(anio, mes)[1])
+        m = RE_FECHA_DIA.search(f.texto)
+        if m and _mes(m.group(2)):
+            return date(int(m.group(3)), _mes(m.group(2)), int(m.group(1)))
     return None
 
 
@@ -54,12 +68,16 @@ def parsear(ruta: Path, doc: Documento, prospecto: tuple[Path, Documento] | None
                 clave = clave or f.texto_entre(120, 320).strip()
             if not categoria and f.texto.startswith("Categor"):
                 categoria = f.texto_entre(120, 320).strip()
-            if composicion_total is None and f.palabras and f.palabras[0].texto == "Total" and f.palabras[0].x0 > 300:
+                if not categoria:  # BlackRock: el valor va en el renglón siguiente
+                    sig_f = next((g for g in filas if 0 < g.top - f.top < 12), None)
+                    categoria = sig_f.texto_entre(120, 320).strip() if sig_f else ""
+            if composicion_total is None and f.palabras and f.palabras[0].x0 > 300 and (
+                    f.palabras[0].texto == "Total" or f.texto.startswith("Cartera Total")):
                 montos = [p.texto for p in f.palabras if es_monto(p.texto) and "," in p.texto]
                 if montos:
                     composicion_total = monto(montos[0])
         if not indice:
-            indice = _indice(filas)
+            indice = _indice(filas) or _indice_en_politica(filas)
         serie, adq, minimo = serie_portada(filas)
         sig = paginas[i + 1] if i + 1 < len(paginas) else None
         adm = total = None
@@ -88,6 +106,7 @@ def parsear(ruta: Path, doc: Documento, prospecto: tuple[Path, Documento] | None
             notas.append("Régimen: no se encontró la tabla de parámetros en el prospecto [POR CONFIRMAR]")
     else:
         notas.append("Régimen: prospecto no disponible [POR CONFIRMAR]")
+    rv_min, rv_max = rv_coherente(categoria, rv_min, rv_max, notas)
     return Dici(
         operadora=operadora, fondo_clave=clave or (doc.fondo_clave or ""), fecha_doc=fecha,
         categoria_regulatoria=categoria, rv_min=rv_min, rv_max=rv_max, fuente_regimen=fuente_regimen,
@@ -95,6 +114,23 @@ def parsear(ruta: Path, doc: Documento, prospecto: tuple[Path, Documento] | None
         indice_referencia=indice, distribuidoras=distribuidoras, series=series,
         composicion_total=composicion_total, procedencia=Procedencia(doc.doc_id, archivo, 1, fecha), notas=notas,
     )
+
+
+def rv_coherente(categoria: str, rv_min, rv_max, notas: list[str]):
+    """Un fondo de deuda (IDCP, IDLP...) no puede tener RV: si se leyó, el renglón habla de
+    acciones de fondos (p. ej. TEMGBIA, alimentador de un fondo de bonos extranjero)."""
+    if rv_max and re.search(r"\bID[A-Z]{2,}", categoria):
+        notas.append(f"Régimen: se leyó RV hasta {rv_max:.0%} en un fondo de deuda ({categoria}); "
+                     "se descarta [POR CONFIRMAR]")
+        return None, None
+    return rv_min, rv_max
+
+
+def _indice_en_politica(filas: list[Fila]) -> str:
+    """BlackRock: '... rendimiento competitivo con respecto al índice MSCI ..., publicado en'."""
+    txt = " ".join(f.texto_entre(300, 620).strip() for f in filas)
+    m = re.search(r"respecto (?:al|del) [íi]ndice:? (.+?)(?:,? publicad|\.\s|;)", txt)
+    return re.sub(r"\s+", " ", m.group(1)).strip() if m else ""
 
 
 def _indice(filas: list[Fila]) -> str:
@@ -132,24 +168,43 @@ def _politicas(filas: list[Fila]) -> tuple[str, str, str]:
 
 
 def _distribuidoras(filas: list[Fila], contexto: str) -> list[str]:
-    ini = next((f for f in filas if f.texto.startswith("Prestadores de Servicios")), None)
+    ini = next((f for f in filas if norm(f.texto).startswith("prestadores de servicios")), None)
     fin = next((f for f in filas if f.texto.startswith("Centro de Atenci")), None)
     if ini is None or fin is None:
         return []
     bloque = [f for f in filas if ini.top < f.top < fin.top]
-    # La columna de valores empieza en la X más frecuente de la primera palabra con
-    # X entre 100 y 300 de cada renglón (ignora palabras sueltas de etiqueta).
-    inicios = Counter(round(next(p.x0 for p in f.palabras if 100 < p.x0 < 300))
-                      for f in bloque if any(100 < p.x0 < 300 for p in f.palabras))
-    if not inicios:
+    # La columna de valores empieza en la menor X que se repite (>= 2 renglones) como
+    # primera palabra a la derecha de las etiquetas (ignora "(s)", "de" sueltos).
+    x_lab = min(p.x0 for f in bloque for p in f.palabras) if bloque else 0
+    inicios = Counter(round(next(p.x0 for p in f.palabras if x_lab + 40 < p.x0 < 300))
+                      for f in bloque if any(x_lab + 40 < p.x0 < 300 for p in f.palabras))
+    repetidos = [x for x, n in inicios.items() if n >= 2]
+    if not repetidos:
         return []
-    x_val = inicios.most_common(1)[0][0]
-    lineas = [f.texto_entre(x_val - 5, x_val + 215).strip() for f in bloque]
+    x_val = min(repetidos)
+    # La leyenda legal ("Advertencias") corre en una segunda columna: se corta donde empieza.
+    der = Counter(round(p.x0) for f in bloque for p in f.palabras if p.x0 > x_val + 150)
+    corte = der.most_common(1)[0][0] - 3 if der else x_val + 215
+    lineas = [f.texto_entre(x_val - 5, corte).strip() for f in bloque]
     lineas = [l for l in lineas if l]
+    # Texto entre las etiquetas "Distribuidora(s)" y "Valuadora" (plantillas en las que la
+    # lista no se separa por renglón: BlackRock con " / ", Principal con comas).
+    txt_d = ""
+    ini_d = next((f for f in bloque if norm(f.texto_entre(0, x_val - 3)).startswith("distribuidora")), None)
+    fin_d = next((f for f in bloque if norm(f.texto_entre(0, x_val - 3)).startswith("valuadora")), None)
+    if ini_d is not None:
+        tope = fin_d.top if fin_d is not None else ini_d.top + 40
+        cand = [f for f in bloque if ini_d.top - 25 <= f.top < tope - 6]
+        txt_d = " ".join(f.texto_entre(x_val - 3, corte).strip() for f in cand)
+        txt_d = re.sub(r"\s+", " ", re.sub(r"^Distribuidora\s*\(s\)", "", txt_d)).strip()
+    if " / " in txt_d:
+        return [t.strip(" ,;/") for t in txt_d.split(" / ") if t.strip(" ,;/")]
     entes = entes_por_forma_juridica(" ".join(lineas))
     if len(entes) < 4:
         entes = entes_prestadores(lineas)
     # Orden estructural: Operadora, Distribuidora(s)..., Valuadora, Calificadora.
-    if len(entes) < 4:
-        raise ErrorParseo(f"{contexto}: prestadores incompletos {entes}")
-    return [re.sub(r"(Inversi[oó]n)\.$", lambda m: m.group(1), e.strip()) for e in entes[1:-2]]
+    if len(entes) >= 4:
+        return [re.sub(r"(Inversi[oó]n)\.$", lambda m: m.group(1), e.strip()) for e in entes[1:-2]]
+    if not txt_d:
+        raise ErrorParseo(f"{contexto}: prestadores ilegibles {entes}")
+    return entes_por_forma_juridica(txt_d) or [txt_d]

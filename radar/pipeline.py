@@ -12,9 +12,10 @@ from radar.config import Parametros, dir_datos
 from radar.core.clasificacion import clasificar_cartera
 from radar.core.metricas import MetricasOperadora, dici_para, metricas_fondo
 from radar.core.modelo import ADMINISTRADO, Cartera, Documento, FondoDescubierto, Procedencia
+from radar.adapters.cnbv_generico import AdaptadorCnbvConDici
 from radar.fuentes import cnbv
 from radar.core.validacion import validar_cuadre
-from radar.red import Cliente
+from radar.red import Cliente, ErrorDescarga
 from radar.store.db import Store
 
 
@@ -61,14 +62,40 @@ def descubrir(operadora: str, cli: Cliente) -> tuple[list[FondoDescubierto], lis
 def descargar(operadora: str, store: Store, cli: Cliente, log=print) -> list[str]:
     """Descarga todo lo descubierto y lo registra fechado por su contenido (sha256)."""
     ad = adaptador(operadora)
-    fondos, docs = ad.descubrir(cli)
-    store.guardar_universo(operadora, fondos)
+    if isinstance(ad, AdaptadorCnbvConDici):
+        # Híbrido: el universo es el de la CNBV; aquí solo se bajan DICI y prospectos.
+        try:
+            fondos, docs = ad.descubrir(cli, claves_cnbv(operadora, ad.clave_cnbv, store))
+        except (ErrorDescarga, ErrorParseo, KeyError, ValueError) as e:
+            # El DICI complementa a la CNBV: si el sitio falla, se avisa y se sigue con R7/R1.
+            return [f"No se pudieron listar los DICI ({type(e).__name__}: {e})"]
+    else:
+        fondos, docs = ad.descubrir(cli)
+        store.guardar_universo(operadora, fondos)
     avisos: list[str] = []
+    faltan: dict[str, list[str]] = {}
     hoy = date.today()
     for d in docs:
-        r = cli.get(d.url)
-        if r.status != 200 or not r.es_pdf:
-            avisos.append(f"{d.fondo_clave or '-'} {d.tipo}: HTTP {r.status} / no es PDF ({d.url})")
+        r, motivo = None, "sin URL publicada"
+        especial = ad.bajar(cli, d) if isinstance(ad, AdaptadorCnbvConDici) else None
+        for url in () if especial is not None else [u for u in d.urls if u]:
+            try:
+                x = cli.get(url)
+            except ErrorDescarga as e:
+                motivo = f"sin respuesta ({e})"
+                continue
+            if x.status == 200 and x.es_pdf:
+                r = x
+                break
+            motivo = f"HTTP {x.status} / no es PDF"
+        if especial is not None:
+            r = especial if especial.es_pdf else None
+            motivo = "la API no devolvió un PDF"
+        if r is None:
+            if d.opcional:
+                faltan.setdefault(d.tipo, []).append(d.fondo_clave or "-")
+            else:
+                avisos.append(f"{d.fondo_clave or '-'} {d.tipo}: {motivo} ({' | '.join(d.urls)})")
             continue
         sha = hashlib.sha256(r.contenido).hexdigest()
         rel = Path("raw") / operadora / f"{sha[:12]}_{_seguro(d.nombre_archivo)}"
@@ -84,7 +111,22 @@ def descargar(operadora: str, store: Store, cli: Cliente, log=print) -> list[str
         store.guardar_documento(Documento(sha, operadora, d.fondo_clave, d.tipo, d.url, rel.as_posix(),
                                           fecha, hoy, len(r.contenido)))
         log(f"  {d.fondo_clave or '-':8s} {d.tipo:18s} {fecha or 's/f'}  {d.nombre_archivo}")
+    for tipo, claves in sorted(faltan.items()):
+        if tipo == "dici":  # un prospecto faltante solo deja el régimen [POR CONFIRMAR]
+            avisos.append(f"Sin DICI publicado ({len(claves)} de {sum(1 for d in docs if d.tipo == tipo)}): "
+                          + ", ".join(sorted(claves)))
     return avisos
+
+
+def claves_cnbv(operadora: str, cve: str | None, store: Store) -> list[str]:
+    """Fondos de la operadora: los del universo guardado más los del R7 más reciente."""
+    r7 = _ultimo(store.documentos(cnbv.OPERADORA, "cnbv_r7"))
+    claves: set[str] = {f.clave for f in store.universo(operadora)}
+    if r7 is not None and cve:
+        alias = alias_fondos(operadora)
+        claves |= {alias.get(k, k) for k in (cnbv._texto(f.datos.get("fondo")) for f in _minfo(r7)
+                                           if cnbv._texto(f.datos.get("operadora")) == cve)}
+    return sorted(claves - {""})
 
 
 def descargar_cnbv(store: Store, cli: Cliente, log=print) -> list[str]:
@@ -265,8 +307,9 @@ def _ultimo(docs: list[Documento]) -> Documento | None:
     return max(docs, key=lambda d: (d.fecha_doc or date.min, d.descargado, d.doc_id)) if docs else None
 
 
-def parsear(operadora: str, store: Store, prm: Parametros, log=print) -> None:
+def parsear(operadora: str, store: Store, prm: Parametros, log=print) -> list[str]:
     """Re-parsea TODOS los documentos guardados. Falla si una cartera no cuadra."""
+    avisos: list[str] = []
     ad = adaptador(operadora)
     docs = store.documentos(operadora)
     nombres = {f.clave: f.nombre_comercial for f in store.universo(operadora)}
@@ -304,15 +347,28 @@ def parsear(operadora: str, store: Store, prm: Parametros, log=print) -> None:
         if d.tipo != "dici":
             continue
         p = _ultimo([x for x in docs if x.tipo == "prospecto" and x.fondo_clave == d.fondo_clave])
+        if p is not None and not (dir_datos() / p.archivo).exists():
+            p = None
+        if not (dir_datos() / d.archivo).exists():
+            # Los DICI de las híbridas no se versionan: en un clon nuevo se conserva lo ya
+            # parseado en el store y el PDF vuelve a bajar en el siguiente fetch.
+            avisos.append(f"DICI {d.fondo_clave}: falta el archivo {d.archivo} (se conserva lo guardado)")
+            continue
         try:
             dici = ad.parsear_dici(dir_datos() / d.archivo, d, (dir_datos() / p.archivo, p) if p else None)
         except ErrorParseo as e:
+            if isinstance(ad, AdaptadorCnbvConDici):
+                # En un híbrido el DICI complementa la cartera de la CNBV: se avisa y se sigue.
+                avisos.append(f"DICI {d.fondo_clave} ({Path(d.archivo).name}): {e}")
+                log(f"  AVISO DICI {d.fondo_clave}: {e}")
+                continue
             raise ErrorParseo(f"{operadora}/{d.fondo_clave} {d.archivo}: {e}") from e
         if not dici.fondo_clave:
             dici.fondo_clave = d.fondo_clave or ""
         store.guardar_dici(dici)
         log(f"  dici    {dici.fondo_clave:8s} {dici.fecha_doc} {len(dici.series)} series")
     store.guardar_perfil(ad.perfil(store.dicis(operadora)))
+    return avisos
 
 
 def corte_a_lo_mas(store: Store, operadora: str, fecha: str) -> date:

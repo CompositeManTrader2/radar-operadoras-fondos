@@ -14,6 +14,24 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 import pdfplumber
+from pdfminer.pdffont import TrueTypeFont
+
+# pdfminer no implementa el cmap TrueType formato 12 (algunos DICI de BlackRock) y truena la
+# página completa con AssertionError('Unhandled', 12). Se trata como "sin cmap embebido": pdfminer
+# usa entonces el ToUnicode del PDF, que es la fuente correcta del texto.
+_crear_mapa = TrueTypeFont.create_unicode_map
+
+
+def _crear_mapa_tolerante(self):
+    try:
+        return _crear_mapa(self)
+    except AssertionError as e:
+        if "Unhandled" in str(e):
+            raise TrueTypeFont.CMapNotFound from e
+        raise
+
+
+TrueTypeFont.create_unicode_map = _crear_mapa_tolerante
 
 
 @dataclass(frozen=True)

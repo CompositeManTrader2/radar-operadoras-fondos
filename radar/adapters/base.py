@@ -27,6 +27,14 @@ class DocARevisar:
     tipo: str          # cartera_mensual | cartera_diaria | dici | prospecto | prospecto_generico
     url: str
     nombre_archivo: str
+    #: URLs de respaldo (otra copia del mismo documento), en orden de preferencia
+    alternativas: tuple[str, ...] = ()
+    #: si no existe en ninguna URL no es error: se junta en un solo aviso de cobertura
+    opcional: bool = False
+
+    @property
+    def urls(self) -> tuple[str, ...]:
+        return (self.url, *self.alternativas)
 
 
 class Adaptador(ABC):
@@ -106,6 +114,46 @@ def _es_renglon_rv(etiqueta: str) -> bool:
     return "renta variable" in n or ("acciones" in n and "deuda" not in n)
 
 
+def _regimen_por_inciso(region, hdr: Fila, x_min: float) -> list[tuple[str, float, float]] | None:
+    """Tabla con incisos "a. …" (BlackRock). None si no aplica o no se puede leer."""
+    literales = [f for f, _, _ in region if re.match(r"^[a-z]\.\s", f.texto)]
+    if len(literales) < 3:
+        return None
+    renglones: list[tuple[str, float, float]] = []
+    # BlackRock: renglones "a. Valores ...". Las cifras van en el mismo renglón o en
+    # uno propio (arriba, abajo o a media etiqueta); el mínimo en blanco o "--" es 0 %.
+    # Columna (mínimo / máximo) por la X respecto del encabezado. Una tabla con más
+    # de dos cifras por renglón (LifePath: una columna por año) no se puede leer.
+    x_max = next(p.x0 for p in hdr.palabras if "MAXIMO" in sin_acentos(p.texto).upper())
+    corte = (x_min + x_max) / 2
+    textos: dict[int, list[str]] = {i: [] for i in range(len(literales))}
+    cifras: dict[int, list[Palabra]] = {i: [] for i in range(len(literales))}
+    j = -1
+    for f, etiqueta, valores in region:
+        if f in literales:
+            j = literales.index(f)
+            cifras[j].extend(p for p in f.palabras if p.x0 >= x_min - 15 and es_pct(p.texto))
+        elif valores and not etiqueta:
+            # Renglón solo de cifras: va al inciso que empieza justo debajo (<= 8 pt)
+            # o, si no, al inciso en cuyo bloque cae (etiqueta larga centrada).
+            abajo = [k for k, g in enumerate(literales) if 0 <= g.top - f.top <= 8]
+            arriba = [k for k, g in enumerate(literales) if g.top < f.top]
+            i = abajo[0] if abajo else (arriba[-1] if arriba else None)
+            if i is not None:
+                cifras[i].extend(p for p in f.palabras if es_pct(p.texto))
+            continue
+        if j >= 0 and etiqueta:
+            textos[j].append(" ".join(etiqueta))
+    if any(len(v) > 2 for v in cifras.values()):
+        return None
+    for i in range(len(literales)):
+        mx_ = [p for p in cifras[i] if p.x0 >= corte]
+        mn_ = [p for p in cifras[i] if p.x0 < corte]
+        if len(mx_) == 1 and len(mn_) <= 1:
+            renglones.append((" ".join(textos[i]), pct(mn_[0].texto) if mn_ else 0.0, pct(mx_[0].texto)))
+    return renglones
+
+
 def regimen_desde_tabla(paginas, max_paginas: int = 40) -> tuple[float | None, float | None, int | None, list[tuple[str, float, float]]]:
     """Lee la tabla 'PARÁMETROS / MÍNIMO / MÁXIMO' del régimen de inversión.
 
@@ -142,18 +190,27 @@ def regimen_desde_tabla(paginas, max_paginas: int = 40) -> tuple[float | None, f
             etiqueta = [p.texto for p in f.palabras if p.x0 < x_min - 15]
             valores = [p.texto for p in f.palabras if p.x0 >= x_min - 15 and es_pct(p.texto)]
             region.append((f, etiqueta, valores))
-            sin_valores = 0 if len(valores) >= 2 else sin_valores + 1
+            # Un renglón solo con cifras (sin etiqueta) también es de la tabla (BlackRock).
+            sin_valores = 0 if len(valores) >= 2 or (valores and not etiqueta) else sin_valores + 1
             if sin_valores > 9 and any(len(v) >= 2 for _, _, v in region):
                 break
+        if any(len(v) > 3 for _, _, v in region):
+            continue  # una columna por año (LifePath / fecha objetivo): sin mínimo y máximo únicos
         renglones: list[tuple[str, float, float]] = []
         numerada = any(re.match(r"^\d+\)", f.texto) for f, _, _ in region)
-        por_letra = [f for f, _, _ in region if re.match(r"^[a-z]\.\d+", f.texto)]
+        por_letra = [f for f, _, _ in region if re.match(r"^[a-z]\.\d+\b", f.texto)]
         if por_letra:
-            # Compass: renglones "c.1 …", etiquetas centradas alrededor del renglón
-            # numerado y valores apilados en una columna aparte, en el mismo orden.
+            # Compass "c.1 …" con valores apilados: solo si renglones y pares de cifras se
+            # pueden emparejar con certeza; si no, se lee por cercanía (modo Multiva).
             pares = [v for _, _, v in region if len(v) >= 2]
             if not pares or len(pares) > len(por_letra) or len(por_letra) - len(pares) > 1:
-                continue  # no se puede emparejar con certeza
+                por_letra = []
+        lit = None if por_letra or numerada else _regimen_por_inciso(region, hdr, x_min)
+        if lit and any(_es_renglon_rv(r[0]) for r in lit):
+            renglones = lit
+        elif por_letra:
+            # Compass: renglones "c.1 …", etiquetas centradas alrededor del renglón
+            # numerado y valores apilados en una columna aparte, en el mismo orden.
             etiquetas: dict[int, list[tuple[float, str]]] = {i: [] for i in range(len(por_letra))}
             for f, etiqueta, _ in region:
                 if not etiqueta:
@@ -254,8 +311,19 @@ class InconsistenciaDici(str):
     columnas de la misma tabla sí cuadran: error del documento, no del parser."""
 
 
+_RE_NUM = re.compile(r"^-?\d+\.\d+%?$")
+
+
+def _sin_comillas(t: str) -> str:
+    return t.strip("'\"‘’“”")
+
+
 def _columna_comisiones(filas: list[Fila], pct_hdr: Fila, cols_pct: list[float], x_col: float,
-                        contexto: str, serie: str) -> tuple[list[tuple[str, float]], float, int]:
+                        contexto: str, serie: str, cols_todas: list[float] | None = None
+                        ) -> tuple[list[tuple[str, float]], float, int]:
+    """Valores de la columna % de una serie. Acepta '1.4987%' y también '0.46' sin signo
+    (BlackRock) asignando cada número a la columna (% o $) más cercana del encabezado."""
+    cols = cols_todas or cols_pct
     componentes: list[tuple[str, float]] = []
     for f in filas:
         if f.top <= pct_hdr.top:
@@ -265,8 +333,8 @@ def _columna_comisiones(filas: list[Fila], pct_hdr: Fila, cols_pct: list[float],
             break
         if not etiqueta:
             continue
-        propios = [p for p in f.palabras if es_pct(p.texto)
-                   and min(cols_pct, key=lambda x: abs(x - (p.x0 + 10))) == x_col]
+        propios = [p for p in f.palabras if _RE_NUM.match(p.texto) and p.x0 >= min(cols_pct) - 30
+                   and min(cols, key=lambda x: abs(x - (p.x0 + 10))) == x_col]
         if len(propios) > 1:
             raise ErrorParseo(f"{contexto}: más de un % en la columna de la serie {serie} en '{etiqueta}'")
         if norm(etiqueta).startswith("total"):
@@ -295,21 +363,22 @@ def comisiones_del_fondo(filas: list[Fila], serie: str, inicio: str,
     if ini is None:
         return None, None, None
     filas = filas[ini:]
-    hdr = next((f for f in filas if serie in [p.texto for p in f.palabras]), None)
+    hdr = next((f for f in filas if serie in [_sin_comillas(p.texto) for p in f.palabras]), None)
     if hdr is None:
         raise ErrorParseo(f"{contexto}: sin encabezado de serie {serie} en comisiones")
-    x_serie = next(p.x0 for p in hdr.palabras if p.texto == serie)
+    x_serie = next(p.x0 for p in hdr.palabras if _sin_comillas(p.texto) == serie)
     pct_hdr = next((f for f in filas if f.top > hdr.top and "%" in [p.texto for p in f.palabras]), None)
     if pct_hdr is None:
         raise ErrorParseo(f"{contexto}: sin encabezado de columnas % en comisiones")
     cols_pct = [p.x0 for p in pct_hdr.palabras if p.texto == "%"]
+    cols_todas = [p.x0 for p in pct_hdr.palabras if p.texto in ("%", "$")]
     x_col = min(cols_pct, key=lambda x: abs(x - x_serie))
-    componentes, total, decimales = _columna_comisiones(filas, pct_hdr, cols_pct, x_col, contexto, serie)
+    componentes, total, decimales = _columna_comisiones(filas, pct_hdr, cols_pct, x_col, contexto, serie, cols_todas)
     inconsistencia = None
     if not _cuadra(componentes, total, decimales):
         suma = sum(v for _, v in componentes)
         otras = [c for c in cols_pct if c != x_col]
-        if otras and all(_cuadra(*_columna_comisiones(filas, pct_hdr, cols_pct, c, contexto, serie)) for c in otras):
+        if otras and all(_cuadra(*_columna_comisiones(filas, pct_hdr, cols_pct, c, contexto, serie, cols_todas)) for c in otras):
             inconsistencia = InconsistenciaDici(
                 f"Comisiones serie {serie}: el DICI publica un total de {total:.4%} pero sus componentes "
                 f"suman {suma:.4%} ({contexto}); las demás series de la tabla sí cuadran"
@@ -357,11 +426,11 @@ def regimen_prospecto(ruta: Path) -> tuple[float | None, float | None, int | Non
 
 _SUFIJO = (
     r"(?<![A-Za-zÁÉÍÓÚáéíóúñÑ])S\.\s?A\.?(?:\s*de\s*C\.\s?V\.?)?"
-    r"(?:,?\s*(?:S\.O\.F\.I\.?|Sociedad Operadora[^,;]*?de Fondos de Inversi[oó]n|"
+    r"(?:,?\s*(?:S\.O\.F\.I\.?|(?:Sociedad )?Operadora[^,;]*?de Fondos de Inversi[oó]n|"
     r"Distribuidora de Acciones de Fondos de Inversi[oó]n|Instituci[oó]n de Banca M[uú]ltiple[^,;]*?|"
     r"Grupo Financiero\s+[A-ZÁÉÍÓÚ][\w]+|Casa de Bolsa(?=\s*(?:[,;.]|$))|I\.C\.V\.?|Instituci[oó]n Calificadora de Valores))*\.?"
 )
-_RE_ENTE = re.compile(r"\s*(N/A|.+?" + _SUFIJO + r")(?=[,;]?\s+|[,;]?\s*$)", re.I)
+_RE_ENTE = re.compile(r"\s*(N/A|N\.A\.|No Aplica|.+?" + _SUFIJO + r")(?=[,;]?\s+|[,;]?\s*$)", re.I)
 
 
 def entes_por_forma_juridica(texto: str) -> list[str]:

@@ -90,3 +90,26 @@ def test_vistas_de_la_plataforma(entorno):
     f = next(x for x in m.fondos if x.clave == "AXESBMV")
     assert len(V.tramos_rotacion(f)) == 2
     assert V.posiciones(f)["Valor (mdp)"].sum() == pytest.approx(f.total_cartera / 1e6)
+
+
+def test_hibrido_detecta_casa_de_bolsa_hermana_en_el_dici():
+    from radar.adapters.cnbv_generico import AdaptadorCnbvConDici, ConfigCnbv
+    from radar.core.modelo import Dici, Procedencia
+
+    class Prueba(AdaptadorCnbvConDici):
+        marcas = ("ejemplo",)
+
+        def documentos(self, cliente, claves):
+            return []
+
+    cfg = ConfigCnbv("prueba", "Operadora Ejemplo", "OPEJ", "Grupo Ejemplo", False, "", "", "padrón")
+    a = Prueba(cfg)
+
+    def dici(distrib):
+        return Dici("prueba", "F1", None, "", None, None, None, "", "", "", "", distrib, [], None,
+                    Procedencia("x", "d.pdf", 1, None))
+
+    limpio = a.perfil([dici(["Operadora Ejemplo, S.A. de C.V.", "Actinver Casa de Bolsa S.A. de C.V."])])
+    assert limpio.casa_de_bolsa_hermana is False and "Actinver" in limpio.evidencia_casa_de_bolsa
+    sucio = a.perfil([dici(["Casa de Bolsa Ejemplo, S.A. de C.V."])])
+    assert sucio.casa_de_bolsa_hermana is True and "DISCREPANCIA" in sucio.evidencia_casa_de_bolsa

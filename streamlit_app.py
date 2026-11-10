@@ -103,7 +103,9 @@ def pagina_comparativo():
         },
     )
     st.caption("Tier 1 ≥ 4.0 · Tier 2 de 3.0 a 3.9 · Tier 3 < 3.0. Con casa de bolsa hermana: independencia = 1 "
-               "y no puede ser Tier 1 (veto). Fuente CNBV: cortes con ~45 días de rezago, sin DICI (régimen [POR CONFIRMAR]).")
+               "y no puede ser Tier 1 (veto). Fuente CNBV: cortes con ~45 días de rezago; sin DICI el régimen queda "
+               "[POR CONFIRMAR]. «CNBV R7/R1 + DICI»: cartera de la CNBV con régimen, comisiones y distribuidoras "
+               "del DICI de la operadora.")
 
     st.subheader(T.TITULO_DISPERSION)
     pts = V.puntos_dispersion(u, prm)

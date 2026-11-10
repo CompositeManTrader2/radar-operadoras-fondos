@@ -1,29 +1,29 @@
-actinver	OK	fetch	ok
-afirme	OK	fetch	ok
-azimut	OK	fetch	ok
-banorte	OK	fetch	ok
-bbva	OK	fetch	ok
-blackrock	OK	fetch	ok
-btg	OK	fetch	ok
-cifondos	OK	fetch	ok
-compass	OK	fetch	ok
-finaccess	OK	fetch	ok
-finamex	OK	fetch	ok
-franklin	OK	fetch	ok
-gbm	OK	fetch	ok
-hsbc	OK	fetch	ok
-inbursa	OK	fetch	ok
-invex	OK	fetch	ok
-kapital	OK	fetch	ok
-mifel	OK	fetch	ok
-monex	OK	fetch	ok
-multiva	OK	fetch	ok
-nafinsa	OK	fetch	ok
-principal	OK	fetch	ok
-punto	OK	fetch	ok
-santander	OK	fetch	ok
-scotia	OK	fetch	ok
-skandia	OK	fetch	ok
-sura	OK	fetch	ok
-valmex	OK	fetch	ok
-value	OK	fetch	ok
+actinver	OK	fetch	ok	0 doc(s)
+afirme	OK	fetch	ok	0 doc(s)
+azimut	OK	fetch	ok	0 doc(s)
+banorte	OK	fetch	ok	0 doc(s)
+bbva	OK	fetch	ok	0 doc(s)
+blackrock	OK	parse	ok	66 doc(s), DICI al 2026-10-31
+btg	OK	fetch	ok	0 doc(s)
+cifondos	OK	fetch	ok	0 doc(s)
+compass	OK	fetch	ok	49 doc(s), DICI al 2026-10-31
+finaccess	OK	fetch	ok	60 doc(s), DICI al 2026-10-31
+finamex	OK	fetch	ok	0 doc(s)
+franklin	OK	parse	ok	21 doc(s), DICI al 2026-10-30
+gbm	OK	fetch	ok	0 doc(s)
+hsbc	OK	fetch	ok	0 doc(s)
+inbursa	OK	fetch	ok	0 doc(s)
+invex	OK	fetch	ok	0 doc(s)
+kapital	OK	fetch	ok	0 doc(s)
+mifel	OK	fetch	ok	0 doc(s)
+monex	OK	fetch	ok	0 doc(s)
+multiva	OK	fetch	ok	35 doc(s), DICI al 2026-10-31
+nafinsa	OK	fetch	ok	0 doc(s)
+principal	OK	parse	ok	33 doc(s), DICI al 2026-10-30
+punto	OK	fetch	ok	0 doc(s)
+santander	OK	fetch	ok	0 doc(s)
+scotia	OK	fetch	ok	0 doc(s)
+skandia	OK	parse	ok	10 doc(s), DICI al 2026-10-30
+sura	OK	parse	ok	70 doc(s), DICI al 2026-10-31
+valmex	OK	fetch	ok	0 doc(s)
+value	OK	fetch	ok	0 doc(s)

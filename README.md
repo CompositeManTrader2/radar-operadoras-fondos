@@ -31,7 +31,7 @@ operadora (`data/estado.txt`). Una operadora que falla (sitio caído, formato nu
 clasificar) queda registrada en "Estado de los datos" y no detiene a las demás.
 
 **Runner propio (desde 2026-11-10):** la tarea corre en el *self-hosted runner* `radar-pc-mx`
-(etiqueta `radar-mx`) instalado en `%USERPROFILE%ctions-runner-radar`, porque desde los servidores de
+(etiqueta `radar-mx`) instalado en `%USERPROFILE%\actions-runner-radar`, porque desde los servidores de
 GitHub (EE. UU.) el sitio de Finaccess y los archivos de la CNBV no responden. La PC tiene que estar
 encendida con la sesión abierta y el runner corriendo (`run.cmd` en esa carpeta); si no, el trabajo
 espera en la cola hasta 24 h. Quitarlo: `config.cmd remove --token <token>` en esa carpeta.
@@ -94,10 +94,29 @@ línea en `radar/adapters/__init__.py`. Los helpers de tablas de DICI
 ## Cobertura
 
 - **Adaptador propio** (cartera y DICI de la operadora, más CNBV): Finaccess, Multiva, Vinci Compass.
-- **Cobertura CNBV** (R7 cartera mensual + R1 activo neto, ~45 días de rezago, sin DICI): las otras 26
+- **Híbridas** (cartera y activo neto por la CNBV; DICI y prospecto del sitio de la operadora, en
+  `radar/adapters/dici/`): las cinco más grandes sin casa de bolsa propia. Aportan régimen, comisiones,
+  liquidez y distribuidoras; si una distribuidora es casa de bolsa del mismo grupo, el perfil lo marca
+  como hermana aunque el padrón diga lo contrario (DISCREPANCIA). Un DICI ilegible o no publicado es
+  aviso, no error: la operadora sigue con la cartera de la CNBV.
+
+  | Operadora | DICI (2026-11-10) | Fuente |
+  |---|---|---|
+  | BlackRock México | 31 de 40 | blackrock.com y, de respaldo, la copia de Citi (distribuidor) |
+  | SURA IM México | 35 de 36 | API JSON de la página de rendimientos (PDF en base64) |
+  | Principal | 20 de 20 | alias fijos `principal.com.mx/{CLAVE}-DICI` |
+  | Franklin Templeton | 11 de 11 | JSON público de documentos (URL de Widen no predecible) |
+  | Skandia | 5 de 5 | blob público con la clave en la ruta |
+
+  Ninguna lista una casa de bolsa propia: distribuyen por Citi/Banamex, Actinver, GBM, Monex, Multiva,
+  Ve por Más, etc. **Nafinsa** queda solo con CNBV: su sitio tiene un firewall que corta las conexiones
+  que no vienen de un navegador.
+- **Cobertura CNBV** (R7 cartera mensual + R1 activo neto, ~45 días de rezago, sin DICI): las otras 21
   operadoras del padrón, definidas en `config/operadoras_cnbv.toml` con su casa de bolsa hermana según el
   padrón CNBV. Su régimen queda [POR CONFIRMAR] y, mientras su rotación no esté medida (necesita dos
   meses de R7), su calificación es **provisional** y no puede ser Tier 1.
+- Agregar DICI a una operadora CNBV: subclase de `AdaptadorCnbvConDici` en `radar/adapters/dici/` con
+  `documentos(cliente, claves)` (y `bajar()` si el PDF no se baja con un GET) y una línea en `CLASES`.
 - Pasar una operadora a adaptador propio: módulo en `radar/adapters/`, línea en `__init__.py` y quitarla
   del TOML. Si la clave del fondo en la CNBV difiere de la de la operadora, va en `config/alias_fondos.toml`
   (el pipeline avisa cuando detecta un traslape de posiciones >= 90 %).
@@ -142,6 +161,12 @@ línea en `radar/adapters/__init__.py`. Los helpers de tablas de DICI
   las cifras; se rescatan por carácter y se validan contra el % publicado.
 - **DICI inconsistentes del emisor** (I+USD serie B-FC): si una serie no cuadra y las demás
   de la misma tabla sí, se conserva el Total publicado y se reporta con ‡.
+- **Formatos de DICI y prospecto de las híbridas**: comisiones sin "%" y series entre comillas
+  (BlackRock); distribuidoras separadas por " / " o por comas, cortadas donde empieza la columna de
+  advertencias; tablas de régimen por incisos "a." con las cifras en un renglón propio; tablas con una
+  columna por año (LifePath / fecha objetivo) no se leen ([POR CONFIRMAR]). Si un fondo de deuda (ID..)
+  sale con RV en su régimen (TEMGBIA: acciones de un fondo de bonos), se descarta. pdfminer no
+  implementa el cmap TrueType formato 12: se trata como "sin cmap" y se usa el ToUnicode del PDF.
 - **ETFs de materia prima** (GLD): no son RV ni deuda; se cuentan en RV_ETF y se marcan (e).
 - Supuestos comerciales (probabilidad de alta, fricción) en `config/parametros.toml`.
 

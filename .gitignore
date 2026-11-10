@@ -6,3 +6,11 @@ __pycache__/
 .claude/
 actualizar.log
 # data/raw, data/radar.sqlite y salidas SÍ se versionan: son el histórico de cortes.
+# DICI y prospectos de las operadoras híbridas (CNBV + DICI): pesan cientos de MB y lo que
+# importa (régimen, comisiones, distribuidoras) ya queda en data/radar.sqlite. El runner los
+# conserva entre corridas (checkout con clean: false).
+data/raw/blackrock/
+data/raw/sura/
+data/raw/principal/
+data/raw/franklin/
+data/raw/skandia/

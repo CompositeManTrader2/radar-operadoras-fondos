@@ -49,13 +49,14 @@ def _ejecutar(op: str, etapa: str, fn, store: Store) -> bool:
 
     ahora = datetime.now().strftime("%Y-%m-%d %H:%M")
     try:
-        fn()
+        avisos = fn() or []
     except Exception as e:  # noqa: BLE001 - se registra y se reporta, no se oculta
         detalle = {"pendientes": getattr(e, "pendientes", {})}
         store.guardar_estado(op, ahora, False, etapa, f"{type(e).__name__}: {e}", detalle)
         print(f"  ERROR {op} ({etapa}): {type(e).__name__}: {e}", file=sys.stderr)
         return False
-    store.guardar_estado(op, ahora, True, etapa, "ok")
+    mensaje = "ok" if not avisos else f"ok con {len(avisos)} aviso(s): " + " | ".join(avisos[:5])
+    store.guardar_estado(op, ahora, True, etapa, mensaje, {"avisos": avisos})
     return True
 
 
@@ -76,9 +77,10 @@ def cmd_fetch(a) -> int:
         print(f"== fetch {op}")
 
         def etapa(op=op):
-            for av in descargar(op, store, cli):
+            avisos = descargar(op, store, cli)
+            for av in avisos:
                 print(f"  AVISO {av}")
-            parsear(op, store, prm)
+            return avisos + parsear(op, store, prm)
 
         if not _ejecutar(op, "fetch", etapa, store):
             rc = 1
@@ -208,7 +210,12 @@ def cmd_estado(a) -> int:
     y solo hace commit si cambió."""
     store = Store(ruta_db())
     for e in store.estados():
-        print(f"{e['operadora']}	{'OK' if e['ok'] else 'PENDIENTE'}	{e['etapa']}	{e['mensaje'][:300]}")
+        docs = store.documentos(e["operadora"])
+        dicis = [d.fecha_doc for d in docs if d.tipo == "dici" and d.fecha_doc]
+        # Documentos guardados (por sha256) y DICI más reciente: cambia cuando llega uno nuevo,
+        # aunque el PDF no se versione (los DICI de las híbridas no entran al repositorio).
+        extra = f"	{len(docs)} doc(s)" + (f", DICI al {max(dicis).isoformat()}" if dicis else "")
+        print(f"{e['operadora']}	{'OK' if e['ok'] else 'PENDIENTE'}	{e['etapa']}	{e['mensaje'][:300]}{extra}")
     store.cerrar()
     return 0
 

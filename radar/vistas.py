@@ -24,7 +24,12 @@ class Universo:
 
 
 def fuente_de(clave: str) -> str:
-    return "CNBV R7/R1" if getattr(REGISTRO[clave], "solo_cnbv", False) else "Operadora + CNBV"
+    from radar.adapters.cnbv_generico import AdaptadorCnbv, AdaptadorCnbvConDici
+
+    a = REGISTRO[clave]
+    if isinstance(a, AdaptadorCnbvConDici):
+        return "CNBV R7/R1 + DICI"
+    return "CNBV R7/R1" if isinstance(a, AdaptadorCnbv) else "Operadora + CNBV"
 
 
 def cargar(store: Store, prm: Parametros, corte: dict[str, str] | None = None) -> Universo:
