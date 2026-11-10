@@ -30,6 +30,12 @@ valida y genera entregables; solo hace commit si llegó un documento nuevo o cam
 operadora (`data/estado.txt`). Una operadora que falla (sitio caído, formato nuevo, ETF sin
 clasificar) queda registrada en "Estado de los datos" y no detiene a las demás.
 
+**Limitación conocida (2026-11-10):** desde los servidores de GitHub (EE. UU.) el sitio de Finaccess y
+el portal de archivos de la CNBV (portafolioinfdoctos.cnbv.gob.mx) no responden (probable bloqueo por IP
+extranjera); Multiva, Vinci Compass y el re-procesamiento sí funcionan. Para esas dos fuentes la
+actualización debe correr desde una IP mexicana: un *self-hosted runner* de GitHub Actions o una tarea
+programada local que corra `python -m radar actualizar` y haga push.
+
 ## Uso
 
 ```

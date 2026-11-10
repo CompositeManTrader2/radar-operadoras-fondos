@@ -92,7 +92,11 @@ def descargar_cnbv(store: Store, cli: Cliente, log=print) -> list[str]:
     avisos: list[str] = []
     hoy = date.today()
     for tipo, url in cnbv.urls_vigentes(hoy):
-        r = cli.get(url)
+        try:
+            r = cli.get(url)
+        except Exception as e:  # noqa: BLE001 - un archivo caído no detiene a los demás
+            avisos.append(f"CNBV {tipo}: no se pudo descargar ({type(e).__name__}) {url}")
+            continue
         if r.status != 200 or r.contenido[:2] != b"PK":
             avisos.append(f"CNBV {tipo}: HTTP {r.status} / no es libro de Excel ({url})")
             continue
