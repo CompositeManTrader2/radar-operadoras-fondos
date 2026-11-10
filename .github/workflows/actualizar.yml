@@ -54,10 +54,12 @@ jobs:
           $cambios = git status --porcelain data/raw data/estado.txt
           if ($cambios) {
             git add data/raw data/radar.sqlite data/estado.txt salidas
-            git commit -m "Actualización automática $(Get-Date -Format yyyy-MM-dd)"
+            # Solo ASCII en los pasos de PowerShell: Windows PowerShell 5.1 lee el script temporal
+            # del runner como ANSI y rompe los acentos.
+            git commit -m "Actualizacion automatica $(Get-Date -Format yyyy-MM-dd)"
             git push
           } else {
-            "Sin documentos nuevos ni cambios de estado: no se hace commit."
+            "Sin documentos nuevos ni cambios de estado; no se hace commit (sin cambios)."
           }
 
       - name: Bitácora
