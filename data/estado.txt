@@ -7,7 +7,7 @@ blackrock	OK	fetch	ok
 btg	OK	fetch	ok
 cifondos	OK	fetch	ok
 compass	OK	fetch	ok
-finaccess	PENDIENTE	fetch	ErrorDescarga: No se pudo descargar https://www.finaccess.com.mx/: HTTPSConnectionPool(host='www.finaccess.com.mx', port=443): Max retries exceeded with url: / (Caused by ConnectTimeoutError(<HTTPSConnection(host='www.finaccess.com.mx', port=443) at 0x7b5adb08dc90>, 'Connection to www.finaccess.com.
+finaccess	OK	fetch	ok
 finamex	OK	fetch	ok
 franklin	OK	fetch	ok
 gbm	OK	fetch	ok
