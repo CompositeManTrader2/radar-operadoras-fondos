@@ -95,7 +95,7 @@ línea en `radar/adapters/__init__.py`. Los helpers de tablas de DICI
 
 - **Adaptador propio** (cartera y DICI de la operadora, más CNBV): Finaccess, Multiva, Vinci Compass.
 - **Híbridas** (cartera y activo neto por la CNBV; DICI y prospecto del sitio de la operadora, en
-  `radar/adapters/dici/`): las cinco más grandes sin casa de bolsa propia. Aportan régimen, comisiones,
+  `radar/adapters/dici/`): las seis más grandes sin casa de bolsa propia. Aportan régimen, comisiones,
   liquidez y distribuidoras; si una distribuidora es casa de bolsa del mismo grupo, el perfil lo marca
   como hermana aunque el padrón diga lo contrario (DISCREPANCIA). Un DICI ilegible o no publicado es
   aviso, no error: la operadora sigue con la cartera de la CNBV.
@@ -107,11 +107,12 @@ línea en `radar/adapters/__init__.py`. Los helpers de tablas de DICI
   | Principal | 20 de 20 | alias fijos `principal.com.mx/{CLAVE}-DICI` |
   | Franklin Templeton | 11 de 11 | JSON público de documentos (URL de Widen no predecible) |
   | Skandia | 5 de 5 | blob público con la clave en la ruta |
+  | Nafinsa | 13 de 13 | fichas del sitio (`fund:detail`); un DICI por tipo de adquirente, se toma el de personas físicas |
 
   Ninguna lista una casa de bolsa propia: distribuyen por Citi/Banamex, Actinver, GBM, Monex, Multiva,
-  Ve por Más, etc. **Nafinsa** queda solo con CNBV: su sitio tiene un firewall que corta las conexiones
-  que no vienen de un navegador.
-- **Cobertura CNBV** (R7 cartera mensual + R1 activo neto, ~45 días de rezago, sin DICI): las otras 21
+  Ve por Más, etc.; Nafinsa y Skandia solo se listan a sí mismas. El sitio de Nafinsa a veces deja
+  colgada la primera conexión: los reintentos del cliente HTTP la resuelven (no hace falta navegador).
+- **Cobertura CNBV** (R7 cartera mensual + R1 activo neto, ~45 días de rezago, sin DICI): las otras 20
   operadoras del padrón, definidas en `config/operadoras_cnbv.toml` con su casa de bolsa hermana según el
   padrón CNBV. Su régimen queda [POR CONFIRMAR] y, mientras su rotación no esté medida (necesita dos
   meses de R7), su calificación es **provisional** y no puede ser Tier 1.

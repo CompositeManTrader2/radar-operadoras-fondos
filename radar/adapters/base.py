@@ -293,6 +293,9 @@ def serie_portada(filas: list[Fila]) -> tuple[str, str, str]:
         if not (hdr.top - 3 < f.top < fin.top):
             continue
         s = f.texto_entre(x_clase - 10, x_pos - 5).strip()
+        clase_serie = re.match(r"^[A-Z0-9-]{1,4}\s*/\s*([A-Z0-9-]{1,8})$", s)
+        if clase_serie and not serie:  # Nafinsa: "F / PF1" = clase / serie
+            serie = clase_serie.group(1)
         if s and not serie and re.match(r"^(?=[A-Z0-9-]*[A-Z])[A-Z0-9][A-Z0-9-]{0,7}$", s.split()[0]):
             serie = s.split()[0]
         a = f.texto_entre(x_pos - 5, x_mon - 4).strip()
@@ -364,13 +367,24 @@ def comisiones_del_fondo(filas: list[Fila], serie: str, inicio: str,
         return None, None, None
     filas = filas[ini:]
     hdr = next((f for f in filas if serie in [_sin_comillas(p.texto) for p in f.palabras]), None)
-    if hdr is None:
-        raise ErrorParseo(f"{contexto}: sin encabezado de serie {serie} en comisiones")
-    x_serie = next(p.x0 for p in hdr.palabras if _sin_comillas(p.texto) == serie)
+    x_serie = None
+    if hdr is not None:
+        x_serie = next(p.x0 for p in hdr.palabras if _sin_comillas(p.texto) == serie)
+    else:
+        # Nafinsa: sin nombre de serie; dos columnas, la de esta serie y la "Serie más
+        # representativa". Esta serie es la columna % que NO está bajo ese encabezado.
+        hdr = next((f for f in filas if "serie mas representativa" in norm(f.texto)), None)
+        if hdr is None:
+            raise ErrorParseo(f"{contexto}: sin encabezado de serie {serie} en comisiones")
     pct_hdr = next((f for f in filas if f.top > hdr.top and "%" in [p.texto for p in f.palabras]), None)
     if pct_hdr is None:
         raise ErrorParseo(f"{contexto}: sin encabezado de columnas % en comisiones")
     cols_pct = [p.x0 for p in pct_hdr.palabras if p.texto == "%"]
+    if x_serie is None:
+        if len(cols_pct) != 2:
+            raise ErrorParseo(f"{contexto}: sin encabezado de serie {serie} en comisiones")
+        x_rep = next(p.x0 for p in hdr.palabras if norm(p.texto) == "serie")
+        x_serie = max(cols_pct, key=lambda x: abs(x - x_rep))
     cols_todas = [p.x0 for p in pct_hdr.palabras if p.texto in ("%", "$")]
     x_col = min(cols_pct, key=lambda x: abs(x - x_serie))
     componentes, total, decimales = _columna_comisiones(filas, pct_hdr, cols_pct, x_col, contexto, serie, cols_todas)

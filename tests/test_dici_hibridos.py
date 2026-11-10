@@ -15,7 +15,7 @@ def _dici(op, nombre):
     return REGISTRO[op].parsear_dici(D / nombre, doc(D / nombre, op, None, "dici"), None)
 
 
-@pytest.mark.parametrize("op", ["blackrock", "sura", "principal", "franklin", "skandia"])
+@pytest.mark.parametrize("op", ["blackrock", "sura", "principal", "franklin", "skandia", "nafinsa"])
 def test_registradas_como_hibridas(op):
     assert isinstance(REGISTRO[op], AdaptadorCnbvConDici)
 
@@ -81,3 +81,24 @@ def test_fondo_de_deuda_no_hereda_rv_de_acciones_de_fondos():
     assert rv_coherente("Largo Plazo General (IDLP)", 0.9, 1.0, notas) == (None, None) and "fondo de deuda" in notas[0]
     assert rv_coherente("Discrecional (RVDIS)", 0.0, 1.0, []) == (0.0, 1.0)
     assert rv_coherente("Corto Plazo IDCP", 0.0, 0.0, []) == (0.0, 0.0)
+
+
+def test_nafinsa_indice_y_ficha():
+    from radar.adapters.dici.nafinsa import documentos_de_ficha, fondos_del_indice
+
+    indice = (D / "nafinsa_indice.html").read_bytes().decode("utf-8", "replace")
+    assert fondos_del_indice(indice) == [1, 2, 4, 5, 6, 7, 8, 9, 11, 12, 13, 14, 15]
+    ficha = (D / "nafinsa_ficha_9.html").read_bytes().decode("utf-8", "replace")
+    # Tres DICI (físicas 1647, morales 1648, no sujetas 2040) y la nota metodológica (1767, no es DICI).
+    assert documentos_de_ficha(ficha) == ("NAFINDX", "1647", "2302")
+
+
+def test_nafinsa_dici_sin_nombre_de_serie_en_comisiones():
+    """Clase y serie "F / PF1"; la tabla de comisiones solo dice "Serie más representativa"
+    sobre la segunda columna: esta serie es la otra."""
+    x = _dici("nafinsa", "NAFINDX_pf_dici.pdf")
+    assert x.fondo_clave == "NAFINDX" and [s.serie for s in x.series] == ["PF1", "PF2", "PF3"]
+    s = {v.serie: v for v in x.series}
+    assert s["PF1"].comision_administracion == pytest.approx(0.002365) and s["PF1"].costo_total == pytest.approx(0.00252)
+    assert x.distribuidoras == ["Operadora de Fondos Nafinsa, S.A. de C.V., Sociedad Operadora de Fondos de Inversión"]
+    assert REGISTRO["nafinsa"].perfil([x]).casa_de_bolsa_hermana is False
