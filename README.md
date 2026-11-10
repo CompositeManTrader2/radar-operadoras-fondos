@@ -30,11 +30,11 @@ valida y genera entregables; solo hace commit si llegó un documento nuevo o cam
 operadora (`data/estado.txt`). Una operadora que falla (sitio caído, formato nuevo, ETF sin
 clasificar) queda registrada en "Estado de los datos" y no detiene a las demás.
 
-**Limitación conocida (2026-11-10):** desde los servidores de GitHub (EE. UU.) el sitio de Finaccess y
-el portal de archivos de la CNBV (portafolioinfdoctos.cnbv.gob.mx) no responden (probable bloqueo por IP
-extranjera); Multiva, Vinci Compass y el re-procesamiento sí funcionan. Para esas dos fuentes la
-actualización debe correr desde una IP mexicana: un *self-hosted runner* de GitHub Actions o una tarea
-programada local que corra `python -m radar actualizar` y haga push.
+**Runner propio (desde 2026-11-10):** la tarea corre en el *self-hosted runner* `radar-pc-mx`
+(etiqueta `radar-mx`) instalado en `%USERPROFILE%ctions-runner-radar`, porque desde los servidores de
+GitHub (EE. UU.) el sitio de Finaccess y los archivos de la CNBV no responden. La PC tiene que estar
+encendida con la sesión abierta y el runner corriendo (`run.cmd` en esa carpeta); si no, el trabajo
+espera en la cola hasta 24 h. Quitarlo: `config.cmd remove --token <token>` en esa carpeta.
 
 ## Uso
 
