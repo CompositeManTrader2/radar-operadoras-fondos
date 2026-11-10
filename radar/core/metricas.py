@@ -49,15 +49,18 @@ class Mezcla:
         return sum(self.pct(c) for c in CLASES_RV)
 
 
-def mezcla(c: Cartera, hermanas: dict[str, Cartera], _prof: int = 0) -> Mezcla:
+def mezcla(c: Cartera, hermanas: dict[str, Cartera], _prof: int = 0, excluir: frozenset[str] = frozenset()) -> Mezcla:
     """Mezcla por clase. Las acciones de otros fondos se transparentan con la
-    cartera del fondo subyacente (mismo corte o el más reciente anterior)."""
+    cartera del fondo subyacente (mismo corte o el más reciente anterior), salvo las
+    de `excluir` (fondos hermanos analizados: ya cuentan en su propia cifra)."""
     por = {k: 0.0 for k in CLASES}
     loc = sic = directo = en_fondos = 0.0
     notas: list[str] = []
     for p in c.posiciones:
         if p.categoria is Categoria.FONDO:
             en_fondos += p.valor_razonable
+            if (p.fondo_subyacente or "") in excluir:
+                continue
             sub = hermanas.get(p.fondo_subyacente or "")
             if sub is not None and _prof < 3 and sub.fondo_clave != c.fondo_clave:
                 m = mezcla(sub, hermanas, _prof + 1)
@@ -101,13 +104,13 @@ class Rotacion:
     sin_titulos: float         # monto RV que no se pudo seguir (agregados / sin títulos)
 
 
-def _libro_rv(c: Cartera) -> tuple[dict[str, tuple[float, float, str]], float, float, set[str]]:
-    """Libro de RV por instrumento: (títulos, valor, tipo de valor). Devuelve también
-    los tipos de valor que la cartera reporta en renglones agregados sin emisora."""
+def _libro_rv(c: Cartera) -> tuple[dict[str, tuple[float, float, str]], float, float, dict[str, float]]:
+    """Libro de RV por instrumento: (títulos, valor, tipo de valor). Devuelve también,
+    por tipo de valor, el monto que la cartera reporta en renglones agregados sin emisora."""
     libro: dict[str, tuple[float, float, str]] = {}
     excluido = 0.0
     total = 0.0
-    agregados: set[str] = set()
+    agregados: dict[str, float] = {}
     for p in c.posiciones:
         if p.clase not in CLASES_RV:
             continue
@@ -115,7 +118,7 @@ def _libro_rv(c: Cartera) -> tuple[dict[str, tuple[float, float, str]], float, f
         if p.es_agregado or not p.titulos:
             excluido += p.valor_razonable
             if p.es_agregado:
-                agregados.add(p.tipo_valor)
+                agregados[p.tipo_valor] = agregados.get(p.tipo_valor, 0.0) + p.valor_razonable
             continue
         t, v, _ = libro.get(p.clave_instrumento, (0.0, 0.0, p.tipo_valor))
         libro[p.clave_instrumento] = (t + p.titulos, v + p.valor_razonable, p.tipo_valor)
@@ -123,18 +126,24 @@ def _libro_rv(c: Cartera) -> tuple[dict[str, tuple[float, float, str]], float, f
 
 
 def rotacion_observada(a: Cartera, b: Cartera) -> Rotacion:
-    """Si una cartera agrupa un tipo de valor en renglones sin emisora (Multiva) y la
-    otra lo desglosa (CNBV R7), los instrumentos que solo aparecen en la desglosada
-    se ignoran: no se puede saber si se compraron/vendieron o están en el agregado."""
+    """Si una cartera agrupa un tipo de valor en renglones sin emisora (Multiva,
+    Compass) y la otra lo desglosa (CNBV R7), un instrumento que solo aparece en la
+    desglosada puede estar dentro del agregado: no se cuenta uno por uno. Pero el
+    agregado acota cuánto pudo quedarse: lo que excede su valor es operación segura
+    (ventas seguras >= Σ omitidas en A − agregado en B; simétrico para compras)."""
     if b.fecha_corte <= a.fecha_corte:
         raise ValueError("corte_b debe ser posterior a corte_a")
     la, ta, xa, ga = _libro_rv(a)
     lb, tb, xb, gb = _libro_rv(b)
     compras = ventas = 0.0
+    omitidas_a: dict[str, float] = {}
+    omitidas_b: dict[str, float] = {}
     for k in sorted(set(la) | set(lb)):
         if k not in la and lb[k][2] in ga:
+            omitidas_b[lb[k][2]] = omitidas_b.get(lb[k][2], 0.0) + lb[k][1]
             continue
         if k not in lb and la[k][2] in gb:
+            omitidas_a[la[k][2]] = omitidas_a.get(la[k][2], 0.0) + la[k][1]
             continue
         t_a, v_a, _ = la.get(k, (0.0, 0.0, ""))
         t_b, v_b, _ = lb.get(k, (0.0, 0.0, ""))
@@ -144,6 +153,8 @@ def rotacion_observada(a: Cartera, b: Cartera) -> Rotacion:
             compras += delta
         else:
             ventas += -delta
+    ventas += sum(max(0.0, v - gb.get(tv, 0.0)) for tv, v in omitidas_a.items())
+    compras += sum(max(0.0, v - ga.get(tv, 0.0)) for tv, v in omitidas_b.items())
     meses = (b.fecha_corte - a.fecha_corte).days / DIAS_MES
     # Base: exposición RV promedio escalada a activo neto (para fondos de RV ≈ activo neto).
     base = ((ta / a.total_cartera * a.activo_neto if a.total_cartera else 0.0)
@@ -164,14 +175,17 @@ class BandaRotacion:
 
     @property
     def media(self) -> float:
-        return self.puntual if self.puntual is not None else (self.minimo + self.maximo) / 2
+        """Punto medio de la banda; se usa para la bolsa. No cambia de definición al
+        llegar a N cortes (la cifra puntual es solo para mostrar)."""
+        return (self.minimo + self.maximo) / 2
 
 
 def piso_encadenado(pares: list[Rotacion]) -> float:
     """Piso de rotación anual sobre una cadena de cortes consecutivos:
-    Σ (compras+ventas)/2  /  Σ (base × meses/12).  Es un piso más ajustado que
-    cualquier par aislado: lo operado nunca es menor que la suma de los cambios
-    netos de cada tramo."""
+    Σ (compras+ventas)/2  /  Σ (base × meses/12), es decir, el promedio de los pisos
+    de cada tramo ponderado por exposición × meses. Es >= que comparar directo el
+    primer corte contra el último (lo operado nunca es menor que la suma de los
+    cambios netos de cada tramo); no es >= que cualquier tramo aislado."""
     operado = sum((r.compras + r.ventas) / 2 for r in pares)
     exposicion = sum(r.base * r.meses / 12 for r in pares)
     return operado / exposicion if exposicion else 0.0
@@ -180,13 +194,17 @@ def piso_encadenado(pares: list[Rotacion]) -> float:
 def banda_rotacion(serie: list[Cartera], prm: Parametros) -> BandaRotacion:
     serie = sorted(serie, key=lambda c: c.fecha_corte)
     pares = [rotacion_observada(a, b) for a, b in zip(serie, serie[1:])]
-    pares = [r for r in pares if r.base > 0 and r.meses <= prm.max_meses_par]
+    # Base mínima: 1 % del activo neto promedio (evita pisos de 12x sobre 0.5 mdp).
+    pares = [r for r, (a, b) in zip(pares, zip(serie, serie[1:]))
+             if r.base > 0.01 * (a.activo_neto + b.activo_neto) / 2 and r.meses <= prm.max_meses_par]
     if not pares:
         return BandaRotacion(prm.sin_medicion_min, prm.sin_medicion_max, None, len(serie), False, [])
     piso = piso_encadenado(pares)
-    cortes = len(pares) + 1
-    puntual = piso if cortes >= prm.cortes_para_cifra else None
-    return BandaRotacion(piso, piso * prm.multiplicador_techo, puntual, cortes, True, pares)
+    # Solo cortes de fin de mes cuentan para pasar de banda a cifra puntual.
+    mensuales = {c for r in pares for c in (r.corte_a, r.corte_b)
+                 if next(x for x in serie if x.fecha_corte == c).tipo_doc in ("cartera_mensual", "cnbv_r7")}
+    puntual = piso if len(mensuales) >= prm.cortes_para_cifra else None
+    return BandaRotacion(piso, piso * prm.multiplicador_techo, puntual, len(pares) + 1, True, pares)
 
 
 # -------------------------------------------------------------- por fondo
@@ -212,10 +230,20 @@ class MetricasFondo:
     discrepancias: list[str] = field(default_factory=list)
     notas: list[str] = field(default_factory=list)
     historia: list[Cartera] = field(default_factory=list)
+    en_hermanos: float = 0.0   # valor en acciones de fondos hermanos analizados (excluido)
 
-    # montos escalados a activo neto
+    @property
+    def factor_propio(self) -> float:
+        return 1 - self.en_hermanos / self.total_cartera if self.total_cartera else 1.0
+
+    @property
+    def activo_neto_propio(self) -> float:
+        """Activo neto sin las acciones de fondos hermanos (que ya cuentan en el subyacente)."""
+        return self.activo_neto * self.factor_propio
+
+    # montos escalados a activo neto propio
     def _monto(self, pct: float) -> float:
-        return self.activo_neto * pct
+        return self.activo_neto_propio * pct
 
     @property
     def pct_rv(self) -> float:
@@ -250,7 +278,7 @@ class MetricasFondo:
     def headroom(self) -> float | None:
         if self.rv_max is None:
             return None
-        return max(0.0, self.rv_max - self.pct_rv) * self.activo_neto
+        return max(0.0, self.rv_max - self.pct_rv) * self.activo_neto_propio
 
     def importe_anual(self, rot: float) -> float:
         return self.exposicion_rv * rot * 2
@@ -277,8 +305,15 @@ def dici_para(dicis: list[Dici], clave: str, corte: date) -> Dici | None:
 
 
 def metricas_fondo(c: Cartera, hermanas: dict[str, Cartera], historia: list[Cartera],
-                   dici: Dici | None, prm: Parametros, conciliaciones: list[dict] | None = None) -> MetricasFondo:
-    m = mezcla(c, hermanas)
+                   dici: Dici | None, prm: Parametros, conciliaciones: list[dict] | None = None,
+                   excluir_hermanos: bool = True) -> MetricasFondo:
+    fdf = es_fondo_de_fondos(c, prm.umbral_fondo_de_fondos)
+    # Un fondo que no es FdF pero tiene acciones de fondos hermanos: esa parte se excluye
+    # (doble conteo y no genera ejecución). El FdF se transparenta completo (se excluye entero).
+    hermanos = frozenset(k for k in hermanas if k != c.fondo_clave) if (excluir_hermanos and not fdf) else frozenset()
+    m = mezcla(c, hermanas, excluir=hermanos)
+    en_hermanos = sum(p.valor_razonable for p in c.posiciones
+                      if p.categoria is Categoria.FONDO and (p.fondo_subyacente or "") in hermanos)
     rv_min = dici.rv_min if dici else None
     rv_max = dici.rv_max if dici else None
     notas = list(c.notas) + m.notas
@@ -319,11 +354,12 @@ def metricas_fondo(c: Cartera, hermanas: dict[str, Cartera], historia: list[Cart
         categoria_regulatoria=(dici.categoria_regulatoria if dici else c.categoria),
         fecha_corte=c.fecha_corte, activo_neto=c.activo_neto, activo_neto_estimado=c.activo_neto_estimado,
         total_cartera=c.total_cartera, mezcla=m,
-        es_fondo_de_fondos=es_fondo_de_fondos(c, prm.umbral_fondo_de_fondos),
+        es_fondo_de_fondos=fdf,
         rv_min=rv_min, rv_max=rv_max,
         rotacion=banda_rotacion([h for h in historia if h.fecha_corte <= c.fecha_corte], prm),
         cartera=c, dici=dici, discrepancias=disc, notas=notas,
         historia=[h for h in historia if h.fecha_corte <= c.fecha_corte],
+        en_hermanos=en_hermanos,
     )
 
 
@@ -344,6 +380,7 @@ class Calificacion:
     total: float
     tier: str
     veto: bool
+    provisional: bool = False     # rotación sin medir en > la mitad de la exposición RV: no puede ser Tier 1
 
 
 @dataclass
@@ -356,13 +393,19 @@ class MetricasOperadora:
     excluidos_fdf: list[MetricasFondo]
     no_disponibles: list[tuple[str, str]]
     corte_previo: date | None
-    activo_neto_previo: float | None
+    activo_neto_previo: float | None             # mismos fondos que en el corte actual
+    activo_neto_comparable: float | None = None  # activo neto actual de esos mismos fondos
     sin_cartera: list[tuple[str, str]] = field(default_factory=list)       # administrados sin cartera del corte
     calibracion: tuple[date, float, float] | None = None                    # total cartera vs activo neto CNBV
 
     @property
     def activo_neto(self) -> float:
-        return sum(f.activo_neto for f in self.fondos)
+        """Suma sin doble conteo: excluye acciones de fondos hermanos."""
+        return sum(f.activo_neto_propio for f in self.fondos)
+
+    @property
+    def en_hermanos(self) -> float:
+        return sum(f.activo_neto - f.activo_neto_propio for f in self.fondos)
 
     @property
     def exposicion_rv(self) -> float:
@@ -417,9 +460,20 @@ class MetricasOperadora:
 
     @property
     def momentum(self) -> float | None:
-        if not self.activo_neto_previo:
+        """Crecimiento MENSUAL del activo neto de los mismos fondos entre el corte previo
+        y el actual (comparable entre operadoras con ventanas distintas). Incluye
+        rendimiento de mercado, no solo flujos."""
+        if not self.activo_neto_previo or not self.activo_neto_comparable or not self.corte_previo:
             return None
-        return self.activo_neto / self.activo_neto_previo - 1
+        meses = (self.corte - self.corte_previo).days / DIAS_MES
+        if meses <= 0:
+            return None
+        return (self.activo_neto_comparable / self.activo_neto_previo) ** (1 / meses) - 1
+
+    def fraccion_rotacion_medida(self) -> float:
+        con = [f for f in self.fondos if f.exposicion_rv > 0]
+        tot = sum(f.exposicion_rv for f in con)
+        return sum(f.exposicion_rv for f in con if f.rotacion.medida) / tot if tot else 0.0
 
     def calificacion(self, prm: Parametros) -> Calificacion:
         s_bolsa = escala(self.bolsa_media(prm), prm.bolsa_cortes)
@@ -428,22 +482,24 @@ class MetricasOperadora:
         s_aj = round(1 + 4 * self.pct_directo, 1)
         rot, _ = self.rotacion_ponderada()
         s_rec = escala(rot, prm.rotacion_cortes)
-        ratio = self.headroom / self.exposicion_rv if self.exposicion_rv else 0.0
-        s_head = escala(ratio, prm.headroom_cortes)
-        mom = self.momentum
-        s_mom = 3 if mom is None else (5 if mom >= 0.05 else 4 if mom >= 0 else 2 if mom >= -0.05 else 1)
+        # Headroom: solo sobre fondos con régimen conocido; sin ninguno, neutral (3).
+        con_reg = [f for f in self.fondos if f.rv_max is not None and f.exposicion_rv > 0]
+        exp_reg = sum(f.exposicion_rv for f in con_reg)
+        s_head = escala(sum(f.headroom or 0.0 for f in con_reg) / exp_reg, prm.headroom_cortes) if exp_reg else 3
+        mom = self.momentum   # mensual
+        s_mom = 3 if mom is None else (5 if mom >= 0.015 else 4 if mom >= 0 else 2 if mom >= -0.015 else 1)
         s_hm = (s_head + s_mom) / 2
         sup = prm.supuestos(self.clave, self.perfil.casa_de_bolsa_hermana if self.perfil else None)
         s_fr = sup.friccion_alta if sup else 3
         w = prm.pesos
         total = (w["bolsa"] * s_bolsa + w["independencia"] * s_ind + w["ajuste"] * s_aj
                  + w["recurrencia"] * s_rec + w["headroom"] * s_hm + w["friccion"] * s_fr)
-        total = round(total, 2)
         veto = bool(hermana)
-        if total >= prm.tier1_min and not veto:
+        provisional = self.fraccion_rotacion_medida() < 0.5
+        if total >= prm.tier1_min and not veto and not provisional:
             tier = "Tier 1"
         elif total >= prm.tier2_min:
             tier = "Tier 2"
         else:
             tier = "Tier 3"
-        return Calificacion(s_bolsa, s_ind, s_aj, s_rec, s_hm, s_fr, total, tier, veto)
+        return Calificacion(s_bolsa, s_ind, s_aj, s_rec, s_hm, s_fr, total, tier, veto, provisional)

@@ -49,6 +49,13 @@ def diccionario_etfs() -> dict[str, str]:
 
 
 @lru_cache(maxsize=1)
+def etfs_confianza_media() -> frozenset[str]:
+    """ETFs clasificados con fuente secundaria: se listan como hueco por verificar."""
+    return frozenset(r["ticker"].strip().upper() for r in _leer_csv("etfs.csv")
+                     if r.get("confianza", "alta").strip().lower() != "alta")
+
+
+@lru_cache(maxsize=1)
 def version_diccionario_etfs() -> str:
     for l in (DIR_DATOS / "etfs.csv").read_text(encoding="utf-8").splitlines():
         if l.startswith("# version:"):
@@ -122,9 +129,9 @@ def clasificar_posicion(p: Posicion, contexto: str) -> None:
         p.clase, p.mercado = RV_LOCAL, MERCADO_LOCAL
     elif c is Categoria.ETF_LOCAL:
         sub = subyacente_etf(p.emisora, contexto)
-        p.clase, p.mercado = (RF if sub == "DEUDA" else RV_LOCAL), MERCADO_LOCAL
+        p.clase, p.mercado = (RF if sub == "DEUDA" else RV_ETF if sub == "MATERIA_PRIMA" else RV_LOCAL), MERCADO_LOCAL
         if sub == "MATERIA_PRIMA":
-            p.nota = "ETF de materia prima: contado en renta variable (e)"
+            p.nota = "ETF de materia prima: contado en RV_ETF (e)"
     elif c is Categoria.ACCION_SIC:
         p.clase, p.mercado = RV_SIC, MERCADO_SIC
     elif c is Categoria.ETF_EXTRANJERO:

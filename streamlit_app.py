@@ -95,7 +95,7 @@ def pagina_comparativo():
     st.dataframe(
         vista.drop(columns=["clave"]), hide_index=True, use_container_width=True,
         column_config={
-            "% RV": COL_PCT, "% RV en directo": COL_PCT, "Activos netos (mdp)": COL_MDP, "RV (mdp)": COL_MDP,
+            "% RV": COL_PCT, "% RV en directo": COL_PCT, "Rotación medida (% expos.)": COL_PCT, "Activos netos (mdp)": COL_MDP, "RV (mdp)": COL_MDP,
             "Bolsa mín. (mdp)": COL_MDP, "Bolsa máx. (mdp)": COL_MDP,
             "Ingreso esperado máx. (mdp) (e)": st.column_config.NumberColumn(format="%,.2f"),
             "Rotación media": st.column_config.NumberColumn(format="%.2fx"),

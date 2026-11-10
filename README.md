@@ -5,6 +5,31 @@ guarda el histórico de cortes y produce un one-pager HTML por operadora más un
 comparativo. Fin comercial: decidir a qué operadoras dedicar cobertura de la mesa de
 capitales porque rotan renta variable ejecutable.
 
+## Plataforma
+
+```
+pip install -r requirements.txt
+streamlit run streamlit_app.py
+```
+
+Páginas: **Comparativo** (calificación de las 29 operadoras, filtros, dispersión), **Operadora**
+(los seis bloques del one-pager + descarga del HTML idéntico), **Fondo** (posiciones con su fuente,
+rotación por tramo, régimen, comisiones del DICI), **Estado de los datos** (resultado de la última
+corrida por operadora, ETFs pendientes, conciliaciones) y **Metodología**. Los parámetros de la barra
+lateral solo afectan la sesión; los permanentes están en `config/parametros.toml`.
+
+**Despliegue (Streamlit Community Cloud):** share.streamlit.io → *New app* → este repositorio, rama
+`main`, archivo `streamlit_app.py`. Al ser privado, Streamlit pide autorizar el acceso a la cuenta de
+GitHub. Cada commit de la tarea programada vuelve a desplegar la app con los datos nuevos.
+
+## Actualización automática
+
+`.github/workflows/actualizar.yml` corre `python -m radar actualizar` de lunes a viernes a las 07:00
+(CDMX) y también a mano (*Actions → actualizar-radar → Run workflow*). Descarga todo, re-parsea,
+valida y genera entregables; solo hace commit si llegó un documento nuevo o cambió el estado de una
+operadora (`data/estado.txt`). Una operadora que falla (sitio caído, formato nuevo, ETF sin
+clasificar) queda registrada en "Estado de los datos" y no detiene a las demás.
+
 ## Uso
 
 ```
@@ -60,6 +85,17 @@ línea en `radar/adapters/__init__.py`. Los helpers de tablas de DICI
 - Multiva: el prospecto genérico decide qué fondos administra; lo demás es NO DISPONIBLE.
 - Mismo corte => mismo HTML byte a byte. Texto fijo solo en `render/plantillas.py`.
 
+## Cobertura
+
+- **Adaptador propio** (cartera y DICI de la operadora, más CNBV): Finaccess, Multiva, Vinci Compass.
+- **Cobertura CNBV** (R7 cartera mensual + R1 activo neto, ~45 días de rezago, sin DICI): las otras 26
+  operadoras del padrón, definidas en `config/operadoras_cnbv.toml` con su casa de bolsa hermana según el
+  padrón CNBV. Su régimen queda [POR CONFIRMAR] y, mientras su rotación no esté medida (necesita dos
+  meses de R7), su calificación es **provisional** y no puede ser Tier 1.
+- Pasar una operadora a adaptador propio: módulo en `radar/adapters/`, línea en `__init__.py` y quitarla
+  del TOML. Si la clave del fondo en la CNBV difiere de la de la operadora, va en `config/alias_fondos.toml`
+  (el pipeline avisa cuando detecta un traslape de posiciones >= 90 %).
+
 ## Operadoras
 
 | Clave | Operadora | Casa de bolsa hermana | Cartera | DICI | CNBV |
@@ -84,7 +120,7 @@ línea en `radar/adapters/__init__.py`. Los helpers de tablas de DICI
   hay, solo concilia); R1 sustituye el activo neto estimado cuando coincide la fecha. Las
   macros de los .xlsm nunca se ejecutan (openpyxl en modo datos). R7 no publica total: su
   cuadre es la conciliación contra R1 (‡ si difiere más de 10 %), no la regla de 0.1 %.
-- **Multiva no publica activo neto**: en el corte de la operadora se usa el total de
+- **Multiva y Vinci Compass no publican activo neto**: en el corte de la operadora se usa el total de
   cartera (e), calibrado contra el último R1 disponible (−0.3 % a +1.8 % al 31-ago-2026).
 - **Rotación encadenada**: el piso suma los tramos consecutivos
   (Σ operado/2 entre Σ exposición × meses/12); tramos de más de `MAX_MESES_PAR` meses no
@@ -102,3 +138,18 @@ línea en `radar/adapters/__init__.py`. Los helpers de tablas de DICI
   de la misma tabla sí, se conserva el Total publicado y se reporta con ‡.
 - **ETFs de materia prima** (GLD): no son RV ni deuda; se cuentan en RV_ETF y se marcan (e).
 - Supuestos comerciales (probabilidad de alta, fricción) en `config/parametros.toml`.
+
+## Revisión del modelo (2026-11-10)
+
+Auditoría independiente en `docs/revision_modelo.md` (21 hallazgos). Corregidos: alias de claves
+CNBV ↔ operadora (AXESCSD = AXESCOB, TAURUM = BX+USD); calificación provisional sin rotación medida;
+tenencias en fondos hermanos excluidas (sin doble conteo); momentum mensual con los mismos fondos;
+la rotación media no salta al llegar a 6 cortes y solo cuentan cortes mensuales; ventas seguras con
+renglones agregados; base mínima de 1 % del activo para medir rotación; llave de conciliaciones
+separada por fuente; aviso de R7 parcial; headroom solo sobre fondos con régimen; sin redondeo antes
+del umbral de tier; ETFs de materia prima en una sola clase. Pendientes conscientes: reparto local/SIC
+por tenencia y no por lo operado, control de splits/eventos corporativos, y un solo tramo mensual
+anualizado (Compass) que pesa mucho en la bolsa mientras no haya más cortes.
+
+ETFs: `radar/core/datos/etfs.csv` (549 tickers) con fuente y confianza; los de confianza media se listan
+como hueco en el pie de cada operadora.

@@ -6,7 +6,7 @@ from collections import defaultdict
 
 from radar import __version__
 from radar.config import Parametros
-from radar.core.clasificacion import nombre_emisora_sic, version_diccionario_etfs
+from radar.core.clasificacion import etfs_confianza_media, nombre_emisora_sic, version_diccionario_etfs
 from radar.core.metricas import MetricasFondo, MetricasOperadora
 from radar.core.modelo import CLASES_RV, POR_CONFIRMAR, RF, Categoria
 from radar.render import plantillas as T
@@ -196,12 +196,13 @@ def render_operadora(m: MetricasOperadora, prm: Parametros) -> str:
     filas = []
     for f in sorted(m.fondos, key=lambda x: (-x.activo_neto, x.clave)):
         marca_e = f" {T.MARCA_ESTIMADO}" if f.activo_neto_estimado else ""
+        marca_e += f" {T.MARCA_HERMANOS}" if f.en_hermanos else ""
         marca_d = f' <span class="marca">{T.MARCA_DISCREPANCIA}</span>' if f.discrepancias else ""
         mezcla = barra_apilada([(f.pct_rv, COLOR_CLASE["rv"]), (f.pct_rf, COLOR_CLASE["rf"]), (f.pct_efe, COLOR_CLASE["efe"])])
         filas.append(
             f'<tr title="{e(f.cartera.procedencia.cita())}"><td class="mono">{e(f.clave)}</td><td>{e(f.nombre_corto or "—")}</td>'
             f"<td>{e(T.TIPO_FONDO.get(f.tipo_fondo, f.tipo_fondo))}</td><td>{e(f.categoria_regulatoria)}</td>"
-            f'<td class="num">{mdp(f.activo_neto)}{marca_e}{marca_d}</td><td>{mezcla}</td>'
+            f'<td class="num">{mdp(f.activo_neto_propio)}{marca_e}{marca_d}</td><td>{mezcla}</td>'
             f'<td class="num">{pct(f.pct_rv)}</td><td class="num">{pct(f.pct_rf)}</td><td class="num">{pct(f.pct_efe)}</td>'
             f'<td class="num">{mdp(f.exposicion_rv)}</td><td class="num">{mdp(f.monto_rf)}</td></tr>'
         )
@@ -293,6 +294,10 @@ def _pie(m: MetricasOperadora, prm: Parametros) -> str:
         s.append(T.SUPUESTO_AGREGADOS.format(n=len(otros_tv), mdp=mdp(sum(x.valor_razonable for x in otros_tv))))
     for f in m.fondos:
         s.extend(n for n in f.mezcla.notas)
+    if m.en_hermanos:
+        s.append(T.NOTA_HERMANOS.format(mdp=mdp(m.en_hermanos)))
+    if m.calificacion(prm).provisional:
+        s.append(T.NOTA_PROVISIONAL)
     p.append(f"<h3>{e(T.TITULO_SUPUESTOS)}</h3><ul>" + "".join(f"<li>{e(x)}</li>" for x in s) + "</ul>")
 
     # Huecos
@@ -305,6 +310,11 @@ def _pie(m: MetricasOperadora, prm: Parametros) -> str:
     sin_reg = sorted(f.clave for f in m.fondos if f.rv_max is None)
     if sin_reg:
         h.append(T.HUECO_REGIMEN.format(claves=", ".join(sin_reg)))
+    media = sorted({x.emisora_canonica for f in m.fondos for x in f.cartera.posiciones
+                    if x.categoria in (Categoria.ETF_EXTRANJERO, Categoria.ETF_LOCAL)
+                    and x.emisora_canonica in etfs_confianza_media()})
+    if media:
+        h.append(T.HUECO_ETF_MEDIA.format(claves=", ".join(media), lista=", ".join(media)))
     if est:
         h.append(T.HUECO_ACTIVO_NETO.format(claves=", ".join(sorted(f.clave for f in est))))
     hermana = m.perfil.casa_de_bolsa_hermana if m.perfil else None
@@ -366,7 +376,7 @@ def render_comparativo(ms: list[MetricasOperadora], prm: Parametros, cortes: lis
             f'<td class="num">{q.bolsa:.1f}</td><td class="num">{q.independencia:.1f}{veto}</td>'
             f'<td class="num">{q.ajuste:.1f}</td><td class="num">{q.recurrencia:.1f}</td>'
             f'<td class="num">{q.headroom:.1f}</td><td class="num">{q.friccion:.1f}</td>'
-            f'<td class="num"><b>{q.total:.2f}</b></td><td>{e(q.tier)}</td>'
+            f'<td class="num"><b>{q.total:.2f}</b></td><td>{e(T.TIER_PROVISIONAL.format(tier=q.tier) if q.provisional else q.tier)}</td>'
             f'<td class="num">{banda(lo, hi, mdp)}</td><td class="num">{banda(ilo, ihi, lambda x: mdp(x, 2))}</td></tr>'
         )
     out.append(f'<section class="panel"><h2>{e(T.TITULO_CALIFICACION)}</h2><div class="tabla-scroll"><table class="compacta">'

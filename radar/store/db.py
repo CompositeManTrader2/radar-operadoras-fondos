@@ -193,6 +193,19 @@ class Store:
             ))
         return out
 
+    def borrar_derivados_cnbv(self, operadora: str) -> None:
+        """Re-parseo idempotente: lo que viene de la CNBV se vuelve a ingerir desde los
+        archivos fechados (así un alias nuevo corrige el histórico)."""
+        for (f,) in self.cx.execute("SELECT fondo_clave || '|' || fecha_corte FROM carteras WHERE operadora=? AND tipo_doc='cnbv_r7'",
+                                    (operadora,)).fetchall():
+            fondo, fecha = f.rsplit("|", 1)
+            self.cx.execute("DELETE FROM posiciones WHERE operadora=? AND fondo_clave=? AND fecha_corte=?", (operadora, fondo, fecha))
+        self.cx.execute("DELETE FROM carteras WHERE operadora=? AND tipo_doc='cnbv_r7'", (operadora,))
+        self.cx.execute("DELETE FROM activos_netos WHERE operadora=?", (operadora,))
+        self.cx.execute("DELETE FROM conciliaciones WHERE operadora=?", (operadora,))
+        self.cx.execute("DELETE FROM universo WHERE operadora=? AND nota LIKE 'Solo en CNBV%'", (operadora,))
+        self.cx.commit()
+
     # ------------------------------------------------------- activo neto oficial
     def guardar_activo_neto(self, operadora: str, fondo: str, fecha: date, an: float, proc: Procedencia) -> None:
         self.cx.execute("INSERT OR REPLACE INTO activos_netos VALUES (?,?,?,?,?,?,?)",

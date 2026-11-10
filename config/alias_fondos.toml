@@ -1,0 +1,10 @@
+# Clave del fondo en la CNBV (R1/R7) -> clave con la que lo publica la operadora.
+# Sin alias, el mismo fondo aparecería dos veces (y su rotación quedaría sin medir).
+# Agregar solo con evidencia; el pipeline avisa en "Estado de los datos" cuando un fondo
+# "Solo en CNBV" comparte >= 90 % de sus posiciones con un fondo de la operadora.
+
+[finaccess]
+AXESCSD = "AXESCOB"   # mismas 7 posiciones (IB01, IBTA, BIL, SHV, FLOT, IEF, VDST), R7 ago-2026 vs cartera 10-sep-2026
+
+[compass]
+TAURUM = "BX+USD"     # misma chequera en dólares 0732245 y mismo ETF (VUAA), R7 ago-2026 vs cartera 30-sep-2026

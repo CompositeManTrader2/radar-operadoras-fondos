@@ -1,83 +1,562 @@
 # Diccionario versionado de ETFs. Un ETF NO es renta variable por ser ETF:
 # se clasifica por SUBYACENTE. El parser FALLA ante un ETF que no esté aquí.
-# version: 2026-11-10.2
+# version: 2026-11-10.3
 # subyacente: RV | DEUDA | MATERIA_PRIMA
-# MATERIA_PRIMA (p. ej. oro físico) no es RV ni deuda; como las cinco clases no tienen
-# cubeta de materias primas se cuenta en RV_ETF (se opera vía SIC) y se marca (e).
-# Para agregar: ticker exacto como aparece en la cartera (sin tipo de valor ni serie).
-ticker,subyacente,descripcion
-AAXJ,RV,iShares MSCI All Country Asia ex Japan
-ACWI,RV,iShares MSCI ACWI
-BBJP,RV,JPMorgan BetaBuilders Japan
-EEM,RV,iShares MSCI Emerging Markets
-ESGU,RV,iShares ESG Aware MSCI USA
-EWG,RV,iShares MSCI Germany
-HDV,RV,iShares Core High Dividend
-IBB,RV,iShares Biotechnology
-IDU,RV,iShares U.S. Utilities
-IEMG,RV,iShares Core MSCI Emerging Markets
-IEUR,RV,iShares Core MSCI Europe
-IGV,RV,iShares Expanded Tech-Software Sector
-INDA,RV,iShares MSCI India
-IPAC,RV,iShares Core MSCI Pacific
-ITOT,RV,iShares Core S&P Total U.S. Stock Market
-IWM,RV,iShares Russell 2000
-IYC,RV,iShares U.S. Consumer Discretionary
-IYE,RV,iShares U.S. Energy
-IYG,RV,iShares U.S. Financial Services
-IYH,RV,iShares U.S. Healthcare
-IYJ,RV,iShares U.S. Industrials
-JQUA,RV,JPMorgan U.S. Quality Factor
-KWEB,RV,KraneShares CSI China Internet
-NAFTRAC,RV,iShares NAFTRAC (S&P/BMV IPC) - listado en México
-QQQM,RV,Invesco NASDAQ 100
-RING,RV,iShares MSCI Global Gold Miners
-SPY,RV,SPDR S&P 500
-VAW,RV,Vanguard Materials
-VDC,RV,Vanguard Consumer Staples
-VGT,RV,Vanguard Information Technology
-VHT,RV,Vanguard Health Care
-VIS,RV,Vanguard Industrials
-VOO,RV,Vanguard S&P 500
-VOX,RV,Vanguard Communication Services
-VPU,RV,Vanguard Utilities
-VTV,RV,Vanguard Value
-BIL,DEUDA,SPDR Bloomberg 1-3 Month T-Bill
-FLOT,DEUDA,iShares Floating Rate Bond
-IB01,DEUDA,iShares $ Treasury Bond 0-1yr UCITS
-IB1MXX,DEUDA,iShares Bono 1-3 años (deuda gubernamental mexicana) - listado en México
-IBGS,DEUDA,iShares € Govt Bond 1-3yr UCITS
-IBTA,DEUDA,iShares $ Treasury Bond 1-3yr UCITS
-IEF,DEUDA,iShares 7-10 Year Treasury Bond
-SHV,DEUDA,iShares Short Treasury Bond
-VDST,DEUDA,Vanguard USD Treasury Bond UCITS (corto plazo)
-4BRZ,RV,iShares MSCI Brazil UCITS
-CJPU,RV,ETF de acciones de Japón (UCITS) [POR CONFIRMAR emisor]
-CNXT,RV,VanEck ChiNext
-CPXJ,RV,iShares Core MSCI Pacific ex Japan UCITS
-CQQQ,RV,Invesco China Technology
-ECH,RV,iShares MSCI Chile
-EPP,RV,iShares MSCI Pacific ex Japan
-EWY,RV,iShares MSCI South Korea
-EWZ,RV,iShares MSCI Brazil
-GRID,RV,First Trust NASDAQ Clean Edge Smart Grid Infrastructure
-IEMA,RV,iShares MSCI EM UCITS
-IVV,RV,iShares Core S&P 500
-KBWB,RV,Invesco KBW Bank
-NLR,RV,VanEck Uranium and Nuclear (acciones)
-PPA,RV,Invesco Aerospace & Defense
-SOXX,RV,iShares Semiconductor
-TOPT,RV,iShares Top 20 U.S. Stocks
-VB,RV,Vanguard Small-Cap
-VGK,RV,Vanguard FTSE Europe
-VUAA,RV,Vanguard S&P 500 UCITS (Acc)
-VWCG,RV,Vanguard FTSE Developed Europe UCITS
-XLB,RV,Materials Select Sector SPDR
-XLE,RV,Energy Select Sector SPDR
-XLI,RV,Industrial Select Sector SPDR
-IEI,DEUDA,iShares 3-7 Year Treasury Bond
-SGOV,DEUDA,iShares 0-3 Month Treasury Bond
-USFR,DEUDA,WisdomTree Floating Rate Treasury
-VBIL,DEUDA,Vanguard 0-3 Month Treasury Bill
-TFRN,DEUDA,ETF de Tesoro EE. UU. tasa flotante (UCITS) [POR CONFIRMAR emisor]
-GLD,MATERIA_PRIMA,SPDR Gold Shares (oro físico)
+# MATERIA_PRIMA (oro, plata, petróleo, canastas de commodities) no es RV ni deuda; como las cinco
+# clases no tienen cubeta de materias primas se cuenta en RV_ETF y se marca (e).
+# Inversos y apalancados de renta variable se clasifican RV (se operan como ETF de RV);
+# su exposición económica puede ser corta: ver descripción.
+# confianza: alta (página del emisor o de la bolsa con el símbolo exacto) | media (fuente
+# secundaria: nombre/ISIN vía TradingView, TrackInsight, etc.). Las de confianza media se listan
+# como hueco en el pie de la operadora que las usa.
+# Investigación de 471 tickers del R7 de la CNBV: docs/etfs_investigados.csv (2026-11-10).
+ticker,subyacente,descripcion,fuente,confianza
+AAXJ,RV,iShares MSCI All Country Asia ex Japan,Clasificación inicial; revisada en docs/revision_modelo.md,alta
+ACWI,RV,iShares MSCI ACWI,Clasificación inicial; revisada en docs/revision_modelo.md,alta
+BBJP,RV,JPMorgan BetaBuilders Japan,Clasificación inicial; revisada en docs/revision_modelo.md,alta
+EEM,RV,iShares MSCI Emerging Markets,Clasificación inicial; revisada en docs/revision_modelo.md,alta
+ESGU,RV,iShares ESG Aware MSCI USA,Clasificación inicial; revisada en docs/revision_modelo.md,alta
+EWG,RV,iShares MSCI Germany,Clasificación inicial; revisada en docs/revision_modelo.md,alta
+HDV,RV,iShares Core High Dividend,Clasificación inicial; revisada en docs/revision_modelo.md,alta
+IBB,RV,iShares Biotechnology,Clasificación inicial; revisada en docs/revision_modelo.md,alta
+IDU,RV,iShares U.S. Utilities,Clasificación inicial; revisada en docs/revision_modelo.md,alta
+IEMG,RV,iShares Core MSCI Emerging Markets,Clasificación inicial; revisada en docs/revision_modelo.md,alta
+IEUR,RV,iShares Core MSCI Europe,Clasificación inicial; revisada en docs/revision_modelo.md,alta
+IGV,RV,iShares Expanded Tech-Software Sector,Clasificación inicial; revisada en docs/revision_modelo.md,alta
+INDA,RV,iShares MSCI India,Clasificación inicial; revisada en docs/revision_modelo.md,alta
+IPAC,RV,iShares Core MSCI Pacific,Clasificación inicial; revisada en docs/revision_modelo.md,alta
+ITOT,RV,iShares Core S&P Total U.S. Stock Market,Clasificación inicial; revisada en docs/revision_modelo.md,alta
+IWM,RV,iShares Russell 2000,Clasificación inicial; revisada en docs/revision_modelo.md,alta
+IYC,RV,iShares U.S. Consumer Discretionary,Clasificación inicial; revisada en docs/revision_modelo.md,alta
+IYE,RV,iShares U.S. Energy,Clasificación inicial; revisada en docs/revision_modelo.md,alta
+IYG,RV,iShares U.S. Financial Services,Clasificación inicial; revisada en docs/revision_modelo.md,alta
+IYH,RV,iShares U.S. Healthcare,Clasificación inicial; revisada en docs/revision_modelo.md,alta
+IYJ,RV,iShares U.S. Industrials,Clasificación inicial; revisada en docs/revision_modelo.md,alta
+JQUA,RV,JPMorgan U.S. Quality Factor,Clasificación inicial; revisada en docs/revision_modelo.md,alta
+KWEB,RV,KraneShares CSI China Internet,Clasificación inicial; revisada en docs/revision_modelo.md,alta
+NAFTRAC,RV,iShares NAFTRAC (S&P/BMV IPC) - listado en México,Clasificación inicial; revisada en docs/revision_modelo.md,alta
+QQQM,RV,Invesco NASDAQ 100,Clasificación inicial; revisada en docs/revision_modelo.md,alta
+RING,RV,iShares MSCI Global Gold Miners,Clasificación inicial; revisada en docs/revision_modelo.md,alta
+SPY,RV,SPDR S&P 500,Clasificación inicial; revisada en docs/revision_modelo.md,alta
+VAW,RV,Vanguard Materials,Clasificación inicial; revisada en docs/revision_modelo.md,alta
+VDC,RV,Vanguard Consumer Staples,Clasificación inicial; revisada en docs/revision_modelo.md,alta
+VGT,RV,Vanguard Information Technology,Clasificación inicial; revisada en docs/revision_modelo.md,alta
+VHT,RV,Vanguard Health Care,Clasificación inicial; revisada en docs/revision_modelo.md,alta
+VIS,RV,Vanguard Industrials,Clasificación inicial; revisada en docs/revision_modelo.md,alta
+VOO,RV,Vanguard S&P 500,Clasificación inicial; revisada en docs/revision_modelo.md,alta
+VOX,RV,Vanguard Communication Services,Clasificación inicial; revisada en docs/revision_modelo.md,alta
+VPU,RV,Vanguard Utilities,Clasificación inicial; revisada en docs/revision_modelo.md,alta
+VTV,RV,Vanguard Value,Clasificación inicial; revisada en docs/revision_modelo.md,alta
+BIL,DEUDA,SPDR Bloomberg 1-3 Month T-Bill,Clasificación inicial; revisada en docs/revision_modelo.md,alta
+FLOT,DEUDA,iShares Floating Rate Bond,Clasificación inicial; revisada en docs/revision_modelo.md,alta
+IB01,DEUDA,iShares $ Treasury Bond 0-1yr UCITS,Clasificación inicial; revisada en docs/revision_modelo.md,alta
+IB1MXX,DEUDA,iShares Bono 1-3 años (deuda gubernamental mexicana) - listado en México,Clasificación inicial; revisada en docs/revision_modelo.md,alta
+IBGS,DEUDA,iShares € Govt Bond 1-3yr UCITS,Clasificación inicial; revisada en docs/revision_modelo.md,alta
+IBTA,DEUDA,iShares $ Treasury Bond 1-3yr UCITS,Clasificación inicial; revisada en docs/revision_modelo.md,alta
+IEF,DEUDA,iShares 7-10 Year Treasury Bond,Clasificación inicial; revisada en docs/revision_modelo.md,alta
+SHV,DEUDA,iShares Short Treasury Bond,Clasificación inicial; revisada en docs/revision_modelo.md,alta
+VDST,DEUDA,Vanguard USD Treasury Bond UCITS (corto plazo),Clasificación inicial; revisada en docs/revision_modelo.md,alta
+4BRZ,RV,iShares MSCI Brazil UCITS,Clasificación inicial; revisada en docs/revision_modelo.md,alta
+CJPU,RV,ETF de acciones de Japón (UCITS) [POR CONFIRMAR emisor],Clasificación inicial; revisada en docs/revision_modelo.md,alta
+CNXT,RV,VanEck ChiNext,Clasificación inicial; revisada en docs/revision_modelo.md,alta
+CPXJ,RV,iShares Core MSCI Pacific ex Japan UCITS,Clasificación inicial; revisada en docs/revision_modelo.md,alta
+CQQQ,RV,Invesco China Technology,Clasificación inicial; revisada en docs/revision_modelo.md,alta
+ECH,RV,iShares MSCI Chile,Clasificación inicial; revisada en docs/revision_modelo.md,alta
+EPP,RV,iShares MSCI Pacific ex Japan,Clasificación inicial; revisada en docs/revision_modelo.md,alta
+EWY,RV,iShares MSCI South Korea,Clasificación inicial; revisada en docs/revision_modelo.md,alta
+EWZ,RV,iShares MSCI Brazil,Clasificación inicial; revisada en docs/revision_modelo.md,alta
+GRID,RV,First Trust NASDAQ Clean Edge Smart Grid Infrastructure,Clasificación inicial; revisada en docs/revision_modelo.md,alta
+IEMA,RV,iShares MSCI EM UCITS,Clasificación inicial; revisada en docs/revision_modelo.md,alta
+IVV,RV,iShares Core S&P 500,Clasificación inicial; revisada en docs/revision_modelo.md,alta
+KBWB,RV,Invesco KBW Bank,Clasificación inicial; revisada en docs/revision_modelo.md,alta
+NLR,RV,VanEck Uranium and Nuclear (acciones),Clasificación inicial; revisada en docs/revision_modelo.md,alta
+PPA,RV,Invesco Aerospace & Defense,Clasificación inicial; revisada en docs/revision_modelo.md,alta
+SOXX,RV,iShares Semiconductor,Clasificación inicial; revisada en docs/revision_modelo.md,alta
+TOPT,RV,iShares Top 20 U.S. Stocks,Clasificación inicial; revisada en docs/revision_modelo.md,alta
+VB,RV,Vanguard Small-Cap,Clasificación inicial; revisada en docs/revision_modelo.md,alta
+VGK,RV,Vanguard FTSE Europe,Clasificación inicial; revisada en docs/revision_modelo.md,alta
+VUAA,RV,Vanguard S&P 500 UCITS (Acc),Clasificación inicial; revisada en docs/revision_modelo.md,alta
+VWCG,RV,Vanguard FTSE Developed Europe UCITS,Clasificación inicial; revisada en docs/revision_modelo.md,alta
+XLB,RV,Materials Select Sector SPDR,Clasificación inicial; revisada en docs/revision_modelo.md,alta
+XLE,RV,Energy Select Sector SPDR,Clasificación inicial; revisada en docs/revision_modelo.md,alta
+XLI,RV,Industrial Select Sector SPDR,Clasificación inicial; revisada en docs/revision_modelo.md,alta
+IEI,DEUDA,iShares 3-7 Year Treasury Bond,Clasificación inicial; revisada en docs/revision_modelo.md,alta
+SGOV,DEUDA,iShares 0-3 Month Treasury Bond,Clasificación inicial; revisada en docs/revision_modelo.md,alta
+USFR,DEUDA,WisdomTree Floating Rate Treasury,Clasificación inicial; revisada en docs/revision_modelo.md,alta
+VBIL,DEUDA,Vanguard 0-3 Month Treasury Bill,Clasificación inicial; revisada en docs/revision_modelo.md,alta
+TFRN,DEUDA,ETF de Tesoro EE. UU. tasa flotante (UCITS) [POR CONFIRMAR emisor],Clasificación inicial; revisada en docs/revision_modelo.md,alta
+GLD,MATERIA_PRIMA,SPDR Gold Shares (oro físico),Clasificación inicial; revisada en docs/revision_modelo.md,alta
+U03AMX,DEUDA,iShares $ Treasury Bond 0-3 Month UCITS ETF (ISIN IE000CZ86N65; Renta fija/Gubernamental); simbolo U03AMX en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/337770/ishares-treasury-bond-0-3-month-ucits-etf,alta
+VMSTX,DEUDA,Vanguard U.S. Treasury 0-1 Year Bond UCITS ETF MXN Hedged Accumulating (ISIN IE00BLRPPW17; Bloomberg Short Treasury Index),https://www.bmv.com.mx/en/issuers/profile/VMSTX-35156,alta
+XTMXX,DEUDA,Xtrackers US Treasuries Ultrashort Bond UCITS ETF 3C - MXN Hedged (ISIN IE00BM97MV06; FTSE US Treasury Short Duration Index),https://in.tradingview.com/symbols/BMV-XTMXX/N/,media
+MBIL,DEUDA,JPM BetaBuilders US Treasury Bond 0-1 yr UCITS ETF - MXN Hedged (acc) (ISIN IE000YPFB7Q4; ICE 0-1 Year US Treasury Securities Index),https://www.bmv.com.mx/en/issuers/profile/MBIL-34624,alta
+PR1MX,DEUDA,Amundi US Treasury Bond 0-1Y UCITS ETF MXN Hedged Acc (Amundi Index Solutions; ISIN LU2368674714),https://www.trackinsight.com/en/fund/PR1MX,media
+MB3M,DEUDA,JPM BetaBuilders US Treasury Bond 0-3 Months UCITS ETF - MXN Hedged (acc) (ISIN IE000WFOTC78; ICE 0-3 Month US Treasury Index),https://www.bmv.com.mx/en/issuers/profile/MB3M-35100,alta
+IGLMX,DEUDA,iShares UK Gilts 0-5yr UCITS ETF (ISIN IE00BMVJSD83; Renta fija/Gubernamental); simbolo IGLMX en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/314964/ishares-uk-gilts-0-5yr-ucits-etf,alta
+FRMXNX,DEUDA,iShares $ Floating Rate Bond UCITS ETF (ISIN IE00BDDRDZ46; Renta fija/Crédito); simbolo FRMXNX en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/304324/ishares-floating-rate-bond-ucits-etf,alta
+CSPXX,RV,iShares Core S&P 500 UCITS ETF (ISIN IE00BL3J3G74; Renta variable/Alta capitalización); simbolo CSPXX en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/311863/ishares-core-s-p-500-ucits-etf,alta
+I37MX,DEUDA,iShares $ Treasury Bond 3-7yr UCITS ETF (ISIN IE00BMWB9633; Renta fija/Gubernamental); simbolo I37MX en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/316753/ishares-treasury-bond-3-7yr-ucits-etf,alta
+U03A,DEUDA,iShares $ Treasury Bond 0-3 Month UCITS ETF (ISIN IE000SSFEUS3; Renta fija/Gubernamental); simbolo U03A en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/337771/ishares-treasury-bond-0-3-month-ucits-etf,alta
+CSPX,RV,iShares Core S&P 500 UCITS ETF (ISIN IE00B5BMR087; Renta variable/Alta capitalización); simbolo CSPX en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/253743/ishares-sp-500-b-ucits-etf-acc-fund,alta
+TMX1X,DEUDA,Invesco US Treasury Bond 0-1 Year UCITS ETF MXN Hedged Acc (ISIN IE000RZNG4X9),https://in.tradingview.com/symbols/BMV-TMX1X/N/,media
+SDMXX,DEUDA,iShares $ Short Duration Corp Bond UCITS ETF (ISIN IE00BDDRH631; Renta fija/Crédito); simbolo SDMXX en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/304344/ishares-short-duration-corp-bond-ucits-etf,alta
+VTIP,DEUDA,Vanguard Short-Term Inflation-Protected Securities ETF (Vanguard asset class: Inflation-Indexed Securities),https://investor.vanguard.com/investment-products/etfs/profile/vtip,alta
+BBIL,DEUDA,JPM BetaBuilders US Treasury Bond 0-1 yr UCITS ETF - USD (ISIN IE00BJK3WF00; ICE 0-1 Year US Treasury Securities Index),https://in.tradingview.com/symbols/BMV-BBIL/N,media
+FLOA,DEUDA,iShares $ Floating Rate Bond UCITS ETF (ISIN IE00BDFGJ627; Renta fija/Crédito); simbolo FLOA en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/295859/ishares-floating-rate-bond-ucits-etf,alta
+LQDA,DEUDA,iShares $ Corp Bond UCITS ETF (ISIN IE00BYXYYJ35; Renta fija/Crédito); simbolo LQDA en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/287338/ishares-corp-bond-ucits-etf,alta
+IDTXX,DEUDA,iShares $ Treasury Bond 7-10yr UCITS ETF (ISIN IE00BMWB9294; Renta fija/Gubernamental); simbolo IDTXX en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/316754/ishares-treasury-bond-7-10yr-ucits-etf,alta
+EMBMXX,DEUDA,iShares J.P. Morgan $ EM Bond UCITS ETF (ISIN IE00BDDRH417; Renta fija/Gubernamental); simbolo EMBMXX en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/304342/ishares-j-p-morgan-em-bond-ucits-etf,alta
+VT,RV,Vanguard Total World Stock ETF (Vanguard asset class: International/Global Stock),https://investor.vanguard.com/investment-products/etfs/profile/vt,alta
+BBUS,RV,JPMorgan BetaBuilders U.S. Equity ETF (US-listed; Morningstar US Target Market Exposure Index). Note: the UCITS version JPM BetaBuilders US Equity UCITS ETF trades in SIC as BBUSA; both are US equity,https://stockanalysis.com/quote/bmv/BBUS/,media
+SDIA,DEUDA,iShares $ Short Duration Corp Bond UCITS ETF (ISIN IE00BYXYYP94; Renta fija/Crédito); simbolo SDIA en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/287335/ishares-short-duration-corp-bond-ucits-etf,alta
+SPYM,RV,"State Street® SPDR® Portfolio S&P 500® ETF (ISIN US78464A8541); nota: SPYM tambien es el simbolo Xetra del SPDR MSCI Emerging Markets UCITS ETF (IE00B469F816), tambien RV",https://www.ssga.com/us/en/intermediary/etfs/state-street-spdr-portfolio-sp-500-etf-spym,alta
+AFLMX,DEUDA,Amundi Floating Rate USD Corporate ESG UCITS ETF DR - Hedged MXN (C) (ISIN LU2098887180; USD IG floating rate corporate bonds),https://in.tradingview.com/symbols/BMV-AFLMX/N/,media
+IEFA,RV,iShares Core MSCI EAFE ETF (ISIN US46432F8427; Equity/All Cap),https://www.ishares.com/us/products/244049/ishares-core-msci-eafe-etf,alta
+LQDMX,DEUDA,iShares $ Corp Bond UCITS ETF (ISIN IE00BLF5J438; Renta fija/Crédito); simbolo LQDMX en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/315556/ishares-corp-bond-ucits-etf,alta
+TI5MX,DEUDA,iShares $ TIPS 0-5 UCITS ETF (ISIN IE000AKFKBQ9; Renta fija/Inflación); simbolo TI5MX en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/320486/ishares-tips-0-5-ucits-etf,alta
+IBTMXX,DEUDA,iShares $ Treasury Bond 1-3yr UCITS ETF (ISIN IE00BDDRHB81; Renta fija/Gubernamental); simbolo IBTMXX en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/304347/ishares-treasury-bond-1-3yr-ucits-etf,alta
+VMEX,RV,Vanguard FTSE BIVA Mexico Equity ETF (Mexico-domiciled tracker; FTSE BIVA Index; serie 19),https://www.tradingview.com/symbols/BMV-VMEX/19,media
+IMEAX,RV,iShares Core MSCI Europe UCITS ETF (ISIN IE00BL4KKW48; Renta variable/Alta / Mediana Capitalización); simbolo IMEAX en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/311870/ishares-core-msci-europe-ucits-etf,alta
+IGBUX,DEUDA,iShares Broad Global Govt Bond UCITS ETF USD Hedged (Acc) (ISIN IE0001JK8FV4; Bloomberg Global Aggregate Treasuries Index),https://in.tradingview.com/symbols/BMV-IGBUX/N/,media
+CEMA,RV,iShares MSCI EM Asia UCITS ETF (ISIN IE00B5L8K969; Renta variable/Alta / Mediana Capitalización); simbolo CEMA en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/253723/ishares-msci-em-asia-ucits-etf,alta
+XT0D,DEUDA,Xtrackers US Treasuries Ultrashort Bond UCITS ETF 1C (USD) (ISIN IE00BM97MR69),https://www.tradingview.com/symbols/BMV-XT0D/N/analysis,media
+IUIT,RV,iShares S&P 500 Information Technology Sector UCITS ETF (ISIN IE00B3WJKG14; Renta variable/Alta capitalización); simbolo IUIT en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/280510/ishares-s-p-500-information-technology-sector-ucits-etf,alta
+IJPAX,RV,iShares Core MSCI Japan IMI UCITS ETF (ISIN IE00BL4KKV31; Renta variable/All Cap); simbolo IJPAX en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/311864/ishares-core-msci-japan-imi-ucits-etf,alta
+CNDX,RV,iShares NASDAQ 100 UCITS ETF (ISIN IE00B53SZB19; Renta variable/Alta capitalización); simbolo CNDX en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/253741/ishares-nasdaq-100-ucits-etf,alta
+SPYL,RV,State Street® SPDR® S&P® 500 UCITS ETF (Acc) (ISIN IE000XZSV718); SPYL figura entre los simbolos de cotizacion en la ficha SSGA,https://www.ssga.com/de/de/intermediary/etfs/state-street-spdr-sp-500-ucits-etf-acc-spyl-gy,alta
+500U,RV,Amundi S&P 500 UCITS ETF C USD (swap-based; ISIN LU1681049018),https://in.tradingview.com/symbols/BMV-500U/N/analysis,media
+JPEA,DEUDA,iShares J.P. Morgan $ EM Bond UCITS ETF (ISIN IE00BYXYYK40; Renta fija/Gubernamental); simbolo JPEA en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/287334/ishares-j-p-morgan-em-bond-ucits-etf,alta
+TBLLMX,DEUDA,Franklin US Treasury 0-1 Year UCITS ETF MXN Hedged (Acc) (ISIN IE000VLWPWJ8),https://in.tradingview.com/symbols/BMV-TBLLMX/N/,media
+CBU0,DEUDA,iShares $ Treasury Bond 7-10yr UCITS ETF USD (Acc) (ISIN IE00B3VWN518; Renta fija/Gubernamental); simbolo CBU0 en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/253745/ishares-usd-government-bond-710-ucits-etf-acc-fund,alta
+AGG,DEUDA,iShares Core U.S. Aggregate Bond ETF (ISIN US4642872265; Fixed Income/Multi Sectors),https://www.ishares.com/us/products/239458/ishares-core-u-s-aggregate-bond-etf,alta
+SPXS1,RV,Invesco S&P 500 UCITS ETF Acc (ISIN IE00B3YCGJ38; BMV circular clave SPXS1 serie N),https://bmv.com.mx/docs-pub/sicderec/sicderec_1514337_1.pdf,alta
+EWT,RV,iShares MSCI Taiwan ETF (ISIN US46434G7723; Equity/Large/Mid Cap),https://www.ishares.com/us/products/239686/ishares-msci-taiwan-etf,alta
+VDCA,DEUDA,Vanguard USD Corporate 1-3 Year Bond UCITS ETF (USD) Accumulating (ISIN IE00BGYWSV06),https://www.vanguardsouthamerica.com/en/product/etf/fixed-income/9592/vanguard-usd-corporate-1-3-year-bond-ucits-etf-usd-accumulating,alta
+EWJ,RV,iShares MSCI Japan ETF (ISIN US46434G8226; Equity/Large/Mid Cap),https://www.ishares.com/us/products/239665/ishares-msci-japan-etf,alta
+AFLT,DEUDA,Amundi USD Floating Rate Corporate Bond ESG UCITS ETF - USD Acc (ISIN LU1681040900),https://in.tradingview.com/symbols/BMV-AFLT/N/analysis,media
+QUAL,RV,iShares MSCI USA Quality Factor ETF (ISIN US46432F3394; Equity/Large/Mid Cap),https://www.ishares.com/us/products/256101/ishares-msci-usa-quality-factor-etf,alta
+IHYMXX,DEUDA,iShares $ High Yield Corp Bond UCITS ETF (ISIN IE00BDDRH961; Renta fija/High Yield); simbolo IHYMXX en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/304343/ishares-high-yield-corp-bond-ucits-etf,alta
+BNDW,DEUDA,Vanguard Total World Bond ETF (Vanguard asset class: Taxable Bond),https://investor.vanguard.com/investment-products/etfs/profile/bndw,alta
+MBB,DEUDA,iShares MBS ETF (ISIN US4642885887; Fixed Income/Mortgages),https://www.ishares.com/us/products/239465/ishares-mbs-etf,alta
+XLK,RV,State Street® Technology Select Sector SPDR® ETF (ISIN US81369Y8030),https://www.ssga.com/us/en/intermediary/etfs/state-street-technology-select-sector-spdr-etf-xlk,alta
+ERNA,DEUDA,iShares $ Ultrashort Bond UCITS ETF (ISIN IE00BGCSB447; Renta fija/Crédito); simbolo ERNA en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/297891/ishares-ultrashort-bond-ucits-etf,alta
+JU3M,DEUDA,JPMorgan ETFs (Ireland) ICAV - BetaBuilders US Treasury Bond 1-3 yr UCITS ETF Acc MXN Hedged (ISIN IE000C9RWXK5),https://in.tradingview.com/symbols/BMV-JU3M/N/,media
+EIMI,RV,iShares Core MSCI EM IMI UCITS ETF (ISIN IE00BKM4GZ66; Renta variable/All Cap); simbolo EIMI en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/264659/ishares-msci-emerging-markets-imi-ucits-etf,alta
+VDPA,DEUDA,Vanguard USD Corporate Bond UCITS ETF (USD) Accumulating; ISIN IE00BGYWFK87; Bloomberg Global Aggregate Corporate USD index,https://www.vanguardsouthamerica.com/en/product/etf/fixed-income/9594/vanguard-usd-corporate-bond-ucits-etf-usd-accumulating,alta
+EZU,RV,iShares MSCI Eurozone ETF (ISIN US4642866085; Equity/Large/Mid Cap),https://www.ishares.com/us/products/239644/ishares-msci-eurozone-etf,alta
+IFSU,RV,iShares STOXX USA Equity Multifactor UCITS ETF (ISIN IE00BZ0PKS76; Renta variable/Alta / Mediana Capitalización); simbolo IFSU en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/277532/ishares-stoxx-usa-equity-multifactor-ucits-etf,alta
+CBU7,DEUDA,iShares $ Treasury Bond 3-7yr UCITS ETF (ISIN IE00B3VWN393; Renta fija/Gubernamental); simbolo CBU7 en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/253744/ishares-usd-government-bond-37-ucits-etf-acc-fund,alta
+IUQA,RV,iShares Edge MSCI USA Quality Factor UCITS ETF (ISIN IE00BD1F4L37; Renta variable/Alta / Mediana Capitalización); simbolo IUQA en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/285209/ishares-edge-msci-usa-quality-factor-ucits-etf,alta
+VUDS,DEUDA,Vanguard U.S. Treasury 1-3 Year Bond UCITS ETF USD Acc; ISIN IE000H3Q3AF6; Bloomberg US Treasury 1-3 Year index,https://www.justetf.com/en/etf-profile.html?isin=IE000H3Q3AF6,media
+MCHI,RV,iShares MSCI China ETF (ISIN US46429B6719; Equity/Large/Mid Cap),https://www.ishares.com/us/products/239619/ishares-msci-china-etf,alta
+ITWAX,RV,iShares MSCI Taiwan UCITS ETF (ISIN IE000AJFZ9E4; Renta variable/Alta / Mediana Capitalización); simbolo ITWAX en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/319356/ishares-msci-taiwan-ucits-etf,alta
+VAGU,DEUDA,Vanguard Global Aggregate Bond UCITS ETF - USD Hedged Accumulating; ISIN IE00BG47KJ78; Bloomberg Global Aggregate Float Adjusted and Scaled (USD Hedged),https://www.vanguardsouthamerica.com/es/producto/etf/renta-fija/9600/vanguard-global-aggregate-bond-ucits-etf-usd-hedged-accumulating,alta
+SPTS,DEUDA,State Street® SPDR® Portfolio Short Term Treasury Index ETF (ISIN US78468R1014),https://www.ssga.com/us/en/intermediary/etfs/state-street-spdr-portfolio-short-term-treasury-index-etf-spts,alta
+USC5,DEUDA,State Street® SPDR® Bloomberg 1-5 Year U.S. Corporate Bond UCITS ETF (Acc) (ISIN IE0002H3JQ66); USC5 figura entre los simbolos de cotizacion en la ficha SSGA,https://www.ssga.com/de/de/intermediary/etfs/state-street-spdr-bloomberg-1-5-year-us-corporate-bond-ucits-etf-acc-spp5-gy,alta
+IDTM,DEUDA,iShares $ Treasury Bond 7-10yr UCITS ETF (ISIN IE00B1FZS798; Renta fija/Gubernamental); simbolo IDTM en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/251716/ishares-treasury-bond-710yr-ucits-etf,alta
+IVW,RV,iShares S&P 500 Growth ETF (ISIN US4642873099; Equity/Large Cap),https://www.ishares.com/us/products/239725/ishares-s-p-500-growth-etf,alta
+IMBA,DEUDA,iShares US Mortgage Backed Securities UCITS ETF (ISIN IE00BYXYYN70; Renta fija/Hipotecas); simbolo IMBA en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/287333/ishares-us-mortgage-backed-securities-ucits-etf,alta
+XLF,RV,State Street® Financial Select Sector SPDR® ETF (ISIN US81369Y6059),https://www.ssga.com/us/en/intermediary/etfs/state-street-financial-select-sector-spdr-etf-xlf,alta
+IUFS,RV,iShares S&P 500 Financials Sector UCITS ETF (ISIN IE00B4JNQZ49; Renta variable/Alta capitalización); simbolo IUFS en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/280523/ishares-s-p-500-financials-sector-ucits-etf,alta
+PR1T,DEUDA,Amundi US Treasury Bond 0-1Y UCITS ETF Acc (USD); ISIN LU2182388665; Bloomberg US Short Treasury index,https://in.tradingview.com/symbols/LSE-PR1T,media
+XMED,RV,Xtrackers MSCI Europe UCITS ETF 1C; ISIN LU0274209237; MSCI Europe (also listed BMV as XMED N),https://stockanalysis.com/quote/lon/XMED,media
+JU13,DEUDA,JPMorgan BetaBuilders US Treasury Bond 1-3 yr UCITS ETF - USD (acc); ISIN IE00BD9MMD49,https://www.justetf.com/en-be/etf-profile.html?isin=IE00BD9MMD49,media
+CORP,DEUDA,"iShares Global Corp Bond UCITS ETF (USD Dist, London line CORP); ISIN IE00B7J7TB45; Bloomberg Global Aggregate Corporate. Note: US ticker CORP is PIMCO Investment Grade Corporate Bond Index ETF, also corporate debt (same class)",https://www.ishares.com/uk/individual/en/products/251813/CORP,alta
+SHY,DEUDA,iShares 1-3 Year Treasury Bond ETF (ISIN US4642874576; Fixed Income/Government),https://www.ishares.com/us/products/239452/ishares-1-3-year-treasury-bond-etf,alta
+IVE,RV,iShares S&P 500 Value ETF (ISIN US4642874089; Equity/Large Cap),https://www.ishares.com/us/products/239728/ishares-s-p-500-value-etf,alta
+EMCA,DEUDA,iShares J.P. Morgan $ EM Corp Bond UCITS ETF (ISIN IE00BFM6TD65; Renta fija/Crédito); simbolo EMCA en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/297673/ishares-j-p-morgan-em-corp-bond-ucits-etf,alta
+DHYA,DEUDA,iShares $ High Yield Corp Bond ESG SRI UCITS ETF (ISIN IE00BJK55B31; Renta fija/High Yield); simbolo DHYA en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/309952/ishares-high-yield-corp-bond-esg-sri-ucits-etf,alta
+EFG,RV,iShares MSCI EAFE Growth ETF (ISIN US4642888857; Equity/Large/Mid Cap),https://www.ishares.com/us/products/239622/ishares-msci-eafe-growth-etf,alta
+VIG,RV,Vanguard Dividend Appreciation ETF (Vanguard asset class: Domestic Stock - General),https://investor.vanguard.com/investment-products/etfs/profile/vig,alta
+TRIA,DEUDA,Invesco US Treasury Bond 0-1 Year UCITS ETF Acc (USD); Bloomberg US Treasury Coupons 0-1Y; also listed BMV as TRIA N,https://www.trackinsight.com/en/fund/TRIA,media
+IHYA,DEUDA,iShares $ High Yield Corp Bond UCITS ETF (ISIN IE00BYXYYL56; Renta fija/High Yield); simbolo IHYA en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/287352/ishares-high-yield-corp-bond-ucits-etf,alta
+IUCM,RV,iShares S&P 500 Communication Sector UCITS ETF (ISIN IE00BDDRF478; Renta variable/All Cap); simbolo IUCM en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/304659/ishares-s-p-500-communication-sector-ucits-etf,alta
+XNTK,RV,State Street® SPDR® NYSE Technology ETF (ISIN US78464A1025),https://www.ssga.com/us/en/intermediary/etfs/state-street-spdr-nyse-technology-etf-xntk,alta
+IWB,RV,iShares Russell 1000 ETF (ISIN US4642876225; Equity/Large/Mid Cap),https://www.ishares.com/us/products/239707/ishares-russell-1000-etf,alta
+DFND,RV,iShares Global Aerospace & Defence UCITS ETF (ISIN IE000U9ODG19; Renta variable/All Cap); simbolo DFND en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/334464/ishares-global-aerospace-defence-ucits-etf,alta
+CSKR,RV,iShares MSCI Korea UCITS ETF USD (Acc) (ISIN IE00B5W4TY14; Renta variable/Alta / Mediana Capitalización); simbolo CSKR en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/253733/ishares-msci-korea-ucits-etf-acc-fund,alta
+XUSTX,DEUDA,Xtrackers II US Treasuries UCITS ETF 1C (BMV XUSTX N); ISIN LU1920015796 per TradingView; iBoxx USD Treasuries. Note: one search hit also linked XUSTX to Xtrackers US Treasuries Ultrashort Bond UCITS ETF 3C MXN Hedged (also DEUDA),https://in.tradingview.com/symbols/BMV-XUSTX/N,media
+BLTN,DEUDA,iShares Brazil LTN BRL Govt Bond UCITS ETF (DE) (ISIN DE000A2QP4D2; Renta fija/Flexible); simbolo BLTN en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/344494/ishares-brazil-ltn-brl-govt-bond-ucits-etf-de,alta
+XSPU1,RV,Xtrackers S&P 500 Swap UCITS ETF 1C (BMV XSPU1 N); ISIN LU0490618542; S&P 500,https://in.tradingview.com/symbols/BMV-XSPU1/N,media
+DTLA,DEUDA,iShares $ Treasury Bond 20+yr UCITS ETF (ISIN IE00BFM6TC58; Renta fija/Gubernamental); simbolo DTLA en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/297191/ishares-treasury-bond-20+yr-ucits-etf,alta
+VWO,RV,Vanguard FTSE Emerging Markets ETF (Vanguard asset class: International/Global Stock),https://investor.vanguard.com/investment-products/etfs/profile/vwo,alta
+IUCD,RV,iShares S&P 500 Consumer Discretionary Sector UCITS ETF USD (Acc) (ISIN IE00B4MCHD36; Renta variable/Alta capitalización); simbolo IUCD en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/280526/ishares-s-p-500-consumer-discretionary-sector-ucits-etf-usd-acc,alta
+IUHC,RV,iShares S&P 500 Health Care Sector UCITS ETF (ISIN IE00B43HR379; Renta variable/Alta capitalización); simbolo IUHC en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/280507/ishares-s-p-500-health-care-sector-ucits-etf,alta
+IWMO,RV,iShares Edge MSCI World Momentum Factor UCITS ETF (ISIN IE00BP3QZ825; Renta variable/Alta / Mediana Capitalización); simbolo IWMO en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/270051/ishares-msci-world-momentum-factor-ucits-etf,alta
+ISAC,RV,iShares MSCI All Country World UCITS ETF (ISIN IE00B6R52259; Renta variable/Alta / Mediana Capitalización); simbolo ISAC en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/251850/ishares-msci-acwi-ucits-etf,alta
+GVI,DEUDA,iShares Intermediate Government/Credit Bond ETF (ISIN US4642886125; Fixed Income/Multi Sectors),https://www.ishares.com/us/products/239464/ishares-intermediate-government-credit-bond-etf,alta
+TR7A,DEUDA,Invesco US Treasury Bond 3-7 Year UCITS ETF Acc (USD); ISIN IE00BF2FNR50 per justETF; Bloomberg US Treasury 3-7 Year,https://www.justetf.com/en/etf-profile.html?isin=IE00BF2FNR50,media
+QQQ,RV,"Invesco QQQ Trust, Series 1 (Invesco QQQ ETF); Nasdaq-100 Index",https://www.invesco.com/us/financial-products/etfs/product-detail?audienceType=Investor&ticker=QQQ,alta
+IAU,MATERIA_PRIMA,iShares Gold Trust (ISIN US4642852044; Commodity/Precious Metals),https://www.ishares.com/us/products/239561/ishares-gold-trust,alta
+IUIS,RV,iShares S&P 500 Industrials Sector UCITS ETF (ISIN IE00B4LN9N13; Renta variable/Alta / Mediana Capitalización); simbolo IUIS en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/287109/ishares-s-p-500-industrials-sector-ucits-etf,alta
+R1GR,RV,iShares Russell 1000 Growth UCITS ETF (ISIN IE000NITTFF2; Renta variable/Alta / Mediana Capitalización); simbolo R1GR en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/331965/ishares-russell-1000-growth-ucits-etf,alta
+MTUM,RV,iShares MSCI USA Momentum Factor ETF (ISIN US46432F3964; Equity/Large/Mid Cap),https://www.ishares.com/us/products/251614/ishares-msci-usa-momentum-factor-etf,alta
+EMB,DEUDA,iShares J.P. Morgan USD Emerging Markets Bond ETF (ISIN US4642882819; Fixed Income/Government),https://www.ishares.com/us/products/239572/ishares-j-p-morgan-usd-emerging-markets-bond-etf,alta
+HYG,DEUDA,iShares iBoxx $ High Yield Corporate Bond ETF (ISIN US4642885135; Fixed Income/High Yield),https://www.ishares.com/us/products/239565/ishares-iboxx-high-yield-corporate-bond-etf,alta
+VDEA,DEUDA,Vanguard USD Emerging Markets Government Bond UCITS ETF (USD) Accumulating; ISIN IE00BGYWCB81; Bloomberg EM USD Sovereign + Quasi-Sov Index (VDEA = USD line London/Milan; VEMA = GBP line),https://www.vanguard.co.uk/professional/product/etf/bond/9596/IE00BGYWCB81,alta
+MTXX1,DEUDA,"Amundi Euro Government Bond UCITS ETF Acc (Amundi Core Euro Government Bond UCITS ETF Acc, BMV MTXX1 N); ISIN LU1437018598; Bloomberg Euro Treasury 50bn Bond Index",https://in.tradingview.com/symbols/BMV-MTXX1/N,media
+SPHQ,RV,Invesco S&P 500 Quality ETF (US); S&P 500 Quality Index,https://www.invesco.com/us/financial-products/etfs/product-detail?audienceType=Investor&ticker=SPHQ,alta
+TLT,DEUDA,iShares 20+ Year Treasury Bond ETF (ISIN US4642874329; Fixed Income/Government),https://www.ishares.com/us/products/239454/ishares-20%20-year-treasury-bond-etf,alta
+SGLD,MATERIA_PRIMA,"Invesco Physical Gold ETC (USD); ISIN IE00B579F325; backed by physical gold bullion, LBMA Gold PM price",https://www.tradingview.com/symbols/LSE-SGLD/analysis,media
+IUMO,RV,iShares Edge MSCI USA Momentum Factor UCITS ETF (ISIN IE00BD1F4N50; Renta variable/Alta / Mediana Capitalización); simbolo IUMO en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/285208/ishares-edge-msci-usa-momentum-factor-ucits-etf,alta
+IQLT,RV,iShares MSCI Intl Quality Factor ETF (ISIN US46434V4564; Equity/Large/Mid Cap),https://www.ishares.com/us/products/271540/ishares-msci-intl-quality-factor-etf,alta
+WQDA,RV,iShares MSCI World Quality Dividend Advanced UCITS ETF (ISIN IE00BKPSFC54; Renta variable/Alta / Mediana Capitalización); simbolo WQDA en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/313867/ishares-msci-world-quality-dividend-advanced-ucits-etf,alta
+EWU,RV,iShares MSCI United Kingdom ETF (ISIN US46435G3341; Equity/Large/Mid Cap),https://www.ishares.com/us/products/239690/ishares-msci-united-kingdom-etf,alta
+VCSH,DEUDA,Vanguard Short-Term Corporate Bond ETF (Vanguard asset class: Short-Term Bond),https://investor.vanguard.com/investment-products/etfs/profile/vcsh,alta
+VWRA,RV,Vanguard FTSE All-World UCITS ETF (USD) Accumulating; ISIN IE00BK5BQT80; FTSE All-World index,https://www.ch.vanguard/en/professional/product/etf/equity/9679/ftse-all-world-ucits-etf-usd-accumulating,alta
+GDX,RV,VanEck Gold Miners ETF (acciones de mineras de oro/plata; MarketVector Global Gold Miners Index); nota: existe tambien VanEck Gold Miners UCITS ETF con simbolo GDX en Londres (misma clase RV),https://vaneck.com/us/en/etfs/gdx,alta
+EWI,RV,iShares MSCI Italy ETF (ISIN US46434G8309; Equity/Large/Mid Cap),https://www.ishares.com/us/products/239664/ishares-msci-italy-etf,alta
+IDTP,DEUDA,iShares $ TIPS UCITS ETF (ISIN IE00B1FZSC47; Renta fija/Inflación); simbolo IDTP en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/251714/ishares-tips-ucits-etf,alta
+ARTY,RV,iShares Future AI & Tech ETF (ISIN US46435U5561; Equity/All Cap),https://www.ishares.com/us/products/297905/ishares-future-ai-tech-etf,alta
+SHLD,RV,Global X Defense Tech ETF (US; tracks Global X Defense Tech Index). Note: a Global X Defence Tech UCITS version may share the symbol; same class (equity),https://www.tradingview.com/symbols/AMEX-SHLD/analysis,media
+VAPU,RV,Vanguard FTSE Developed Asia Pacific ex Japan UCITS ETF (USD) Accumulating; ISIN IE00BK5BQZ41,https://www.ch.vanguard/en/private-investor/product/etf/equity/9676/ftse-developed-asia-pacific-ex-japan-ucits,alta
+VJPA,RV,Vanguard FTSE Japan UCITS ETF (USD) Accumulating; ISIN IE00BFMXYX26; tracks FTSE Japan Index,https://www.ch.vanguard/en/professional/product/etf/equity/9674/ftse-japan-ucits-etf-usd-accumulating,alta
+IEGMX,DEUDA,iShares € Govt Bond 0-1yr UCITS ETF (ISIN IE00BMVJSC76; Renta fija/Gubernamental); simbolo IEGMX en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/314963/ishares-govt-bond-0-1yr-ucits-etf,alta
+MEUD,RV,Amundi Core Stoxx Europe 600 UCITS ETF Acc (antes Lyxor STOXX Europe 600 DR) ISIN LU0908500753,https://www.tradingview.com/symbols/EURONEXT-MEUD/profile/,media
+BBEU,RV,JPMorgan BetaBuilders Europe ETF (Morningstar Developed Europe Target Market Exposure Index),https://www.cboe.com/us/equities/listings/listed_products/symbols/BBEU/,alta
+IUVL,RV,iShares Edge MSCI USA Value Factor UCITS ETF (ISIN IE00BD1F4M44; Renta variable/Alta / Mediana Capitalización); simbolo IUVL en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/285207/ishares-edge-msci-usa-value-factor-ucits-etf,alta
+SLV,MATERIA_PRIMA,iShares Silver Trust (ISIN US46428Q1094; Commodity/Precious Metals),https://www.ishares.com/us/products/239855/ishares-silver-trust,alta
+HSWD,RV,HSBC Developed World Screened (ex-Sustainable) Equity UCITS ETF USD Acc; FTSE Developed ESG Low Carbon Select index; ISIN IE00BKY59K37,https://uk.investing.com/etfs/hswd,media
+EFV,RV,iShares MSCI EAFE Value ETF (ISIN US4642888774; Equity/Large/Mid Cap),https://www.ishares.com/us/products/239628/ishares-msci-eafe-value-etf,alta
+XLC,RV,State Street® Communication Services Select Sector SPDR® ETF (ISIN US81369Y8527),https://www.ssga.com/us/en/intermediary/etfs/state-street-communication-services-select-sector-spdr-etf-xlc,alta
+HSPA,RV,"HSBC S&P 500 UCITS ETF USD (Acc); tracks S&P 500, physical replication",https://ng.investing.com/etfs/hspa-london,media
+SLQD,DEUDA,iShares 0-5 Year Investment Grade Corporate Bond ETF (ISIN US46434V1008; Fixed Income/Credit),https://www.ishares.com/us/products/258098/ishares-0-5-year-investment-grade-corporate-bond-etf,alta
+IJPD,RV,iShares MSCI Japan USD Hedged UCITS ETF (Acc) (ISIN IE00BCLWRG39; Renta variable/Alta / Mediana Capitalización); simbolo IJPD en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/257514/ishares-msci-japan-usd-hedged-ucits-etf,alta
+TI5A,DEUDA,iShares $ TIPS 0-5 UCITS ETF (ISIN IE000JXFRNI0; Renta fija/Inflación); simbolo TI5A en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/328198/ishares-tips-0-5-ucits-etf,alta
+EMLB,DEUDA,PIMCO Emerging Markets Advantage Local Bond Index UCITS ETF USD Acc (bonos EM en moneda local) ISIN IE00B4P11460 segun busqueda,https://www.trackinsight.com/en/fund/EMLB,media
+OMFL,RV,Invesco Russell 1000 Dynamic Multifactor ETF,https://www.cboe.com/us/equities/listings/listed_products/symbols/OMFL/,alta
+IGLU,DEUDA,iShares Core UK Gilts UCITS ETF (ISIN IE000578J297; Renta fija/Gubernamental); simbolo IGLU en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/342231/ishares-core-uk-gilts-ucits-etf,alta
+EMGA,DEUDA,iShares J.P. Morgan EM Local Govt Bond UCITS ETF (ISIN IE00BFZPF546; Renta fija/Gubernamental); simbolo EMGA en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/297676/ishares-j-p-morgan-em-local-govt-bond-ucits-etf,alta
+EWC,RV,iShares MSCI Canada ETF (ISIN US4642865095; Equity/Large/Mid Cap),https://www.ishares.com/us/products/239615/ishares-msci-canada-etf,alta
+IUAA,DEUDA,iShares US Aggregate Bond UCITS ETF (ISIN IE00BYXYYM63; Renta fija/Multi Sectores); simbolo IUAA en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/287339/ishares-us-aggregate-bond-ucits-etf,alta
+CTEC2,RV,iShares MSCI China Tech UCITS ETF (ISIN IE000NFR7C63; Renta variable/Alta / Mediana Capitalización); simbolo CTEC2 en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/320429/ishares-msci-china-tech-ucits-etf,alta
+BB3M,DEUDA,JPMorgan BetaBuilders US Treasury Bond 0-3 Months UCITS ETF USD (acc); ISIN IE00BMD8KM66,https://www.tradingview.com/symbols/BIVA-BB3M/N/,media
+SMARTRC,RV,"Actinver Smartshares SMARTRC 14 (Mexican TRAC); Mexican equities - originally S&P/BMV Bursa Optimo index (30 stocks), relaunched 2026 with Morningstar as ~25-stock fundamentals-based Mexican equity portfolio; one aggregator (Trackinsight) attributes it to BBVA but same asset class",https://portal.actinver.com/documents/d/actinver/smartc-3q-2025,media
+AINF,RV,iShares AI Infrastructure UCITS ETF (ISIN IE000X59ZHE2; Renta variable/All Cap); simbolo AINF en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/338777/ishares-ai-infrastructure-ucits-etf,alta
+HLQD,DEUDA,iShares $ Corp Bond Interest Rate Hedged UCITS ETF (ISIN IE00BZ173W74; Renta fija/Crédito); simbolo HLQD en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/297894/ishares-corp-bond-interest-rate-hedged-ucits-etf,alta
+COPX,RV,Global X Copper Miners ETF (acciones de mineras de cobre; Solactive Global Copper Miners TR Index); existe tambien version UCITS (misma clase),https://www.globalxetfs.com/funds/copx?id=0,alta
+RWL,RV,Invesco S&P 500 Revenue ETF (S&P 500 Revenue-Weighted Index),https://stockanalysis.com/etf/rwl/,media
+SPXL,RV,"State Street® SPDR® S&P® 500 UCITS ETF (Acc) (ISIN IE000XZSV718); SPXL figura entre los simbolos de cotizacion en la ficha SSGA; nota: SPXL tambien es Direxion Daily S&P 500 Bull 3X (EE.UU.), tambien RV",https://www.ssga.com/de/de/intermediary/etfs/state-street-spdr-sp-500-ucits-etf-acc-spyl-gy,alta
+STYC,DEUDA,PIMCO US Short-Term High Yield Corporate Bond Index UCITS ETF USD Acc; ISIN IE00BVZ6SQ11,https://www.justetf.com/en/etf-profile.html?isin=IE00BVZ6SQ11,media
+SDHMX,DEUDA,iShares $ Short Duration High Yield Corp Bond UCITS ETF (ISIN IE00BLF5J651; Renta fija/High Yield); simbolo SDHMX en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/315559/ishares-short-duration-high-yield-corp-bond-ucits-etf,alta
+EH1D,DEUDA,iShares Broad € High Yield Corp Bond UCITS ETF (ISIN IE00089J8KM1; Renta fija/High Yield); simbolo EH1D en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/338429/ishares-broad-high-yield-corp-bond-ucits-etf,alta
+ANGELD,RV,Actinver ANGELD 10 - ETF Diario Doble de Bolsa; 2x leveraged daily S&P/BMV IPC (S&P/BMV DDBol index),https://portal.actinver.com/documents/d/actinver/angel_factsheet-1,alta
+STPZ,DEUDA,PIMCO 1-5 Year U.S. TIPS Index Exchange-Traded Fund (bonos del Tesoro ligados a inflacion 1-5 anios),https://www.tradingview.com/symbols/BMV-STPZ/analysis,media
+RSP,RV,Invesco S&P 500 Equal Weight ETF,https://invesco.com/us/en/etf/sp-500-equal-weight-rsp.html,alta
+SPTR,RV,"BNP Paribas Easy S&P 500 II UCITS ETF, C; ISIN LU2993390504 (BMV profile: canastas de acciones, TRAC extranjero)",https://www.bmv.com.mx/en/issuers/profile/SPTR-37557,alta
+BBIN,RV,JPMorgan BetaBuilders International Equity ETF; Morningstar Developed Markets ex-North America Target Market Exposure Index,https://www.cboe.com/us/equities/listings/listed_products/symbols/BBIN/,alta
+IUCS,RV,iShares S&P 500 Consumer Staples Sector UCITS ETF (ISIN IE00B40B8R38; Renta variable/Alta / Mediana Capitalización); simbolo IUCS en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/287102/ishares-s-p-500-consumer-staples-sector-ucits-etf,alta
+USRT,RV,iShares Core U.S. REIT ETF (ISIN US4642885218; Real Estate/Real Estate Securities),https://www.ishares.com/us/products/239544/ishares-core-u-s-reit-etf,alta
+SDHA,DEUDA,iShares $ Short Duration High Yield Corp Bond UCITS ETF (ISIN IE00BZ17CN18; Renta fija/High Yield); simbolo SDHA en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/297889/ishares-short-duration-high-yield-corp-bond-ucits-etf,alta
+SAWD,RV,iShares MSCI World Screened UCITS ETF (ISIN IE00BFNM3J75; Renta variable/Alta / Mediana Capitalización); simbolo SAWD en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/305419/ishares-msci-world-screened-ucits-etf,alta
+VFEA,RV,Vanguard FTSE Emerging Markets UCITS ETF (USD) Accumulating ISIN IE00BK5BR733,https://etfstream.com/etf-screener/VFEA,media
+JPEM,RV,JPMorgan Diversified Return Emerging Markets Equity ETF,https://stockanalysis.com/etf/jpem/holdings/,media
+VITS,DEUDA,Vanguard U.S. Treasury 3-7 Year Bond UCITS ETF USD Acc,https://www.vanguardsouthamerica.com/en/product/etf/fixed-income/E130/us-treasury-3-7-year-bond-ucits-etf-usd-acc,alta
+EUNK,RV,iShares Core MSCI Europe UCITS ETF EUR (Acc) (ISIN IE00B4K48X80; Renta variable/Alta / Mediana Capitalización); simbolo EUNK en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/251861/ishares-msci-europe-ucits-etf-acc-fund,alta
+FDT,RV,First Trust Developed Markets ex-US AlphaDEX Fund; Nasdaq AlphaDEX Developed Markets Ex-US Index,https://www.ftportfolios.com/retail/ETF/ETFsummary.aspx?Ticker=FDT,alta
+VEA,RV,Vanguard FTSE Developed Markets ETF (Vanguard asset class: International/Global Stock),https://investor.vanguard.com/investment-products/etfs/profile/vea,alta
+VMBS,DEUDA,Vanguard Mortgage-Backed Securities ETF (Vanguard asset class: Intermediate-Term Bond),https://investor.vanguard.com/investment-products/etfs/profile/vmbs,alta
+FEZ,RV,State Street® SPDR® EURO STOXX 50® ETF (ISIN US78463X2027),https://www.ssga.com/us/en/intermediary/etfs/state-street-spdr-euro-stoxx-50-etf-fez,alta
+IUES,RV,iShares S&P 500 Energy Sector UCITS ETF (ISIN IE00B42NKQ00; Renta variable/Alta capitalización); simbolo IUES en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/280503/ishares-s-p-500-energy-sector-ucits-etf,alta
+VTI,RV,Vanguard Morningstar Total Stock Market ETF (Vanguard asset class: Domestic Stock - General),https://investor.vanguard.com/investment-products/etfs/profile/vti,alta
+HSUD,RV,HSBC USA Sustainable (Screened) Equity UCITS ETF USD Acc ISIN IE00BKY40J65,https://stockanalysis.com/quote/lon/HSUD,media
+EUFN,RV,iShares MSCI Europe Financials ETF (ISIN US4642891802; Equity/All Cap),https://www.ishares.com/us/products/239645/ishares-msci-europe-financials-etf,alta
+JGHY,DEUDA,JPMorgan Global High Yield Corporate Bond Multi-Factor (Active) UCITS ETF - USD (acc); ISIN IE00BKKCKJ46 per secondary source,https://stockanalysis.com/quote/bit/JGHY/,media
+XLV,RV,State Street® Health Care Select Sector SPDR® ETF (ISIN US81369Y2090),https://www.ssga.com/us/en/intermediary/etfs/state-street-health-care-select-sector-spdr-etf-xlv,alta
+ZPR1,DEUDA,State Street® SPDR® Bloomberg 1-3 Month T-Bill UCITS ETF (Acc) (ISIN IE00BJXRT698); ZPR1 figura entre los simbolos de cotizacion en la ficha SSGA,https://www.ssga.com/de/de/intermediary/etfs/state-street-spdr-bloomberg-1-3-month-t-bill-ucits-etf-acc-zpr1-gy,alta
+CRUD,MATERIA_PRIMA,WisdomTree WTI Crude Oil (ETC on WTI crude oil futures); ISIN GB00B15KXV33,https://www.wisdomtree.com/gb/products/commodities/wisdomtree-wti-crude-oil,alta
+SIL,RV,"Global X Silver Miners ETF; Solactive Global Silver Miners Total Return Index (equity of silver mining companies, not physical silver)",https://kr.tradingview.com/symbols/AMEX-SIL/,media
+ICHN,RV,iShares MSCI China UCITS ETF (ISIN IE00BJ5JPG56; Renta variable/Alta / Mediana Capitalización); simbolo ICHN en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/308751/ishares-msci-china-ucits-etf,alta
+VNRA,RV,Vanguard FTSE North America UCITS ETF (USD) Accumulating ISIN IE00BK5BQW10,https://www.nl.vanguard/professional/product/etf/equity/9680/ftse-north-america-ucits-etf-accumulating,alta
+DIABLOI,RV,ETF Diario Inverso de Bolsa (DIABLOI10); Mexican TRAC replicating daily inverse of S&P/BMV IPC (S&P/BMV DIBol index) - inverse equity,https://stockanalysis.com/quote/bmv/DIABLOI10,media
+XLY,RV,State Street® Consumer Discretionary Select Sector SPDR® ETF (ISIN US81369Y4070),https://www.ssga.com/us/en/intermediary/etfs/state-street-consumer-discretionary-select-sector-spdr-etf-xly,alta
+KRE,RV,State Street® SPDR® S&P® Regional Banking ETF (ISIN US78464A6982),https://www.ssga.com/us/en/intermediary/etfs/state-street-spdr-sp-regional-banking-etf-kre,alta
+URTH,RV,iShares MSCI World ETF (ISIN US4642863926; Equity/Large/Mid Cap),https://www.ishares.com/us/products/239696/ishares-msci-world-etf,alta
+HYS,DEUDA,PIMCO 0-5 Year High Yield Corporate Bond Index Exchange-Traded Fund,https://etfdb.com/etf/HYS/,media
+HSEM,RV,HSBC Emerging Market Screened (formerly Sustainable) Equity UCITS ETF; FTSE Emerging ESG Low Carbon Select Index (note: HSBC MSCI EM UCITS ETF trades as HMEM; both are EM equity),https://stockanalysis.com/quote/epa/HSEM,media
+EZA,RV,iShares MSCI South Africa ETF (ISIN US4642867802; Equity/Large/Mid Cap),https://www.ishares.com/us/products/239680/ishares-msci-south-africa-etf,alta
+IVVPESO,RV,iShares S&P 500 Peso Hedged TRAC (ISIN MX1BIV080006; Renta variable/Alta capitalización); simbolo IVVPESO en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/268675/ishares-sp-500-peso-hedged-trac-fund,alta
+XLRE,RV,State Street® Real Estate Select Sector SPDR® ETF (ISIN US81369Y8600),https://www.ssga.com/us/en/intermediary/etfs/state-street-real-estate-select-sector-spdr-etf-xlre,alta
+CEMQ,RV,iShares Edge MSCI Europe Quality Factor UCITS ETF (ISIN IE00BQN1K562; Renta variable/Alta / Mediana Capitalización); simbolo CEMQ en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/272024/ishares-msci-europe-quality-factor-ucits-etf,alta
+HEWJ,RV,iShares Currency Hedged MSCI Japan ETF (ISIN US46434V8862; Equity/Large/Mid Cap),https://www.ishares.com/us/products/259624/ishares-currency-hedged-msci-japan-etf,alta
+SPMV,RV,iShares Edge S&P 500 Minimum Volatility UCITS ETF (ISIN IE00B6SPMN59; Renta variable/Alta capitalización); simbolo SPMV en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/251383/ishares-sp-500-minimum-volatility-ucits-etf,alta
+OEF,RV,iShares S&P 100 ETF (ISIN US4642871010; Equity/Large Cap),https://www.ishares.com/us/products/239723/ishares-s-p-100-etf,alta
+CEMR,RV,iShares Edge MSCI Europe Momentum Factor UCITS ETF (ISIN IE00BQN1K786; Renta variable/Alta / Mediana Capitalización); simbolo CEMR en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/272019/ishares-msci-europe-momentum-factor-ucits-etf,alta
+XSVM,RV,Invesco S&P SmallCap Value with Momentum ETF ISIN US46137V4804,https://stockanalysis.com/stocks/xsvm/,media
+FIBRATC,RV,FIBRATC14 - BBVA TRAC/ETF tracking S&P/BMV FIBRAS index (Mexican REITs/FIBRAs),https://www.bbva.mx/personas/productos/patrimonial-y-privada/inversiones/etf-s/etf-fibratc.netcash.html,alta
+IGLN,MATERIA_PRIMA,iShares Physical Gold ETC (ISIN IE00B4ND3602; Materias primas/Metales Preciosos); simbolo IGLN en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/258441/ishares-physical-gold-etc-fund,alta
+AGGU,DEUDA,iShares Core Global Aggregate Bond UCITS ETF (ISIN IE00BZ043R46; Renta fija/Crédito); simbolo AGGU en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/291772/ishares-core-global-aggregate-bond-ucits-etf,alta
+IMBS,DEUDA,iShares US Mortgage Backed Securities UCITS ETF (ISIN IE00BZ6V7883; Renta fija/Hipotecas); simbolo IMBS en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/283722/ishares-us-mortgage-backed-securities-ucits-etf,alta
+SXRT,RV,iShares Core EURO STOXX 50 UCITS ETF (ISIN IE00B53L3W79; Renta variable/Alta capitalización); simbolo SXRT en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/253712/ishares-euro-stoxx-50-b-ucits-etf-acc-fund,alta
+IHF,RV,iShares U.S. Healthcare Providers ETF (ISIN US4642888287; Equity/All Cap),https://www.ishares.com/us/products/239510/ishares-u-s-healthcare-providers-etf,alta
+HSJD,RV,HSBC Japan Screened (ex-Sustainable) Equity UCITS ETF USD Acc; ISIN IE00BKY55S33,https://www.trackinsight.com/fund/IE00BKY55S33,media
+IUUS,RV,iShares S&P 500 Utilities Sector UCITS ETF (ISIN IE00B4KBBD01; Renta variable/Alta / Mediana Capitalización); simbolo IUUS en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/287115/ishares-s-p-500-utilities-sector-ucits-etf,alta
+SPPMX,RV,State Street® SPDR® S&P® 500 MXN Hdg UCITS ETF (Acc) (ISIN IE0008L7O3Q6); SPPMX figura entre los simbolos de cotizacion en la ficha SSGA,https://www.ssga.com/de/de/intermediary/etfs/state-street-spdr-sp-500-mxn-hdg-ucits-etf-acc-sppmx-i2,alta
+PICK,RV,iShares MSCI Global Metals & Mining Producers ETF (ISIN US46434G8481; Equity/All Cap),https://www.ishares.com/us/products/239655/ishares-msci-global-metals-mining-producers-etf,alta
+SXR7,RV,iShares Core MSCI EMU UCITS ETF (ISIN IE00B53QG562; Renta variable/Alta / Mediana Capitalización); simbolo SXR7 en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/253729/ishares-msci-emu-ucits-etf,alta
+CCAU,RV,iShares MSCI Canada UCITS ETF (ISIN IE00B52SF786; Renta variable/Alta / Mediana Capitalización); simbolo CCAU en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/253721/ishares-msci-canada-b-ucits-etf,alta
+EQQS,RV,Invesco Nasdaq-100 Swap UCITS ETF Acc; ISIN IE00BNRQM384; synthetic replication of Nasdaq-100,https://stockanalysis.com/quote/lon/EQQS/,media
+VLDS,DEUDA,Vanguard U.S. Treasury 7-10 Year Bond UCITS ETF USD Acc ISIN IE000UXDT343,https://www.vanguard.co.uk/professional/product/etf/bond/E132/vanguard-us-treasury-7-10-year-bond-ucits-etf-usd-acc,alta
+IUMS,RV,iShares S&P 500 Materials Sector UCITS ETF (ISIN IE00B4MKCJ84; Renta variable/Alta / Mediana Capitalización); simbolo IUMS en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/287104/ishares-s-p-500-materials-sector-ucits-etf,alta
+ESGV,RV,Vanguard ESG U.S. Stock ETF (Vanguard asset class: Domestic Stock - General),https://investor.vanguard.com/investment-products/etfs/profile/esgv,alta
+H50A,RV,HSBC EURO STOXX 50 UCITS ETF EUR (Acc); ISIN IE000MWUQBJ0,https://www.trackinsight.com/en/fund/H50A,media
+LQMHX,DEUDA,iShares $ Corp Bond Interest Rate Hedged UCITS ETF (ISIN IE00BLF5J545; Renta fija/Crédito); simbolo LQMHX en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/315557/ishares-corp-bond-interest-rate-hedged-ucits-etf,alta
+DTMXX,DEUDA,iShares $ Treasury Bond 20+yr UCITS ETF (ISIN IE00BMWB9526; Renta fija/Gubernamental); simbolo DTMXX en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/316755/ishares-treasury-bond-20+yr-ucits-etf,alta
+VGSH,DEUDA,Vanguard Short-Term Treasury ETF (Vanguard asset class: Short-Term Bond),https://investor.vanguard.com/investment-products/etfs/profile/vgsh,alta
+EWA,RV,iShares MSCI Australia ETF (ISIN US4642861037; Equity/Large/Mid Cap),https://www.ishares.com/us/products/239607/ishares-msci-australia-etf,alta
+ASHR,RV,Xtrackers Harvest CSI 300 China A-Shares ETF,https://www.tradingview.com/symbols/BMV-ASHR/analysis,media
+I20T,DEUDA,iShares $ Treasury Bond 10-20yr UCITS ETF (ISIN IE000RLUVMR2; Renta fija/Gubernamental); simbolo I20T en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/342734/ishares-treasury-bond-10-20yr-ucits-etf,alta
+MEXTRAC,RV,BBVA MEXTRAC 09 (Fondo de Inversion ETF MEXTRAC); S&P/BMV IPC CompMx Rentable (Trailing Income Equities) ESG Tilted index - Mexican dividend equities,https://www.bbva.mx/personas/productos/patrimonial-y-privada/inversiones/etf-s/etf-mextrac.html,alta
+FLXU,RV,Franklin U.S. Equity UCITS ETF (USD; antes Franklin LibertyQ U.S. Equity) ISIN IE00BF2B0P08,https://www.franklintempleton.co.uk/download/en-gb/factsheet/8f611a8a-a5c3-49be-989d-a3adb169005e/Factsheet-FranklinUSEquityUCITSETF-25802-FF-GB-en-GB.PDF,alta
+ESIF,RV,iShares MSCI Europe Financials Sector UCITS ETF (ISIN IE00BMW42306; Renta variable/Alta / Mediana Capitalización); simbolo ESIF en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/315815/ishares-msci-europe-financials-sector-ucits-etf,alta
+VMCAX,DEUDA,"VANGUARD USD CORPORATE 1-3 YEAR BOND UCITS ETF MXN HEDGED ACCUMULATING; ISIN IE000NATSYT3 (ETF, not a mutual fund; BMV classifies as Renta Fija)",https://www.bmv.com.mx/en/issuers/profile/VMCAX-36448,alta
+LEMB,DEUDA,iShares J.P. Morgan EM Local Currency Bond ETF (ISIN US4642865178; Fixed Income/Government),https://www.ishares.com/us/products/239528/ishares-j-p-morgan-em-local-currency-bond-etf,alta
+PRF,RV,Invesco RAFI US 1000 ETF (formerly Invesco FTSE RAFI US 1000 ETF),https://stockanalysis.com/etf/prf/,media
+MVOL,RV,iShares Edge MSCI World Minimum Volatility UCITS ETF (ISIN IE00B8FHGS14; Renta variable/Alta / Mediana Capitalización); simbolo MVOL en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/251382/ishares-msci-world-minimum-volatility-ucits-etf,alta
+RUSG1,RV,Amundi (ex-Lyxor) Russell 1000 Growth UCITS ETF Acc; ISIN FR0011119171 (newer Irish line IE0005E8B9S4 also listed); Russell 1000 Growth index,https://tipranks.com/etf/gb:rusg,media
+IJPA,RV,iShares Core MSCI Japan IMI UCITS ETF (ISIN IE00B4L5YX21; Renta variable/All Cap); simbolo IJPA en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/251867/ishares-msci-japan-imi-ucits-etf-acc-fund,alta
+VBR,RV,Vanguard Morningstar Small-Cap Value ETF (Vanguard asset class: Domestic Stock - More Aggressive),https://investor.vanguard.com/investment-products/etfs/profile/vbr,alta
+ADLM,DEUDA,BNP Paribas Easy II Bloomberg US Treasury 25Y+ UCITS ETF MXN Acc (H) (antes AXA IM US Treasury 25+ Year UCITS ETF MXN Hedged) ISIN IE000BBMJ8L9,https://www.cboe.com/europe/equities/listings/symbols/ADLMx/?venue=NL,alta
+VEU,RV,Vanguard FTSE All-World ex-US ETF (Vanguard asset class: International/Global Stock),https://investor.vanguard.com/investment-products/etfs/profile/veu,alta
+EMLC,DEUDA,VanEck J.P. Morgan EM Local Currency Bond ETF (J.P. Morgan GBI-EM Global Core Index),https://www.vaneck.com/emlc/,alta
+VECP,DEUDA,Vanguard EUR Corporate Bond UCITS ETF (EUR) Distributing; ISIN IE00BZ163G84,https://www.vanguard.co.uk/professional/product/etf/bond/9659/eur-corporate-bond-ucits-etf-eur-distributing,alta
+CEU2,RV,Amundi MSCI Europe UCITS ETF Acc (Amundi Index Solutions - MSCI Europe UCITS ETF DR); ISIN LU1437015735,https://www.tradingview.com/symbols/EURONEXT-CEU2/analysis,media
+VYM,RV,Vanguard High Dividend Yield ETF (Vanguard asset class: Domestic Stock - General),https://investor.vanguard.com/investment-products/etfs/profile/vym,alta
+REMX,RV,VanEck Rare Earth and Strategic Metals ETF (acciones de productoras de tierras raras/metales estrategicos),https://vaneck.com/us/en/etf/REMX,alta
+TIP,DEUDA,iShares TIPS Bond ETF (ISIN US4642871762; Fixed Income/Inflation),https://www.ishares.com/us/products/239467/ishares-tips-bond-etf,alta
+SPSM,RV,State Street® SPDR® Portfolio S&P 600™ Small Cap ETF (ISIN US78468R8530),https://www.ssga.com/us/en/intermediary/etfs/state-street-spdr-portfolio-sp-600-small-cap-etf-spsm,alta
+HYGU,DEUDA,iShares € High Yield Corp Bond UCITS ETF (ISIN IE00BF3NC260; Renta fija/High Yield); simbolo HYGU en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/291744/ishares-high-yield-corp-bond-ucits-etf,alta
+CSUK,RV,iShares MSCI UK UCITS ETF (ISIN IE00B539F030; Renta variable/Alta / Mediana Capitalización); simbolo CSUK en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/253739/ishares-msci-uk-ucits-etf,alta
+BBLB,DEUDA,JPMorgan BetaBuilders U.S. Treasury Bond 20+ Year ETF (ICE U.S. Treasury 20+ Year Bond Index),https://www.cboe.com/us/equities/listings/listed_products/symbols/BBLB/,alta
+HYDB,DEUDA,iShares High Yield Systematic Bond ETF (ISIN US46435G2509; Fixed Income/High Yield),https://www.ishares.com/us/products/288478/ishares-high-yield-systematic-bond-etf,alta
+XLU,RV,State Street® Utilities Select Sector SPDR® ETF (ISIN US81369Y8865),https://www.ssga.com/us/en/intermediary/etfs/state-street-utilities-select-sector-spdr-etf-xlu,alta
+XRT,RV,State Street® SPDR® S&P® Retail ETF (ISIN US78464A7147),https://www.ssga.com/us/en/intermediary/etfs/state-street-spdr-sp-retail-etf-xrt,alta
+EWW,RV,iShares MSCI Mexico ETF (ISIN US4642868222; Equity/All Cap),https://www.ishares.com/us/products/239670/ishares-msci-mexico-etf,alta
+SPUU,RV,Direxion Daily S&P 500 Bull 2X Shares (leveraged equity),https://www.tradingview.com/symbols/BMV-SPUU/,media
+XMTD,RV,Xtrackers MSCI Taiwan UCITS ETF 1C; Taiwan equities,https://www.tradingview.com/symbols/LSE-XMTD/,media
+EDMU,RV,iShares MSCI USA CTB Enhanced ESG UCITS ETF (ISIN IE00BHZPJ908; Renta variable/Alta / Mediana Capitalización); simbolo EDMU en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/307527/ishares-msci-usa-ctb-enhanced-esg-ucits-etf,alta
+HSXD,RV,HSBC Asia Pacific ex Japan Sustainable (Screened) Equity UCITS ETF USD Acc ISIN IE00BKY58G26,https://www.investing.com/etfs/hsxd,media
+SMH,RV,VanEck Semiconductor ETF (MVIS US Listed Semiconductor 25 Index),https://www.vaneck.com/etf/equity/SMH/overview/,alta
+JMAB,DEUDA,JPMorgan USD Emerging Markets Sovereign Bond UCITS ETF (LSE: JMAB),https://simplywall.st/stocks/gb/diversified-financials/lse-jmab/jpmorgan-etfs-ireland-icav-usd-emerging-markets-sovereign-bond-ucits-etf-shares,media
+HUKX,RV,HSBC FTSE 100 UCITS ETF; ISIN IE00B42TW061; FTSE 100 Index,https://www.assetmanagement.hsbc.co.uk/api/v1/download/document/ie00b42tw061/gb/en/factsheet,alta
+IESZ,RV,iShares MSCI Europe Mid-Cap Equal Weight UCITS ETF (ISIN IE00BQN1KC32; Renta variable/Alta / Mediana Capitalización); simbolo IESZ en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/272016/ishares-msci-europe-size-factor-ucits-etf,alta
+XBI,RV,State Street® SPDR® S&P® Biotech ETF (ISIN US78464A8707),https://www.ssga.com/us/en/intermediary/etfs/state-street-spdr-sp-biotech-etf-xbi,alta
+IXG,RV,iShares Global Financials ETF (ISIN US4642873339; Equity/All Cap),https://www.ishares.com/us/products/239742/ishares-global-financials-etf,alta
+KSA,RV,iShares MSCI Saudi Arabia ETF (ISIN US46434V4234; Equity/All Cap),https://www.ishares.com/us/products/271542/ishares-msci-saudi-arabia-etf,alta
+WSML,RV,iShares MSCI World Small-Cap ETF (ISIN US46438G4304; Equity/Small Cap); nota: el simbolo tambien corresponde a ISIN IE00BF4RFH31 (misma clase),https://www.ishares.com/us/products/342357/ishares-msci-world-small-cap-etf,alta
+R1VL,RV,iShares Russell 1000 Value UCITS ETF (ISIN IE0002EKOXU6; Renta variable/Alta / Mediana Capitalización); simbolo R1VL en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/331963/ishares-russell-1000-value-ucits-etf,alta
+FLXK,RV,Franklin FTSE Korea UCITS ETF ISIN IE00BHZRR030,https://live.deutsche-boerse.com/en/etf/franklin-ftse-korea-ucits-etf,media
+VNQ,RV,Vanguard Real Estate ETF (Vanguard asset class: Domestic Stock - Sector-Specific),https://investor.vanguard.com/investment-products/etfs/profile/vnq,alta
+IJH,RV,iShares Core S&P Mid-Cap ETF (ISIN US4642875078; Equity/Mid Cap),https://www.ishares.com/us/products/239763/ishares-core-s-p-mid-cap-etf,alta
+CIBRU,RV,First Trust Global Funds plc - First Trust Nasdaq Cybersecurity UCITS ETF Class A USD; ISIN IE00BF16M727 (BMV line CIBRU),https://in.tradingview.com/symbols/BMV-CIBRU/N,media
+ICOM,MATERIA_PRIMA,iShares Diversified Commodity Swap UCITS ETF (ISIN IE00BDFL4P12; Materias primas/Materias primas); simbolo ICOM en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/287254/ishares-diversified-commodity-swap-ucits-etf,alta
+HEAL,RV,iShares Healthcare Innovation UCITS ETF USD (Acc) (ISIN IE00BYZK4776; Renta variable/All Cap); simbolo HEAL en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/284216/ishares-healthcare-innovation-ucits-etf-usd-acc,alta
+SEMI,RV,iShares MSCI Global Semiconductors UCITS ETF (ISIN IE000I8KRLL9; Renta variable/All Cap); simbolo SEMI en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/319084/ishares-msci-global-semiconductors-ucits-etf,alta
+SPY4,RV,State Street® SPDR® S&P® 400 U.S. Mid Cap UCITS ETF (Acc) (ISIN IE00B4YBJ215); SPY4 figura entre los simbolos de cotizacion en la ficha SSGA,https://www.ssga.com/de/de/intermediary/etfs/state-street-spdr-sp-400-us-mid-cap-ucits-etf-acc-spy4-gy,alta
+USPX,RV,Franklin U.S. Equity Index ETF (Morningstar US Target Market Exposure Index); ISIN US35473P4054,https://www.tradingview.com/symbols/BMV-USPX/,media
+SXLV,RV,State Street® SPDR® S&P® U.S. Health Care Select Sector UCITS ETF (Acc) (ISIN IE00BWBXM617); SXLV figura entre los simbolos de cotizacion en la ficha SSGA,https://www.ssga.com/de/de/intermediary/etfs/state-street-spdr-sp-us-health-care-select-sector-ucits-etf-acc-zpdh-gy,alta
+SXLF,RV,State Street® SPDR® S&P® U.S. Financials Select Sector UCITS ETF (Acc) (ISIN IE00BWBXM500); SXLF figura entre los simbolos de cotizacion en la ficha SSGA,https://www.ssga.com/de/de/intermediary/etfs/state-street-spdr-sp-us-financials-select-sector-ucits-etf-acc-zpdf-gy,alta
+CIBR,RV,First Trust NASDAQ Cybersecurity ETF; Nasdaq CTA Cybersecurity Index,https://www.ftportfolios.com/Retail/Etf/EtfSummary.aspx?Print=Y&Ticker=CIBR,alta
+THD,RV,iShares MSCI Thailand ETF (ISIN US4642866242; Equity/All Cap),https://www.ishares.com/us/products/239688/ishares-msci-thailand-etf,alta
+BBAX,RV,JPMorgan BetaBuilders Developed Asia Pacific ex-Japan ETF,https://ww2.cboe.com/us/equities/listings/listed_products/symbols/BBAX,alta
+RDVY,RV,First Trust Rising Dividend Achievers ETF (NASDAQ US Rising Dividend Achievers Index),https://stockanalysis.com/stocks/rdvy/,media
+EDV,DEUDA,Vanguard Extended Duration Treasury ETF (Vanguard asset class: Long-Term Bond),https://investor.vanguard.com/investment-products/etfs/profile/edv,alta
+TBILLX,DEUDA,Franklin US Treasury 0-1 Year UCITS ETF Accum Shs USD (ISIN IE000E02WFD5; Bloomberg US Short Treasury index),https://in.tradingview.com/symbols/BMV-TBILLX/N/,media
+CPTL,RV,Global X Morningstar Capital Allocation Leaders ETF (formerly Global X Conscious Companies ETF); Morningstar US Capital Allocation Leaders Index - US large/mid cap equity,https://www.globalxetfs.com/funds/cptl/,alta
+SXLE,RV,State Street® SPDR® S&P® U.S. Energy Select Sector UCITS ETF (Acc) (ISIN IE00BWBXM492); SXLE figura entre los simbolos de cotizacion en la ficha SSGA,https://www.ssga.com/de/de/intermediary/etfs/state-street-spdr-sp-us-energy-select-sector-ucits-etf-acc-zpde-gy,alta
+CEUU,RV,iShares Core MSCI EMU UCITS ETF (ISIN IE00BKBF6616; Renta variable/Alta / Mediana Capitalización); simbolo CEUU en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/309033/ishares-core-msci-emu-ucits-etf,alta
+D28A,DEUDA,iShares iBonds Dec 2028 Term $ Corp UCITS ETF (ISIN IE0000UJ3480; Renta fija/Crédito); simbolo D28A en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/331714/ishares-ibonds-dec-2028-term-corp-ucits-etf,alta
+IEAU,DEUDA,iShares Core € Corp Bond UCITS ETF (ISIN IE00093GOJ04; Renta fija/Crédito); simbolo IEAU en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/331356/ishares-core-corp-bond-ucits-etf,alta
+LEMA,RV,Amundi MSCI Emerging Markets II UCITS ETF Acc (tambien listado como Amundi Core MSCI Emerging Markets Swap UCITS ETF Acc) ISIN LU2573967036,https://stockanalysis.com/quote/lon/LEMA/,media
+FEP,RV,First Trust Europe AlphaDEX Fund (Nasdaq AlphaDEX Europe Index),https://www.ftportfolios.com/Retail/etf/etfsummary.aspx?Ticker=FEP,alta
+DFVE,RV,DoubleLine Fortune 500 Equal Weight ETF,https://stockanalysis.com/etf/DFVE,media
+ROLL,MATERIA_PRIMA,iShares Bloomberg Enhanced Roll Yield Commodity Swap UCITS ETF (ISIN IE00BZ1NCS44; Materias primas/Materias primas); simbolo ROLL en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/298008/ishares-bloomberg-enhanced-roll-yield-commodity-swap-ucits-etf,alta
+EXS1,RV,iShares Core DAX® UCITS ETF (DE) (ISIN DE0005933931; Renta variable/Alta capitalización); simbolo EXS1 en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/251464/ishares-dax-ucits-etf-de-fund,alta
+SQQQ,RV,ProShares UltraPro Short QQQ; -3x daily Nasdaq-100 (leveraged inverse equity) [inverso: exposición corta],https://stockanalysis.com/etf/sqqq,media
+VPL,RV,Vanguard FTSE Pacific ETF (Vanguard asset class: International/Global Stock),https://investor.vanguard.com/investment-products/etfs/profile/vpl,alta
+IAUS,RV,iShares MSCI Australia UCITS ETF (ISIN IE00B5377D42; Renta variable/Alta / Mediana Capitalización); simbolo IAUS en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/251851/ishares-msci-australia-ucits-etf,alta
+STIP,DEUDA,iShares 0-5 Year TIPS Bond ETF (ISIN US46429B7477; Fixed Income/Inflation),https://www.ishares.com/us/products/239450/ishares-0-5-year-tips-bond-etf,alta
+IAUP,RV,iShares Gold Producers UCITS ETF USD (Acc) (ISIN IE00B6R52036; Renta variable/Alta capitalización); simbolo IAUP en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/251908/ishares-gold-producers-ucits-etf,alta
+FLXC,RV,Franklin FTSE China UCITS ETF USD ISIN IE00BHZRR147,https://live.deutsche-boerse.com/en/etf/franklin-ftse-china-ucits-etf,media
+IDIN,RV,iShares Global Infrastructure UCITS ETF (ISIN IE00B1FZS467; Renta variable/All Cap); simbolo IDIN en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/251809/ishares-global-infrastructure-ucits-etf,alta
+EWH,RV,iShares MSCI Hong Kong ETF (ISIN US4642868719; Equity/Large/Mid Cap),https://www.ishares.com/us/products/239657/ishares-msci-hong-kong-etf,alta
+HSEP,RV,HSBC Europe Screened Equity UCITS ETF (Acc) (formerly HSBC Europe Sustainable Equity UCITS ETF EUR Acc); ISIN IE00BKY55W78,https://in.tradingview.com/symbols/BMV-HSEP/N,media
+LQD,DEUDA,iShares iBoxx $ Investment Grade Corporate Bond ETF (ISIN US4642872422; Fixed Income/Credit),https://www.ishares.com/us/products/239566/ishares-iboxx-investment-grade-corporate-bond-etf,alta
+IEVL,RV,iShares Edge MSCI Europe Value Factor UCITS ETF (ISIN IE00BQN1K901; Renta variable/Alta / Mediana Capitalización); simbolo IEVL en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/272058/ishares-msci-europe-value-factor-ucits-etf,alta
+SPEM,RV,State Street® SPDR® Portfolio Emerging Markets ETF (ISIN US78463X5095),https://www.ssga.com/us/en/intermediary/etfs/state-street-spdr-portfolio-emerging-markets-etf-spem,alta
+VGIT,DEUDA,Vanguard Intermediate-Term Treasury ETF (Vanguard asset class: Intermediate-Term Bond),https://investor.vanguard.com/investment-products/etfs/profile/vgit,alta
+ESGD,RV,iShares ESG Aware MSCI EAFE ETF (ISIN US46435G5163; Equity/Large/Mid Cap),https://www.ishares.com/us/products/283778/ishares-esg-aware-msci-eafe-etf,alta
+IJR,RV,iShares Core S&P Small-Cap ETF (ISIN US4642878049; Equity/Small Cap),https://www.ishares.com/us/products/239774/ishares-core-s-p-small-cap-etf,alta
+ACWX,RV,iShares MSCI ACWI ex U.S. ETF (ISIN US4642882405; Equity/Large/Mid Cap),https://www.ishares.com/us/products/239594/ishares-msci-acwi-ex-u-s-etf,alta
+HMCD,RV,HSBC MSCI China UCITS ETF USD (Dist); ISIN IE00B44T3H88,https://www.justetf.com/en/etf-profile.html?isin=IE00B44T3H88,media
+EMAD,RV,State Street® SPDR® MSCI EM Asia UCITS ETF (ISIN IE00B466KX20); EMAD figura entre los simbolos de cotizacion en la ficha SSGA,https://www.ssga.com/de/de/intermediary/etfs/state-street-spdr-msci-em-asia-ucits-etf-spya-gy,alta
+OIH,RV,VanEck Oil Services ETF; MVIS US Listed Oil Services 25 Index (equity of oil services companies),https://www.vaneck.com/etf/equity/oih/overview/?country=US,alta
+BND,DEUDA,Vanguard Total Bond Market ETF (Vanguard asset class: Intermediate-Term Bond),https://investor.vanguard.com/investment-products/etfs/profile/bnd,alta
+SXLI,RV,State Street® SPDR® S&P® U.S. Industrials Select Sector UCITS ETF (Acc) (ISIN IE00BWBXM724); SXLI figura entre los simbolos de cotizacion en la ficha SSGA,https://www.ssga.com/de/de/intermediary/etfs/state-street-spdr-sp-us-industrials-select-sector-ucits-etf-acc-zpdi-gy,alta
+ZAP,RV,Global X U.S. Electrification ETF (acciones utilities/industriales de electrificacion),https://stockanalysis.com/etf/zap/,media
+SUSB,DEUDA,iShares ESG Aware 1-5 Year USD Corporate Bond ETF (ISIN US46435G2434; Fixed Income/Credit),https://www.ishares.com/us/products/288490/ishares-esg-aware-1-5-year-usd-corporate-bond-etf,alta
+EWS,RV,iShares MSCI Singapore ETF (ISIN US46434G7806; Equity/Large/Mid Cap),https://www.ishares.com/us/products/239678/ishares-msci-singapore-etf,alta
+XMJD,RV,Xtrackers MSCI Japan UCITS ETF 1C (USD line on LSE),https://stockanalysis.com/quote/lon/XMJD,media
+AIAA,RV,iShares AI Adopters & Applications UCITS ETF (ISIN IE000Q9W2IR3; Renta variable/All Cap); simbolo AIAA en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/338787/ishares-ai-adopters-applications-ucits-etf,alta
+NDUS,RV,State Street® SPDR® MSCI Europe Industrials UCITS ETF (ISIN IE00BKWQ0J47); NDUS figura entre los simbolos de cotizacion en la ficha SSGA,https://www.ssga.com/de/de/intermediary/etfs/state-street-spdr-msci-europe-industrials-ucits-etf-stq-fp,alta
+XLP,RV,State Street® Consumer Staples Select Sector SPDR® ETF (ISIN US81369Y3080),https://www.ssga.com/us/en/intermediary/etfs/state-street-consumer-staples-select-sector-spdr-etf-xlp,alta
+IGPT,RV,Invesco AI and Next Gen Software ETF,https://stockanalysis.com/etf/igpt/,media
+MEXS,DEUDA,HANetf Finamex Mexico S&P/BMV International UMS Sovereign Bond 5-10yr UCITS ETF Acc; ISIN IE000RI14ZD9; Mexican government USD bonds (UMS),https://www.justetf.com/en-lu/etf-profile.html?isin=IE000RI14ZD9,media
+QVGMEX,RV,QVGMEX 18 - TRAC mexicano que replica el S&P/BMV IPC Quality Value and Growth Index (acciones mexicanas; emisora listada en BMV),https://stockanalysis.com/quote/bmv/QVGMEX18,media
+PAVEU,RV,Global X U.S. Infrastructure Development UCITS ETF (USD Acc; ISIN IE00BLCHJ534 per secondary source); factsheet lists Mexican line PAVEUN MM,https://globalxetfs.eu/funds/pave/,alta
+MOAT,RV,VanEck Morningstar Wide Moat ETF,https://vaneck.com/etf/equity/moat/overview,alta
+RBOT,RV,iShares Automation & Robotics UCITS ETF (ISIN IE00BYZK4552; Renta variable/All Cap); simbolo RBOT en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/284219/ishares-automation-robotics-ucits-etf,alta
+NDIA,RV,iShares MSCI India UCITS ETF (ISIN IE00BZCQB185; Renta variable/All Cap); simbolo NDIA en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/297617/ishares-msci-india-ucits-etf,alta
+JHYM,DEUDA,JPM Global High Yield Corporate Bond Multi-Factor Active UCITS ETF - MXN Hedged (acc); JPMorgan ETFs (Ireland) ICAV; Cboe Europe symbol JHYMx,https://www.cboe.com/europe/equities/listings/symbols/JHYMx/?venue=NL,media
+MEXMX,DEUDA,Finamex Mexico S&P/BMV International UMS Sovereign Bond 5-10yr UCITS ETF Acc MXN Hedged (bonos UMS en USD 5-10 anios) ISIN IE000RI14ZD9 (tomado del link de factsheet en la pagina de Cboe),https://www.cboe.com/europe/equities/listings/symbols/MEXMx/?venue=UK,alta
+PLAY,RV,iShares Digital Entertainment and Education UCITS ETF (ISIN IE00023EZQ82; Renta variable/All Cap); simbolo PLAY en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/326051/ishares-digital-entertainment-and-education-ucits-etf,alta
+SPXS,RV,"Direxion Daily S&P 500 Bear 3X Shares (-3x daily S&P 500). Ambiguity: Invesco S&P 500 UCITS ETF also trades as SPXS in London; both are equity, class unchanged [inverso: exposición corta]",https://stockanalysis.com/etf/spxs/,media
+EWL,RV,iShares MSCI Switzerland ETF (ISIN US4642867497; Equity/Large/Mid Cap),https://www.ishares.com/us/products/239685/ishares-msci-switzerland-etf,alta
+GRDU,RV,First Trust Nasdaq Clean Edge Smart Grid Infrastructure UCITS ETF Acc A USD; ISIN IE000J80JTL1,https://www.tradingview.com/symbols/LSE-GRDU/analysis,media
+VUKG,RV,Vanguard FTSE 100 UCITS ETF (GBP) Accumulating; ISIN IE00BFMXYP42,https://www.vanguard.co.uk/professional/product/etf/equity/9580/ftse-100-ucits-etf-gbp-accumulating,alta
+C300,RV,Invesco S&P China A 300 Swap UCITS ETF (acciones China A) ISIN IE000K9Z3SF5,https://stockanalysis.com/quote/lon/C300,media
+HYLA,DEUDA,iShares Global High Yield Corp Bond UCITS ETF (ISIN IE00BYWZ0440; Renta fija/High Yield); simbolo HYLA en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/291404/ishares-global-high-yield-corp-bond-ucits-etf,alta
+VFLO,RV,VictoryShares Free Cash Flow ETF (Victory U.S. Large Cap Free Cash Flow Index),https://www.tradingview.com/symbols/NASDAQ-VFLO/analysis,media
+MTAV,RV,iShares Metaverse UCITS ETF (ISIN IE000RN58M26; Renta variable/All Cap); simbolo MTAV en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/329602/ishares-metaverse-ucits-etf,alta
+ISAG,RV,iShares Agribusiness UCITS ETF USD (Acc) (ISIN IE00B6R52143; Renta variable/All Cap); simbolo ISAG en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/251707/ishares-agribusiness-ucits-etf,alta
+LTPZ,DEUDA,PIMCO 15+ Year U.S. TIPS Index Exchange-Traded Fund (inflation-linked),https://etfdb.com/advisor_reports/LTPZ/,media
+LOCK,RV,iShares Digital Security UCITS ETF (ISIN IE00BG0J4C88; Renta variable/All Cap); simbolo LOCK en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/297843/ishares-digital-security-ucits-etf,alta
+ILF,RV,iShares Latin America 40 ETF (ISIN US4642873909; Equity/Large Cap),https://www.ishares.com/us/products/239761/ishares-latin-america-40-etf,alta
+PFF,RV,"iShares Preferred and Income Securities ETF (ISIN US4642886877; Equity/All Cap); acciones preferentes, clasificado Equity por el emisor",https://www.ishares.com/us/products/239826/ishares-preferred-and-income-securities-etf,alta
+MXI,RV,iShares Global Materials ETF (ISIN US4642886950; Equity/All Cap),https://www.ishares.com/us/products/239748/ishares-global-materials-etf,alta
+IH2O,RV,iShares Global Water UCITS ETF (ISIN IE00B1TXK627; Renta variable/All Cap); simbolo IH2O en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/251913/ishares-global-water-ucits-etf,alta
+CXSE,RV,WisdomTree China ex-State-Owned Enterprises Fund,https://www.wisdomtree.com/us/products/equity/cxse,alta
+KURE,RV,KraneShares MSCI All China Health Care Index ETF,https://www.tradingview.com/symbols/AMEX-KURE/analysis,media
+VFH,RV,Vanguard Financials ETF (Vanguard asset class: Domestic Stock - Sector-Specific),https://investor.vanguard.com/investment-products/etfs/profile/vfh,alta
+PAVE,RV,Global X U.S. Infrastructure Development ETF (Indxx U.S. Infrastructure Development Index),https://globalxetfs.com/funds/pave/,alta
+EWQ,RV,iShares MSCI France ETF (ISIN US4642867075; Equity/Large/Mid Cap),https://www.ishares.com/us/products/239648/ishares-msci-france-etf,alta
+QLTA,DEUDA,iShares Aaa - A Rated Corporate Bond ETF (ISIN US46429B2916; Fixed Income/Credit),https://www.ishares.com/us/products/239431/ishares-aaa-a-rated-corporate-bond-etf,alta
+XSOE,RV,WisdomTree Emerging Markets ex-State-Owned Enterprises Fund,https://www.wisdomtree.com/us/products/equity/xsoe,alta
+XSOE1,RV,WisdomTree Emerging Markets ex-State-Owned Enterprises Fund (US XSOE); a UCITS version (WisdomTree Emerging Markets ex-State-Owned Enterprises ESG Screened UCITS ETF Acc) also uses XSOE - both EM equity,https://www.wisdomtree.com/us/products/equity/xsoe,media
+TRLA,DEUDA,Invesco US Treasury Bond 10+ Year UCITS ETF USD Acc ISIN IE000GE4QIR1,https://www.etfstream.com/etf-screener/TRLA,media
+PSQ,RV,ProShares Short QQQ (-1x daily Nasdaq-100) [inverso: exposición corta],https://stockanalysis.com/etf/psq/,media
+CG1,RV,Amundi DAX UCITS ETF DR; ISIN FR0010655712,https://www.borsaitaliana.it/borsa/etf/scheda/FR0010655712.html?lang=en,alta
+XSMC,RV,Xtrackers Switzerland UCITS ETF 1C; ISIN LU0943504760; Solactive Swiss Large Cap index,https://stockanalysis.com/quote/swx/XSMC/,media
+SPMO,RV,Invesco S&P 500 Momentum ETF ISIN US46138E3392,https://www.tradingview.com/symbols/AMEX-SPMO/analysis,media
+ESGE,RV,iShares ESG Aware MSCI EM ETF (ISIN US46434G8630; Equity/Large/Mid Cap),https://www.ishares.com/us/products/283777/ishares-esg-aware-msci-em-etf,alta
+ISFD,RV,iShares Core FTSE 100 UCITS ETF (ISIN IE00BYZ28W67; Renta variable/Alta capitalización); simbolo ISFD en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/291401/ishares-core-ftse-100-ucits-etf,alta
+TDIV1,RV,VanEck Morningstar Developed Markets Dividend Leaders UCITS ETF (TDIV) is the likelier match for the suffixed SIC symbol; ambiguity: First Trust NASDAQ Technology Dividend Index Fund also uses TDIV at BMV; both equity,https://www.vaneck.com/mx/en/investments/dividend-etf/,media
+EIS,RV,iShares MSCI Israel ETF (ISIN US4642866325; Equity/All Cap),https://www.ishares.com/us/products/239663/ishares-msci-israel-etf,alta
+IGIB,DEUDA,iShares 5-10 Year Investment Grade Corporate Bond ETF (ISIN US4642886380; Fixed Income/Credit),https://www.ishares.com/us/products/239463/ishares-5-10-year-investment-grade-corporate-bond-etf,alta
+GLDM,MATERIA_PRIMA,SPDR® Gold MiniShares® (ISIN US98149E3036),https://www.ssga.com/us/en/intermediary/etfs/spdr-gold-minishares-gldm,alta
+IS3U,RV,iShares MSCI France UCITS ETF (ISIN IE00BP3QZJ36; Renta variable/Alta / Mediana Capitalización); simbolo IS3U en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/269829/ishares-msci-france-ucits-etf,alta
+CMXC,RV,iShares MSCI Mexico Capped UCITS ETF (ISIN IE00B5WHFQ43; Renta variable/Alta / Mediana Capitalización); simbolo CMXC en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/253734/ishares-msci-mexico-capped-ucits-etf,alta
+EWN,RV,iShares MSCI Netherlands ETF (ISIN US4642868149; Equity/All Cap),https://www.ishares.com/us/products/239671/ishares-msci-netherlands-etf,alta
+CMOD,MATERIA_PRIMA,Invesco Bloomberg Commodity UCITS ETF (Acc; swap on Bloomberg Commodity TR); ISIN IE00BD6FTQ80,https://etf.invesco.com/no/private/en/node/11712/trading-information,alta
+DTCR,RV,Global X Data Center & Digital Infrastructure ETF (formerly VPN); Solactive Data Center REITs & Digital Infrastructure Index (REIT/infrastructure equity),https://stockanalysis.com/etf/dtcr/,media
+GOVT,DEUDA,iShares U.S. Treasury Bond ETF (ISIN US46429B2676; Fixed Income/Government),https://www.ishares.com/us/products/239468/ishares-u-s-treasury-bond-etf,alta
+EPHE,RV,iShares MSCI Philippines ETF (ISIN US46429B4086; Equity/All Cap),https://www.ishares.com/us/products/239675/ishares-msci-philippines-etf,alta
+CEMG,RV,iShares MSCI EM Consumer Growth UCITS ETF (ISIN IE00BKM4H197; Renta variable/Alta capitalización); simbolo CEMG en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/264658/ishares-msci-emerging-markets-consumer-growth-ucits-etf,alta
+AIQ,RV,Global X Artificial Intelligence & Technology ETF,https://globalxetfs.com/funds/AIQ,alta
+EPU,RV,iShares MSCI Peru and Global Exposure ETF (ISIN US4642898427; Equity/All Cap),https://www.ishares.com/us/products/239606/ishares-msci-peru-and-global-exposure-etf,alta
+SDG,RV,iShares MSCI Global Sustainable Development Goals ETF (ISIN US46435G5320; Equity/Large/Mid Cap),https://www.ishares.com/us/products/283378/ishares-msci-global-sustainable-development-goals-etf,alta
+QAT,RV,iShares MSCI Qatar ETF (ISIN US46434V7799; Equity/All Cap),https://www.ishares.com/us/products/264273/ishares-msci-qatar-etf,alta
+SCHD,RV,Schwab U.S. Dividend Equity ETF (Dow Jones U.S. Dividend 100 Index),https://www.schwabassetmanagement.com/products/SCHD,alta
+BBRE,RV,JPMorgan BetaBuilders MSCI U.S. REIT ETF (REIT equity),https://ww2.cboe.com/us/equities/listings/listed_products/symbols/BBRE,alta
+FLXI,RV,Franklin FTSE India UCITS ETF (USD Acc); ISIN IE00BHZRQZ17; FTSE India 30/18 Capped Index,https://stockanalysis.com/quote/lon/FLXI,media
+SDVY,RV,First Trust SMID Cap Rising Dividend Achievers ETF ISIN US33741X1028,https://www.morningstar.com/etfs/xnas/sdvy/quote,media
+OPEN,RV,iShares Inclusion and Diversity UCITS ETF (ISIN IE00BD0B9B76; Renta variable/Alta / Mediana Capitalización); simbolo OPEN en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/298449/ishares-inclusion-and-diversity-ucits-etf,alta
+AGED,RV,iShares Ageing Population UCITS ETF (ISIN IE00BYZK4669; Renta variable/All Cap); simbolo AGED en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/284218/ishares-ageing-population-ucits-etf,alta
+DGRW,RV,WisdomTree U.S. Quality Dividend Growth Fund (a WisdomTree UCITS version also uses DGRW in London; same class),https://www.wisdomtree.com/us/products/equity/dgrw,alta
+DGRO,RV,iShares Core Dividend Growth ETF (ISIN US46434V6213; Equity/All Cap),https://www.ishares.com/us/products/264623/ishares-core-dividend-growth-etf,alta
+EWSP,RV,iShares S&P 500 Equal Weight UCITS ETF (ISIN IE000MLMNYS0; Renta variable/Alta / Mediana Capitalización); simbolo EWSP en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/328658/ishares-s-p-500-equal-weight-ucits-etf,alta
+FXI,RV,iShares China Large-Cap ETF (ISIN US4642871846; Equity/Large Cap),https://www.ishares.com/us/products/239536/ishares-china-large-cap-etf,alta
+FLJP,RV,Franklin FTSE Japan ETF; ISIN US35473P7446,https://www.franklintempleton.com/forms-literature/download/FLJP-FF,alta
+FJP,RV,First Trust Japan AlphaDEX Fund; Nasdaq AlphaDEX Japan Index,https://www.ftportfolios.com/Retail/etf/etfsummary.aspx?Ticker=FJP,alta
+XESP,RV,Xtrackers Spain UCITS ETF 1C (Spanish Equity; Solactive Spain 40) ISIN LU0592216393,https://live.deutsche-boerse.com/en/etf/xtrackers-spain-ucits-etf-1c?currency=EUR,media
+DXJ,RV,WisdomTree Japan Hedged Equity Fund (a WisdomTree Japan Equity UCITS ETF USD Hedged also uses DXJ; same class),https://www.wisdomtree.com/us/products/equity/dxj,alta
+RTYS,RV,Invesco Russell 2000 UCITS ETF Acc; ISIN IE00B60SX402,https://londonstockexchange.com/stock/RTYS/invesco/company-page,alta
+XAR,RV,State Street® SPDR® S&P® Aerospace & Defense ETF (ISIN US78464A6313),https://www.ssga.com/us/en/intermediary/etfs/state-street-spdr-sp-aerospace-defense-etf-xar,alta
+XMMO,RV,Invesco S&P MidCap Momentum ETF; S&P MidCap 400 Momentum Index,https://etfdb.com/advisor_reports/XMMO/,media
+BUG,RV,Global X Cybersecurity ETF; nota: existe tambien Global X Cybersecurity UCITS ETF (BUG LN) (misma clase RV),https://globalxetfs.com/funds/BUG,alta
+VEXC,RV,Vanguard Emerging Markets ex-China ETF (Vanguard asset class: International/Global Stock),https://investor.vanguard.com/investment-products/etfs/profile/vexc,alta
+SPSB,DEUDA,State Street® SPDR® Portfolio Short Term Corporate Bond Index ETF (ISIN US78464A4748),https://www.ssga.com/us/en/intermediary/etfs/state-street-spdr-portfolio-short-term-corporate-bond-index-etf-spsb,alta
+MCEU,RV,Amundi MSCI Europe Momentum Factor UCITS ETF EUR (C); ISIN LU1681041460,https://www.justetf.com/uk/etf-profile.html?isin=LU1681041460,media
+EWZS,RV,iShares MSCI Brazil Small-Cap ETF (ISIN US4642891315; Equity/Small Cap),https://www.ishares.com/us/products/239613/ishares-msci-brazil-small-cap-etf,alta
+NXTG,RV,First Trust Indxx NextG ETF,https://stockanalysis.com/etf/nxtg/,media
+XAID,RV,Xtrackers Artificial Intelligence & Big Data UCITS ETF 1C (USD LSE line); ISIN IE00BGV5VN51; Nasdaq Yewno Global AI and Big Data Index,https://stockanalysis.com/quote/lon/XAID/,media
+IMVU,RV,iShares Edge MSCI Europe Minimum Volatility UCITS ETF (ISIN IE00B86MWN23; Renta variable/Alta / Mediana Capitalización); simbolo IMVU en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/251381/ishares-msci-europe-minimum-volatility-ucits-etf,alta
+ERNX,DEUDA,iShares € Ultrashort Bond UCITS ETF (ISIN IE000RHYOR04; Renta fija/Crédito); simbolo ERNX en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/327355/ishares-ultrashort-bond-ucits-etf,alta
+VSCF,DEUDA,Vanguard EUR Corporate 1-3 Year Bond UCITS ETF EUR Accumulating ISIN IE00BH04FZ00,https://www.vanguardsouthamerica.com/en/product/etf/fixed-income/E076/vanguard-eur-corporate-1-3-year-bond-ucits-etf-eur-accumulating,media
+VSGF,DEUDA,Vanguard EUR Eurozone Government 1-3 Year Bond UCITS ETF (EUR Accumulating); ISIN IE00004S2680,https://www.bmv.com.mx/en/issuers/profile/VSGF-37235,alta
+BCHN,RV,Invesco CoinShares Global Blockchain UCITS ETF Acc (blockchain equities); ISIN IE00BGBN6P67,https://etf.invesco.com/se/private/en/node/38891/documents,alta
+BOTZ,RV,Global X Robotics & Artificial Intelligence ETF (US); a UCITS version BOTZ LN (ISIN IE00BLCHJB90) also exists - both thematic equity,https://globalxetfs.com/botz,alta
+VDE,RV,Vanguard Energy ETF (Vanguard asset class: Domestic Stock - Sector-Specific),https://investor.vanguard.com/investment-products/etfs/profile/vde,alta
+EFIV,RV,State Street® SPDR® S&P 500® Scored and Screened ETF (ISIN US78468R5312),https://www.ssga.com/us/en/intermediary/etfs/state-street-spdr-sp-500-scored-and-screened-etf-efiv,alta
+EMXC1,RV,iShares MSCI Emerging Markets ex China ETF (ISIN US46434G7640; Renta variable/All Cap); simbolo EMXC1 en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/288504/ishares-msci-emerging-markets-ex-china-etf,alta
+ARGT,RV,Global X MSCI Argentina ETF,https://globalxetfs.com/funds/argt,alta
+NRJC,RV,Amundi MSCI New Energy UCITS ETF Acc (ex Lyxor New Energy); ISIN FR0014002CG3,https://stockanalysis.com/quote/lon/NRJC,media
+URA,RV,Global X Uranium ETF (uranium miners / nuclear components equity),https://etfdb.com/etf/URA/,media
+VCR,RV,Vanguard Consumer Discretionary ETF (Vanguard asset class: Domestic Stock - Sector-Specific),https://investor.vanguard.com/investment-products/etfs/profile/vcr,alta
+SKYY,RV,First Trust Cloud Computing ETF; ISE CTA Cloud Computing Index,https://www.ftportfolios.com/Retail/Etf/EtfSummary.aspx?Ticker=SKYY,alta
+AIA,RV,iShares Asia 50 ETF (ISIN US4642884302; Equity/Large Cap),https://www.ishares.com/us/products/239730/ishares-asia-50-etf,alta
+IDNA,RV,iShares Genomics Immunology and Healthcare ETF (ISIN US46435U1925; Equity/All Cap),https://www.ishares.com/us/products/308878/ishares-genomics-immunology-and-healthcare-etf,alta
+CGW,RV,Invesco S&P Global Water Index ETF,https://tradingview.com/symbols/AMEX-CGW/analysis,media
+SPIB,DEUDA,State Street® SPDR® Portfolio Intermediate Term Corporate Bond Index ETF (ISIN US78464A3757),https://www.ssga.com/us/en/intermediary/etfs/state-street-spdr-portfolio-intermediate-term-corporate-bond-index-etf-spib,alta
+AIRR,RV,First Trust RBA American Industrial Renaissance ETF,https://www.ftportfolios.com/Retail/Etf/EtfSummary.aspx?Print=Y&Ticker=AIRR,alta
+IBGE,DEUDA,iShares € Govt Bond 0-1yr UCITS ETF (ISIN IE00B3FH7618; Renta fija/Gubernamental); simbolo IBGE en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/251741/ishares-euro-government-bond-01yr-ucits-etf,alta
+FXZ,RV,First Trust Materials AlphaDEX Fund,https://www.ftportfolios.com/retail/etf/etfsummary.aspx?Ticker=FXZ,alta
+EWD,RV,iShares MSCI Sweden ETF (ISIN US4642867562; Equity/Large/Mid Cap),https://www.ishares.com/us/products/239684/ishares-msci-sweden-etf,alta
+ECAR,RV,iShares Electric Vehicles and Driving Technology UCITS ETF (ISIN IE00BGL86Z12; Renta variable/All Cap); simbolo ECAR en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/307130/ishares-electric-vehicles-and-driving-technology-ucits-etf,alta
+USMV,RV,iShares MSCI USA Min Vol Factor ETF (ISIN US46429B6974; Equity/Large/Mid Cap),https://www.ishares.com/us/products/239695/ishares-msci-usa-min-vol-factor-etf,alta
+DEM,RV,WisdomTree Emerging Markets High Dividend Fund,https://www.wisdomtree.com/us/etfs/equity/dem,alta
+VV,RV,Vanguard Morningstar Large-Cap ETF (Vanguard asset class: Domestic Stock - General),https://investor.vanguard.com/investment-products/etfs/profile/vv,alta
+CNRG,RV,State Street® SPDR® S&P Kensho Grid Innovation ETF (ISIN US78468R6559),https://www.ssga.com/us/en/intermediary/etfs/state-street-spdr-sp-kensho-grid-innovation-etf-cnrg,alta
+C40,RV,Amundi CAC 40 ESG UCITS ETF DR - EUR (C) ISIN LU1681046931,https://wealthyhood.com/en/etfs/c40.pa,media
+CHIP,RV,Amundi MSCI Semiconductors UCITS ETF Acc (ex Lyxor MSCI Semiconductors ESG Filtered); ISIN LU1900066033,https://stockanalysis.com/quote/epa/CHIP,media
+EDEN,RV,iShares MSCI Denmark ETF (ISIN US46429B5232; Equity/All Cap),https://www.ishares.com/us/products/239621/ishares-msci-denmark-etf,alta
+HEZU,RV,iShares Currency Hedged MSCI Eurozone ETF (ISIN US46434V6395; Equity/Large/Mid Cap),https://www.ishares.com/us/products/268708/ishares-currency-hedged-msci-eurozone-etf,alta
+PHO,RV,Invesco Water Resources ETF,https://www.tradingview.com/symbols/BMV-PHO/analysis,media
+LWCU1,RV,Amundi MSCI World ESG Broad Transition UCITS ETF Acc (USD line LWCU; ISIN IE0001GSQ2O9) - another source maps LWCU to Amundi MSCI World Climate Transition CTB (LU1602144492); both are MSCI World equity,https://www.justetf.com/uk/etf-profile.html?isin=IE0001GSQ2O9,media
+QGRW,RV,WisdomTree U.S. Quality Growth Fund,https://www.wisdomtree.com/us/etfs/equity/qgrw,alta
+EFA,RV,iShares MSCI EAFE ETF (ISIN US4642874659; Equity/Large/Mid Cap),https://www.ishares.com/us/products/239623/ishares-msci-eafe-etf,alta
+AGNG,RV,Global X Aging Population ETF (Indxx Aging Population Thematic Index),https://globalxetfs.com/funds/agng,alta
+CTEC,RV,Global X CleanTech ETF,https://pdf-viewer.globalxetfs.com/funds/CTEC,alta
+MDYG,RV,State Street® SPDR® S&P 400™ Mid Cap Growth ETF (ISIN US78464A8210),https://www.ssga.com/us/en/intermediary/etfs/state-street-spdr-sp-400-mid-cap-growth-etf-mdyg,alta
+LITM,RV,iShares Lithium & Battery Producers UCITS ETF (ISIN IE000WDG5795; Renta variable/All Cap); simbolo LITM en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/333473/ishares-lithium-battery-producers-ucits-etf,alta
+IXJ,RV,iShares Global Healthcare ETF (ISIN US4642873255; Equity/All Cap),https://www.ishares.com/us/products/239744/ishares-global-healthcare-etf,alta
+EPI,RV,WisdomTree India Earnings Fund; WisdomTree India Earnings Index,https://www.wisdomtree.com/us/products/equity/epi,alta
+BLKC,RV,iShares Blockchain Technology UCITS ETF (ISIN IE000RDRMSD1; Renta variable/All Cap); simbolo BLKC en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/328618/ishares-blockchain-technology-ucits-etf,alta
+FXH,RV,First Trust Health Care AlphaDEX Fund,https://www.ftportfolios.com/retail/etf/etfsummary.aspx?Ticker=FXH,alta
+IPOL,RV,iShares MSCI Poland UCITS ETF (ISIN IE00B4M7GH52; Renta variable/Alta / Mediana Capitalización); simbolo IPOL en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/251875/ishares-msci-poland-ucits-etf,alta
+SXRY,RV,iShares FTSE MIB UCITS ETF EUR (Acc) (ISIN IE00B53L4X51; Renta variable/Alta capitalización); simbolo SXRY en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/253717/ishares-ftse-mib-ucits-etf-acc-fund,alta
+INRG,RV,iShares Global Clean Energy Transition UCITS ETF (ISIN IE00B1XNHC34; Renta variable/All Cap); simbolo INRG en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/251911/ishares-global-clean-energy-ucits-etf,alta
+ENOR,RV,iShares MSCI Norway ETF (ISIN US46429B4995; Equity/All Cap),https://www.ishares.com/us/products/239673/ishares-msci-norway-etf,alta
+ESML,RV,iShares ESG Aware MSCI USA Small-Cap ETF (ISIN US46435U6635; Equity/Small Cap),https://www.ishares.com/us/products/296644/ishares-esg-aware-msci-usa-small-cap-etf,alta
+MOO,RV,VanEck Agribusiness ETF (MVIS Global Agribusiness Index; agribusiness equities),https://www.vaneck.com/us/en/investments/agribusiness-etf-moo/overview/,alta
+CNYA,RV,iShares MSCI China A ETF (ISIN US46434V5140; Equity/Large/Mid Cap); nota: el simbolo tambien corresponde a ISIN IE00BQT3WG13 (misma clase),https://www.ishares.com/us/products/273318/ishares-msci-china-a-etf,alta
+DGTL,RV,iShares Digitalisation UCITS ETF USD (Acc) (ISIN IE00BYZK4883; Renta variable/All Cap); simbolo DGTL en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/284217/ishares-digitalisation-ucits-etf-usd-acc,alta
+EWM,RV,iShares MSCI Malaysia ETF (ISIN US46434G8143; Equity/Large/Mid Cap),https://www.ishares.com/us/products/239669/ishares-msci-malaysia-etf,alta
+LUXU,RV,Amundi S&P Global Luxury UCITS ETF; ISIN LU1681048713,https://stockanalysis.com/quote/epa/LUXU,media
+RNRG,RV,Global X Renewable Energy Producers ETF; Indxx Renewable Energy Producers Index (UCITS version RNRG LN also exists - both equity),https://globalxetfs.com/funds/RNRG,alta
+XXSC,RV,Xtrackers MSCI Europe Small Cap UCITS ETF 1C ISIN LU0322253906,https://live.deutsche-boerse.com/en/etf/xtrackers-msci-europe-small-cap-ucits-etf-1c,media
+EIRL,RV,iShares MSCI Ireland ETF (ISIN US46429B5075; Equity/All Cap),https://www.ishares.com/us/products/239662/ishares-msci-ireland-etf,alta
+SHYG,DEUDA,iShares 0-5 Year High Yield Corporate Bond ETF (ISIN US46434V4077; Fixed Income/High Yield),https://www.ishares.com/us/products/258100/ishares-0-5-year-high-yield-corporate-bond-etf,alta
+EIDO,RV,iShares MSCI Indonesia ETF (ISIN US46429B3096; Equity/All Cap),https://www.ishares.com/us/products/239661/ishares-msci-indonesia-etf,alta
+EWP,RV,iShares MSCI Spain ETF (ISIN US4642867646; Equity/Large/Mid Cap),https://www.ishares.com/us/products/239683/ishares-msci-spain-etf,alta
+JVAL,RV,JPMorgan U.S. Value Factor ETF,https://stockanalysis.com/etf/jval/holdings/,media
+DVY,RV,iShares Select Dividend ETF (ISIN US4642871689; Equity/All Cap),https://www.ishares.com/us/products/239500/ishares-select-dividend-etf,alta
+EPOL,RV,iShares MSCI Poland ETF (ISIN US46429B6065; Equity/All Cap),https://www.ishares.com/us/products/239676/ishares-msci-poland-etf,alta
+REUSE,RV,"BNP Paribas Easy ECPI Circular Economy Leaders UCITS ETF Capitalisation (ISIN LU1953136527; ECPI Circular Economy Leaders Index, acciones)",https://in.tradingview.com/symbols/BMV-REUSE/N/,media
+NUCL1,RV,VanEck Uranium and Nuclear Technologies UCITS ETF; ISIN IE000M7V94E1; MarketVector Global Uranium and Nuclear Energy Infrastructure Index (equity),https://www.vaneck.com/uk/en/nuclear-etf/,alta
+VNQI,RV,Vanguard Global ex-U.S. Real Estate ETF (Vanguard asset class: International/Global Stock),https://investor.vanguard.com/investment-products/etfs/profile/vnqi,alta
+COLO1,RV,Global X MSCI Colombia ETF (ticker COLO; antes GXG hasta jun-2025; sufijo 1 de desambiguacion SIC),https://www.globalxetfs.com/funds/COLO,alta
+HIDD,RV,HSBC MSCI Indonesia UCITS ETF (USD); ISIN IE00B46G8275,https://in.tradingview.com/symbols/LSE-HIDD/analysis,media
+VYMI,RV,Vanguard International High Dividend Yield ETF (Vanguard asset class: International/Global Stock),https://investor.vanguard.com/investment-products/etfs/profile/vymi,alta
+VHYD,RV,Vanguard FTSE All-World High Dividend Yield UCITS ETF (USD) Distributing; ISIN IE00B8GKDB10,https://www.vanguardsouthamerica.com/en/product/etf/equity/9506/ftse-all-world-high-dividend-yield-ucits-etf-usd-distributing,alta
+ERNMX,DEUDA,iShares $ Ultrashort Bond UCITS ETF (ISIN IE00BMWB9302; Renta fija/Crédito); simbolo ERNMX en lista de productos BlackRock Mexico,https://www.blackrock.com/mx/intermediarios/productos/316751/ishares-ultrashort-bond-ucits-etf,alta
+VSGX,RV,Vanguard ESG International Stock ETF (Vanguard asset class: International/Global Stock),https://investor.vanguard.com/investment-products/etfs/profile/vsgx,alta
+VIGI,RV,Vanguard International Dividend Appreciation ETF (Vanguard asset class: International/Global Stock),https://investor.vanguard.com/investment-products/etfs/profile/vigi,alta
+NOBL,RV,ProShares S&P 500 Dividend Aristocrats ETF,https://proshares.com/funds/nobl.html,alta
+SPDW,RV,State Street® SPDR® Portfolio Developed World ex-US ETF (ISIN US78463X8891),https://www.ssga.com/us/en/intermediary/etfs/state-street-spdr-portfolio-developed-world-ex-us-etf-spdw,alta
+EEMV,RV,iShares MSCI Emerging Markets Min Vol Factor ETF (ISIN US4642865335; Equity/Large/Mid Cap),https://www.ishares.com/us/products/239641/ishares-msci-emerging-markets-min-vol-factor-etf,alta
+DOG,RV,ProShares Short Dow30 (inverso -1x Dow Jones Industrial Average),https://stockanalysis.com/stocks/DOG,media
+ERUS,RV,iShares MSCI Russia ETF (in liquidation since 2022),https://www.ishares.com/us/products/239677/ERUS,alta
+IXN,RV,iShares Global Tech ETF,https://www.ishares.com/us/products/239750/,media
+GMF,RV,SPDR S&P Emerging Asia Pacific ETF,https://www.ssga.com/us/en/intermediary/etfs/spdr-sp-emerging-asia-pacific-etf-gmf,media
+COMT,MATERIA_PRIMA,iShares GSCI Commodity Dynamic Roll Strategy ETF,https://www.ishares.com/us/products/271479/,media

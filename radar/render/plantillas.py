@@ -6,7 +6,7 @@ etiquetas, no reescribir frases. Si algo aquí cambia, es una decisión editoria
 deliberada y se versiona (VERSION_PLANTILLAS); el test de plantillas lo detecta.
 """
 
-VERSION_PLANTILLAS = "2026-11-10.2"
+VERSION_PLANTILLAS = "2026-11-10.3"
 
 # --------------------------------------------------------------- encabezado
 TITULO_OPERADORA = "Radar de operadoras · {operadora}"
@@ -53,6 +53,8 @@ FILA_TOTAL = "Total"
 LEYENDA_MEZCLA = (("rv", "Renta variable"), ("rf", "Renta fija"), ("efe", "Efectivo y reportos"))
 MARCA_ESTIMADO = "(e)"
 MARCA_DISCREPANCIA = "‡"
+MARCA_HERMANOS = "†"
+TIER_PROVISIONAL = "{tier} (provisional)"
 
 # --------------------------------------------------------------- top 20
 TITULO_TOP_RV = "Top 20 · renta variable"
@@ -126,6 +128,15 @@ HUECO_SIC = "Claves SIC sin emisora confirmada: {claves}."
 HUECO_REGIMEN = "Límite máximo de renta variable sin localizar: {claves}."
 HUECO_ACTIVO_NETO = "Activo neto oficial (CNBV) pendiente para: {claves}."
 HUECO_CASA_BOLSA = "Casa de bolsa hermana sin confirmar."
+HUECO_ETF_MEDIA = "ETFs clasificados con fuente secundaria (verificar): {lista}."
+NOTA_HERMANOS = (
+    "† Excluye {mdp} mdp en acciones de fondos de la misma operadora: ya se cuentan en el fondo "
+    "subyacente y no generan ejecución en bolsa."
+)
+NOTA_PROVISIONAL = (
+    "Calificación provisional: la rotación está medida en menos de la mitad de la exposición a renta "
+    "variable; la bolsa sale del supuesto (e). Una calificación provisional no puede ser Tier 1."
+)
 HUECO_SIN_CARTERA = "Fondos administrados sin cartera de este corte: {lista}."
 ITEM_SIN_CARTERA = "{clave} ({nota})"
 SUPUESTO_CALIBRACION = (

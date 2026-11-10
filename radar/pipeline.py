@@ -104,6 +104,10 @@ def descargar_cnbv(store: Store, cli: Cliente, log=print) -> list[str]:
         if not ruta.exists():
             ruta.write_bytes(r.contenido)
         fecha = cnbv.fecha_documento(tipo, ruta)
+        n_ops = len({cnbv._texto(f.datos.get("operadora")) for f in _minfo_ruta(ruta, sha)})
+        if n_ops < 10:
+            avisos.append(f"CNBV {nombre}: solo trae {n_ops} operadora(s) (archivo parcial); "
+                          "las demás no tienen corte para ese periodo")
         store.guardar_documento(Documento(sha, cnbv.OPERADORA, None, tipo, url, rel.as_posix(), fecha, hoy,
                                           len(r.contenido)))
         log(f"  CNBV     {tipo:18s} {fecha or 's/f'}  {nombre}")
@@ -113,10 +117,50 @@ def descargar_cnbv(store: Store, cli: Cliente, log=print) -> list[str]:
 _MINFO: dict[str, list] = {}
 
 
+def _minfo_ruta(ruta: Path, clave: str) -> list:
+    if clave not in _MINFO:
+        _MINFO[clave] = cnbv.leer_minfo(ruta)
+    return _MINFO[clave]
+
+
 def _minfo(d: Documento) -> list:
     if d.doc_id not in _MINFO:
         _MINFO[d.doc_id] = cnbv.leer_minfo(dir_datos() / d.archivo)
     return _MINFO[d.doc_id]
+
+
+def alias_fondos(operadora: str) -> dict[str, str]:
+    import tomllib
+
+    from radar.config import RAIZ
+
+    ruta = RAIZ / "config" / "alias_fondos.toml"
+    if not ruta.exists():
+        return {}
+    return dict(tomllib.loads(ruta.read_text(encoding="utf-8")).get(operadora, {}))
+
+
+def _aplicar_alias(c: Cartera, alias: dict[str, str]) -> Cartera:
+    c.fondo_clave = alias.get(c.fondo_clave, c.fondo_clave)
+    for p in c.posiciones:
+        if p.fondo_subyacente:
+            p.fondo_subyacente = alias.get(p.fondo_subyacente, p.fondo_subyacente)
+            p.emisora = alias.get(p.emisora, p.emisora)
+    return c
+
+
+def _posible_alias(c: Cartera, propias: dict[str, Cartera]) -> tuple[str, float] | None:
+    """Fondo de la operadora con >= 90 % de traslape de instrumentos (mín. 3)."""
+    k = {p.clave_instrumento for p in c.posiciones if not p.es_agregado and p.clase != "EFE"}
+    if len(k) < 3:
+        return None
+    mejor = None
+    for clave, o in propias.items():
+        ko = {p.clave_instrumento for p in o.posiciones if not p.es_agregado and p.clase != "EFE"}
+        t = len(k & ko) / len(k)
+        if t >= 0.9 and (mejor is None or t > mejor[1]):
+            mejor = (clave, t)
+    return mejor
 
 
 def _dif(a: float, b: float) -> float:
@@ -125,9 +169,10 @@ def _dif(a: float, b: float) -> float:
 
 def _ingestar_r1(operadora: str, cve: str, store: Store) -> dict[tuple[int, int], date]:
     fechas: dict[tuple[int, int], date] = {}
+    alias = alias_fondos(operadora)
     for d in store.documentos(cnbv.OPERADORA, "cnbv_r1"):
         for an in cnbv.activos_r1(_minfo(d), cve, d):
-            store.guardar_activo_neto(operadora, an.fondo, an.fecha, an.activo_neto, an.procedencia)
+            store.guardar_activo_neto(operadora, alias.get(an.fondo, an.fondo), an.fecha, an.activo_neto, an.procedencia)
             fechas[(an.fecha.year, an.fecha.month)] = max(an.fecha, fechas.get((an.fecha.year, an.fecha.month), an.fecha))
     return fechas
 
@@ -140,7 +185,8 @@ def _aplicar_activo_oficial(c: Cartera, store: Store) -> None:
         return
     an, proc = of
     store.guardar_conciliacion(
-        c.operadora, c.fondo_clave, c.fecha_corte, "activo neto",
+        c.operadora, c.fondo_clave, c.fecha_corte,
+        "activo neto (R7)" if c.tipo_doc == "cnbv_r7" else "activo neto (cartera de la operadora)",
         (_FUENTE[c.tipo_doc], c.activo_neto if not c.activo_neto_estimado else c.total_cartera, c.procedencia.cita()),
         ("CNBV R1 activo neto", an, proc.cita()),
     )
@@ -156,10 +202,11 @@ _FUENTE = {"cartera_mensual": "Cartera de la operadora", "cartera_diaria": "Cart
 
 
 def _ingestar_r7(operadora: str, cve: str, store: Store, fechas: dict[tuple[int, int], date], log) -> None:
-    previas = {c.fondo_clave: c for c in store.carteras(operadora) if c.tipo_doc == "cartera_mensual"}
+    previas = {c.fondo_clave: c for c in store.carteras(operadora) if c.tipo_doc in ("cartera_mensual", "cartera_diaria")}
     universo = {f.clave: f for f in store.universo(operadora)}
     nuevos: list[FondoDescubierto] = []
-    carteras_r7 = [c for d in store.documentos(cnbv.OPERADORA, "cnbv_r7")
+    alias = alias_fondos(operadora)
+    carteras_r7 = [_aplicar_alias(c, alias) for d in store.documentos(cnbv.OPERADORA, "cnbv_r7")
                    for c in cnbv.carteras_r7(_minfo(d), operadora, cve, d, fechas)]
     pendientes: dict[str, float] = {}
     for c in carteras_r7:
@@ -174,8 +221,11 @@ def _ingestar_r7(operadora: str, cve: str, store: Store, fechas: dict[tuple[int,
             c.nombre_legal, c.categoria, c.nombre_corto, c.tipo_fondo = (
                 ref.nombre_legal, ref.categoria, ref.nombre_corto, ref.tipo_fondo)
         if c.fondo_clave not in universo:
-            nuevos.append(FondoDescubierto(c.fondo_clave, "", ADMINISTRADO, {},
-                                           "Solo en CNBV: no aparece en el sitio de la operadora"))
+            nota = "Solo en CNBV: no aparece en el sitio de la operadora"
+            if previas and (pa := _posible_alias(c, previas)):
+                nota += f" (¿alias de {pa[0]}? traslape {pa[1]:.0%}; ver config/alias_fondos.toml)"
+                log(f"  AVISO posible alias {c.fondo_clave} -> {pa[0]} ({pa[1]:.0%})")
+            nuevos.append(FondoDescubierto(c.fondo_clave, "", ADMINISTRADO, {}, nota))
         _aplicar_activo_oficial(c, store)
         mismo_mes = store.mensual_del_mes(operadora, c.fondo_clave, c.fecha_corte)
         if mismo_mes:
@@ -217,6 +267,8 @@ def parsear(operadora: str, store: Store, prm: Parametros, log=print) -> None:
     docs = store.documentos(operadora)
     nombres = {f.clave: f.nombre_comercial for f in store.universo(operadora)}
     ultimas: dict[str, Cartera] = {}
+    if ad.clave_cnbv:
+        store.borrar_derivados_cnbv(operadora)
     fechas_r1 = _ingestar_r1(operadora, ad.clave_cnbv, store) if ad.clave_cnbv else {}
     for d in docs:
         if not d.tipo.startswith("cartera"):
@@ -327,7 +379,7 @@ def construir_metricas(operadora: str, corte: date, store: Store, prm: Parametro
     # en el último corte en que la CNBV publicó ambos.
     calib = None
     pares = [k for k in store.conciliaciones(operadora)
-             if k["concepto"] == "activo neto" and k["fuente_a"] == "CNBV R7 suma de posiciones" and k["monto_b"]
+             if k["concepto"] == "activo neto (R7)" and k["monto_b"]
              and k["fecha"] <= corte.isoformat()]
     if pares:
         f_ult = max(k["fecha"] for k in pares)
@@ -339,10 +391,14 @@ def construir_metricas(operadora: str, corte: date, store: Store, prm: Parametro
     cortes = store.cortes(operadora, solo_mensuales=True)
     previos = [c for c in cortes if c < corte]
     previo = previos[-1] if previos else None
-    an_previo = None
+    an_previo = an_comparable = None
     if previo:
-        claves = {f.clave for f in fondos}
-        an_previo = sum(c.activo_neto for c in todas
-                        if c.fondo_clave in claves and c.fecha_corte == previo) or None
+        # Momentum con los MISMOS fondos en ambos cortes (si no, entra o sale un fondo
+        # completo y se confunde con flujo).
+        previas = {c.fondo_clave: c for c in todas if c.fecha_corte == previo}
+        comunes = [f for f in fondos if f.clave in previas]
+        if comunes:
+            an_previo = sum(previas[f.clave].activo_neto for f in comunes) or None
+            an_comparable = sum(f.activo_neto for f in comunes) or None
     return MetricasOperadora(operadora, ad.nombre, corte, store.perfil(operadora), fondos, fdf,
-                             no_disp, previo, an_previo, sin_cartera=sin_cartera, calibracion=calib)
+                             no_disp, previo, an_previo, an_comparable, sin_cartera=sin_cartera, calibracion=calib)
