@@ -1,0 +1,70 @@
+# Actualización automática del radar.
+# Corre todos los días hábiles: descarga carteras/DICI de las operadoras y los reportes
+# R1/R7 de la CNBV, re-parsea, valida (cuadre, ETFs, conciliaciones) y genera entregables.
+# Solo hace commit cuando llegó un documento nuevo o cambió el estado de alguna operadora,
+# para que el histórico no se llene de commits vacíos. Streamlit Community Cloud se
+# vuelve a desplegar solo con cada push.
+name: actualizar-radar
+
+on:
+  schedule:
+    - cron: "0 13 * * 1-5"   # 07:00 CDMX, lunes a viernes
+  workflow_dispatch: {}       # botón "Run workflow" para correrlo a mano
+
+permissions:
+  contents: write
+
+concurrency:
+  group: actualizar-radar
+  cancel-in-progress: false
+
+jobs:
+  actualizar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Dependencias
+        run: pip install -r requirements.txt
+
+      - name: Caché de extracción de PDFs
+        uses: actions/cache@v4
+        with:
+          path: data/cache/pdf
+          key: pdf-${{ github.run_id }}
+          restore-keys: pdf-
+
+      - name: Actualizar (fetch de todas + entregables)
+        env:
+          PYTHONIOENCODING: utf-8
+        run: python -m radar actualizar 2>&1 | tee actualizar.log
+        continue-on-error: true
+
+      - name: Estado por operadora
+        run: python -m radar estado > data/estado.txt
+
+      - name: Commit si hay datos nuevos
+        run: |
+          git config user.name "radar-bot"
+          git config user.email "radar-bot@users.noreply.github.com"
+          if [ -n "$(git status --porcelain data/raw data/estado.txt)" ]; then
+            git add data/raw data/radar.sqlite data/estado.txt salidas
+            git commit -m "Actualización automática $(date -u +%Y-%m-%d)"
+            git push
+          else
+            echo "Sin documentos nuevos ni cambios de estado: no se hace commit."
+          fi
+
+      - name: Bitácora
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bitacora-${{ github.run_id }}
+          path: actualizar.log
+          retention-days: 30

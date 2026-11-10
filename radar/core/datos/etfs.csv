@@ -1,0 +1,83 @@
+# Diccionario versionado de ETFs. Un ETF NO es renta variable por ser ETF:
+# se clasifica por SUBYACENTE. El parser FALLA ante un ETF que no esté aquí.
+# version: 2026-11-10.2
+# subyacente: RV | DEUDA | MATERIA_PRIMA
+# MATERIA_PRIMA (p. ej. oro físico) no es RV ni deuda; como las cinco clases no tienen
+# cubeta de materias primas se cuenta en RV_ETF (se opera vía SIC) y se marca (e).
+# Para agregar: ticker exacto como aparece en la cartera (sin tipo de valor ni serie).
+ticker,subyacente,descripcion
+AAXJ,RV,iShares MSCI All Country Asia ex Japan
+ACWI,RV,iShares MSCI ACWI
+BBJP,RV,JPMorgan BetaBuilders Japan
+EEM,RV,iShares MSCI Emerging Markets
+ESGU,RV,iShares ESG Aware MSCI USA
+EWG,RV,iShares MSCI Germany
+HDV,RV,iShares Core High Dividend
+IBB,RV,iShares Biotechnology
+IDU,RV,iShares U.S. Utilities
+IEMG,RV,iShares Core MSCI Emerging Markets
+IEUR,RV,iShares Core MSCI Europe
+IGV,RV,iShares Expanded Tech-Software Sector
+INDA,RV,iShares MSCI India
+IPAC,RV,iShares Core MSCI Pacific
+ITOT,RV,iShares Core S&P Total U.S. Stock Market
+IWM,RV,iShares Russell 2000
+IYC,RV,iShares U.S. Consumer Discretionary
+IYE,RV,iShares U.S. Energy
+IYG,RV,iShares U.S. Financial Services
+IYH,RV,iShares U.S. Healthcare
+IYJ,RV,iShares U.S. Industrials
+JQUA,RV,JPMorgan U.S. Quality Factor
+KWEB,RV,KraneShares CSI China Internet
+NAFTRAC,RV,iShares NAFTRAC (S&P/BMV IPC) - listado en México
+QQQM,RV,Invesco NASDAQ 100
+RING,RV,iShares MSCI Global Gold Miners
+SPY,RV,SPDR S&P 500
+VAW,RV,Vanguard Materials
+VDC,RV,Vanguard Consumer Staples
+VGT,RV,Vanguard Information Technology
+VHT,RV,Vanguard Health Care
+VIS,RV,Vanguard Industrials
+VOO,RV,Vanguard S&P 500
+VOX,RV,Vanguard Communication Services
+VPU,RV,Vanguard Utilities
+VTV,RV,Vanguard Value
+BIL,DEUDA,SPDR Bloomberg 1-3 Month T-Bill
+FLOT,DEUDA,iShares Floating Rate Bond
+IB01,DEUDA,iShares $ Treasury Bond 0-1yr UCITS
+IB1MXX,DEUDA,iShares Bono 1-3 años (deuda gubernamental mexicana) - listado en México
+IBGS,DEUDA,iShares € Govt Bond 1-3yr UCITS
+IBTA,DEUDA,iShares $ Treasury Bond 1-3yr UCITS
+IEF,DEUDA,iShares 7-10 Year Treasury Bond
+SHV,DEUDA,iShares Short Treasury Bond
+VDST,DEUDA,Vanguard USD Treasury Bond UCITS (corto plazo)
+4BRZ,RV,iShares MSCI Brazil UCITS
+CJPU,RV,ETF de acciones de Japón (UCITS) [POR CONFIRMAR emisor]
+CNXT,RV,VanEck ChiNext
+CPXJ,RV,iShares Core MSCI Pacific ex Japan UCITS
+CQQQ,RV,Invesco China Technology
+ECH,RV,iShares MSCI Chile
+EPP,RV,iShares MSCI Pacific ex Japan
+EWY,RV,iShares MSCI South Korea
+EWZ,RV,iShares MSCI Brazil
+GRID,RV,First Trust NASDAQ Clean Edge Smart Grid Infrastructure
+IEMA,RV,iShares MSCI EM UCITS
+IVV,RV,iShares Core S&P 500
+KBWB,RV,Invesco KBW Bank
+NLR,RV,VanEck Uranium and Nuclear (acciones)
+PPA,RV,Invesco Aerospace & Defense
+SOXX,RV,iShares Semiconductor
+TOPT,RV,iShares Top 20 U.S. Stocks
+VB,RV,Vanguard Small-Cap
+VGK,RV,Vanguard FTSE Europe
+VUAA,RV,Vanguard S&P 500 UCITS (Acc)
+VWCG,RV,Vanguard FTSE Developed Europe UCITS
+XLB,RV,Materials Select Sector SPDR
+XLE,RV,Energy Select Sector SPDR
+XLI,RV,Industrial Select Sector SPDR
+IEI,DEUDA,iShares 3-7 Year Treasury Bond
+SGOV,DEUDA,iShares 0-3 Month Treasury Bond
+USFR,DEUDA,WisdomTree Floating Rate Treasury
+VBIL,DEUDA,Vanguard 0-3 Month Treasury Bill
+TFRN,DEUDA,ETF de Tesoro EE. UU. tasa flotante (UCITS) [POR CONFIRMAR emisor]
+GLD,MATERIA_PRIMA,SPDR Gold Shares (oro físico)

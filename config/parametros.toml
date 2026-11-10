@@ -1,0 +1,66 @@
+# Parámetros del radar. Todo lo que no es dato publicado por la operadora vive aquí.
+# Los supuestos se marcan "(e)" en los entregables.
+
+[comisiones]
+COMISION_LOCAL_PB = 15      # pb sobre importe operado en BMV/BIVA
+COMISION_SIC_PB = 25        # pb sobre importe operado vía SIC
+CAPTURA_OBJETIVO = 0.15     # fracción de la bolsa de comisión que la mesa aspira a capturar
+
+[rotacion]
+# Con menos de CORTES_PARA_CIFRA cortes se reporta banda, nunca cifra puntual.
+CORTES_PARA_CIFRA = 6
+# La rotación observada es un PISO (solo ve cambio neto entre cierres).
+# Techo de la banda = piso × MULTIPLICADOR_TECHO  (e)
+MULTIPLICADOR_TECHO = 1.5
+# Dos cortes a más de estos meses no entran al piso: el cambio neto en un tramo largo
+# esconde casi toda la operación (p. ej. el R7 anual de la CNBV).
+MAX_MESES_PAR = 4
+# Si un fondo no tiene dos cortes, se usa esta banda (e). Anclada en la única
+# medición real disponible al arrancar el proyecto (0.32x en un fondo de acciones
+# mexicanas con gestión activa declarada), no en el estilo declarado.
+SIN_MEDICION_MIN = 0.20
+SIN_MEDICION_MAX = 0.60
+
+[clasificacion]
+# Un fondo es "fondo de fondos" si las acciones de otros fondos pesan al menos esto.
+UMBRAL_FONDO_DE_FONDOS = 0.50
+TOLERANCIA_CUADRE = 0.001        # 0.1 % entre suma de posiciones y total publicado
+UMBRAL_DISCREPANCIA = 0.10       # 10 % entre documentos del mismo fondo (incluye CNBV R1/R7)
+
+[calificacion]
+# Pesos de los seis criterios (suman 1).
+PESO_BOLSA = 0.30
+PESO_INDEPENDENCIA = 0.25
+PESO_AJUSTE = 0.20
+PESO_RECURRENCIA = 0.10
+PESO_HEADROOM = 0.10
+PESO_FRICCION = 0.05
+TIER1_MIN = 4.0
+TIER2_MIN = 3.0
+# Escalas: valor mínimo para obtener 2, 3, 4 y 5 puntos.
+BOLSA_MXN_CORTES = [1_000_000, 3_000_000, 6_000_000, 12_000_000]
+ROTACION_CORTES = [0.25, 0.50, 1.00, 2.00]
+HEADROOM_CORTES = [0.10, 0.25, 0.50, 1.00]   # headroom / exposición RV
+
+# Supuestos comerciales por operadora: no salen de ningún documento. (e)
+# Operadoras sin entrada propia (cobertura CNBV) usan [operadoras_default].
+[operadoras_default]
+probabilidad_de_alta = 0.20
+probabilidad_de_alta_con_hermana = 0.05
+friccion_alta = 3
+friccion_nota = "Supuesto genérico: sin evaluación comercial de la operadora todavía."
+
+[operadoras.finaccess]
+probabilidad_de_alta = 0.35
+friccion_alta = 4
+friccion_nota = "Sin casa de bolsa propia; ya distribuye vía terceros (Actinver)."
+
+[operadoras.multiva]
+probabilidad_de_alta = 0.10
+friccion_alta = 2
+friccion_nota = "Grupo con casa de bolsa propia; el alta compite con el ruteo interno."
+
+[operadoras.compass]
+probabilidad_de_alta = 0.30
+friccion_alta = 4
+friccion_nota = "Sin casa de bolsa propia; hoy se distribuye por sí misma y vía Multiva (STRAT)."

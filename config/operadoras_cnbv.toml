@@ -1,0 +1,189 @@
+# Operadoras cubiertas SOLO con los reportes de la CNBV (R7 cartera mensual, R1 activo neto).
+# No tienen adaptador propio todavía: no hay DICI (régimen, comisiones, distribuidoras) ni
+# cartera de la operadora; los cortes llegan con ~45 días de rezago.
+#
+# casa_de_bolsa_hermana: padrón CNBV de casas de bolsa (pes.cnbv.gob.mx, clasificador Aux=18)
+# cruzado con el grupo financiero de la operadora. Investigación del 2026-11-10 en
+# docs/universo_operadoras.md. Al escribir un adaptador propio, el DICI lo confirma.
+#
+# Para pasar una operadora a adaptador propio: escribir radar/adapters/<clave>.py, registrarlo
+# en radar/adapters/__init__.py y quitarla de aquí.
+
+[defaults]
+fuente = "Padrón CNBV de casas de bolsa (Aux=18) y grupos financieros; docs/universo_operadoras.md (2026-11-10)"
+
+# ---------------------------------------------------------------- sin casa de bolsa hermana
+[blackrock]
+nombre = "BlackRock México"
+clave_cnbv = "IMPFOND"
+grupo = "BlackRock Inc. (antes Impulsora de Fondos Banamex)"
+casa_de_bolsa_hermana = false
+
+[sura]
+nombre = "SURA Investment Management México"
+clave_cnbv = "SIM"
+grupo = "SURA Asset Management (Colombia)"
+casa_de_bolsa_hermana = false
+
+[principal]
+nombre = "Principal Fondos de Inversión"
+clave_cnbv = "PRINPAL"
+grupo = "Principal Financial Group (EE. UU.)"
+casa_de_bolsa_hermana = false
+
+[franklin]
+nombre = "Franklin Templeton México"
+clave_cnbv = "OPFRANK"
+grupo = "Franklin Resources (EE. UU.)"
+casa_de_bolsa_hermana = false
+
+[skandia]
+nombre = "Skandia Operadora de Fondos"
+clave_cnbv = "SKANDIA"
+grupo = "Skandia [POR CONFIRMAR controlador]"
+casa_de_bolsa_hermana = false
+
+[azimut]
+nombre = "Azimut México (Más Fondos)"
+clave_cnbv = "AZMT-MX"
+grupo = "Azimut Holding (Italia)"
+casa_de_bolsa_hermana = false
+
+[nafinsa]
+nombre = "Operadora de Fondos Nafinsa"
+clave_cnbv = "OPNAFIN"
+grupo = "Nacional Financiera (banca de desarrollo)"
+casa_de_bolsa_hermana = false
+
+[mifel]
+nombre = "Operadora Mifel"
+clave_cnbv = "OPMIFEL"
+grupo = "Grupo Financiero Mifel"
+casa_de_bolsa_hermana = false
+
+[afirme]
+nombre = "Fondos de Inversión Afirme"
+clave_cnbv = "OAFIRME"
+grupo = "Afirme Grupo Financiero"
+casa_de_bolsa_hermana = false
+
+[cifondos]
+nombre = "CI Fondos"
+clave_cnbv = "CIFONDO"
+grupo = "Ex Grupo CIBanco [POR CONFIRMAR]"
+casa_de_bolsa_hermana = false
+nota = "Su casa de bolsa ya no aparece en el padrón vigente."
+
+# ---------------------------------------------------------------- con casa de bolsa hermana
+[actinver]
+nombre = "Operadora Actinver"
+clave_cnbv = "OACTIN"
+grupo = "Grupo Financiero Actinver"
+casa_de_bolsa_hermana = true
+casa_de_bolsa = "Actinver Casa de Bolsa"
+
+[gbm]
+nombre = "GBM Administradora de Activos"
+clave_cnbv = "OPGBM"
+grupo = "Grupo Bursátil Mexicano"
+casa_de_bolsa_hermana = true
+casa_de_bolsa = "GBM Casa de Bolsa"
+
+[valmex]
+nombre = "Operadora Valmex"
+clave_cnbv = "OVALMEX"
+grupo = "Valmex"
+casa_de_bolsa_hermana = true
+casa_de_bolsa = "Valores Mexicanos Casa de Bolsa"
+
+[monex]
+nombre = "Monex Operadora de Fondos"
+clave_cnbv = "OPMONEX"
+grupo = "Monex Grupo Financiero"
+casa_de_bolsa_hermana = true
+casa_de_bolsa = "Monex Casa de Bolsa"
+
+[invex]
+nombre = "INVEX Operadora"
+clave_cnbv = "OPINVEX"
+grupo = "INVEX Grupo Financiero"
+casa_de_bolsa_hermana = true
+casa_de_bolsa = "INVEX Casa de Bolsa"
+
+[finamex]
+nombre = "Finamex Inversiones"
+clave_cnbv = "OPFFINX"
+grupo = "Finamex"
+casa_de_bolsa_hermana = true
+casa_de_bolsa = "Casa de Bolsa Finamex"
+
+[btg]
+nombre = "BTG Pactual Gestora de Fondos"
+clave_cnbv = "OPBTG"
+grupo = "BTG Pactual (Brasil)"
+casa_de_bolsa_hermana = true
+casa_de_bolsa = "BTG Pactual Casa de Bolsa"
+
+[kapital]
+nombre = "KPTL México Operadora"
+clave_cnbv = "OPKPTL"
+grupo = "Kapital México Grupo Financiero"
+casa_de_bolsa_hermana = true
+casa_de_bolsa = "Kapital México Casa de Bolsa"
+
+[value]
+nombre = "Value Operadora"
+clave_cnbv = "OPVALUE"
+grupo = "Value Grupo Financiero"
+casa_de_bolsa_hermana = true
+casa_de_bolsa = "Value Casa de Bolsa"
+
+[punto]
+nombre = "Operadora Punto"
+clave_cnbv = "OPUNTO"
+grupo = "Grupo Punto"
+casa_de_bolsa_hermana = true
+casa_de_bolsa = "Punto Casa de Bolsa"
+nota = "Operadora del propio grupo de la mesa: no es objetivo de cobertura."
+
+[bbva]
+nombre = "BBVA Asset Management México"
+clave_cnbv = "OPBBVAG"
+grupo = "Grupo Financiero BBVA México"
+casa_de_bolsa_hermana = true
+casa_de_bolsa = "Casa de Bolsa BBVA México"
+
+[banorte]
+nombre = "Operadora de Fondos Banorte"
+clave_cnbv = "OIXE"
+grupo = "Grupo Financiero Banorte"
+casa_de_bolsa_hermana = true
+casa_de_bolsa = "Casa de Bolsa Banorte"
+
+[santander]
+nombre = "SAM Asset Management (Santander)"
+clave_cnbv = "SANTAND"
+grupo = "Santander"
+casa_de_bolsa_hermana = true
+casa_de_bolsa = "Casa de Bolsa Santander"
+
+[hsbc]
+nombre = "HSBC Global Asset Management México"
+clave_cnbv = "OPHSBC"
+grupo = "Grupo Financiero HSBC"
+casa_de_bolsa_hermana = true
+casa_de_bolsa = "HSBC Casa de Bolsa"
+
+[scotia]
+nombre = "Scotia Fondos"
+clave_cnbv = "OSCOTIA"
+grupo = "Grupo Financiero Scotiabank Inverlat"
+casa_de_bolsa_hermana = true
+casa_de_bolsa = "Scotia Inverlat Casa de Bolsa"
+
+[inbursa]
+nombre = "Operadora Inbursa"
+clave_cnbv = "OPINBUR"
+grupo = "Grupo Financiero Inbursa"
+casa_de_bolsa_hermana = true
+casa_de_bolsa = "Inversora Bursátil"

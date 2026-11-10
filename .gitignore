@@ -1,0 +1,8 @@
+# Caché reconstruible (HTTP del día y palabras extraídas de PDFs)
+data/cache/
+__pycache__/
+*.pyc
+.pytest_cache/
+.claude/
+actualizar.log
+# data/raw, data/radar.sqlite y salidas SÍ se versionan: son el histórico de cortes.

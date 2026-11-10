@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html><head>
+<meta http-equiv="cache-control" content="max-age=0" />
+<meta http-equiv="cache-control" content="no-cache" />
+<meta http-equiv="expires" content="-1" />
+<meta http-equiv="expires" content="Tue, 01 Jan 1980 1:00:00 GMT" />
+<meta http-equiv="pragma" content="no-cache" />
+<meta name="description" CONTENT="">
+<meta name="Keywords"    CONTENT="">
+<meta HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=windows-1252">
+<TITLE>Finaccess. Acceso financiero para todos.</TITLE>
+<LINK REL="SHORTCUT ICON" href="/public_images/f.ico">
+<link rel="apple-touch-icon" sizes="60x60" href="/public_images/iconos/apple-icon-60x60.png">
+<link rel="apple-touch-icon" sizes="72x72" href="/public_images/iconos/apple-icon-72x72.png">
+<link rel="apple-touch-icon" sizes="76x76" href="/public_images/iconos/apple-icon-76x76.png">
+<link rel="apple-touch-icon" sizes="114x114" href="/public_images/iconos/apple-icon-114x114.png">
+<link rel="apple-touch-icon" sizes="120x120" href="/public_images/iconos/apple-icon-120x120.png">
+<link rel="apple-touch-icon" sizes="144x144" href="/public_images/iconos/apple-icon-144x144.png">
+<link rel="apple-touch-icon" sizes="152x152" href="/public_images/iconos/apple-icon-152x152.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/public_images/iconos/apple-icon-180x180.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/public_images/iconos/android-icon-192x192.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/public_images/iconos/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="96x96" href="/public_images/iconos/favicon-96x96.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/public_images/iconos/favicon-16x16.png">
+<link href="public_assets/css/bootstrap.css" rel="stylesheet" />
+<link href="public_assets/css/bootstrap-essentials.min.css" rel="stylesheet" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="/public_assets/fonts/fontawesome-webfont.woff2?v=4.7.0" />
+<link rel="preload" as="font" type="font/woff" crossorigin href="/public_assets/fonts/glyphicons-halflings-regular.woff" />
+<link rel="preload" as="style" href="/public_assets/css/font-awesome.min.css" onload="this.rel='stylesheet'"/>
+<link rel="stylesheet" href="public_assets/css/styles.css?t=20220823">
+<link rel="stylesheet" href="public_assets/css/bjqs.css">
+<link rel="stylesheet" type="text/css" href="public_assets/css/styles_charts.css">
+<link rel="stylesheet" href="public_assets/css/style-ingenia.css">
+<script src="/public_assets/js/jquery-3.6.0.min.js"></script>
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-102486125-1', {cookieFlags:'max-age=7200;domain=finaccess.com.mx;path=/;secure;samesite=strict;'});
+  ga('send', 'pageview');
+
+</script><script type="text/javascript" src="public_assets/js/jquery.validate.js"></script><script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAovy3K3ko2zdhUsBBUYWiPBAWtzRXl3X0&sensor=TRUE"></script>
+<script>
+$(function() {
+    	$("#login").validate();
+    	
+    	$('#btnEntrar').bind({
+ 			click: function (){
+                		if($("#login").valid()){
+ 					login(true);
+ 				}
+ 				else{
+                                  $('#T1').focus();
+				}
+        		
+ 			}
+ 		});
+    	
+    });
+    
+</script>
+<style>
+.sec-header-fixed{
+    width: 1024px;
+    position: fixed;
+    background-color: #fff;
+    z-index: 200;
+}
+.sec-content-fixed{
+margin-top: 180px!important;
+}
+</style>
+</head>
+<body style="background-color:#ffffff;display:none">
+<div id="wrap">
+    <div class="sec-header">
+        <div class="sec-redes">
+<form method="post" name="finForm" id="login" autocomplete="off">
+                <span class="icoForm"></span>
+                <label for="user">Ingresa</label>
+		<input type="hidden" name="TOKEN" id="TOKEN" value="6af334b26700e0.71119621">
+                <input type="text" id="T1" name="T1" maxlength="10" class="required" placeholder="Usuario">
+                <input type="password" id="T2" name="T2" maxlength="16" class="required" placeholder="Contraseña">
+                <img id="btnEntrar" class="send" src="/public_images/header/bt_entrar.png" style="margin-top: 8px;">
+<span id="waitLogin" style="display:none;position: relative;"><i class="fa fa-spinner fa-spin fa-1x fa-fw" style="color: white;margin-top: 10px;"></i></span>
+            </form>
+            <span style="float:right"><a href="javascript:confirmaLigaExterna('http://twitter.com/FinaccessMX', 'twitter');" class="twitter"></a>
+            <a href="javascript:confirmaLigaExterna('http://facebook.com/FinaccessMX', 'facebook');" class="facebbok"></a></span>
+            <div class="clear"></div>
+        </div>
+        <div class="clear"></div>
+        <div class="clear"></div>
+        <div class="header">
+            <a href="https://www.finaccess.com.mx/" class="logo"><img src="public_images/logo_finaccess.png" alt="Logo Finaccess"></a>
+            <ul class="menu"><li><a id="menu_home" href="javascript:cargaSeccion('home');" class="active">Home</a></li><li><a href="javascript:cargaSeccion('nosotros');" id="menu_nosotros">Nosotros</a></li><li><a href="javascript:cargaSeccion('fondos');" id="menu_fondos">Fondos de Inversión</a></li><li><a href="javascript:cargaSeccion('tasas');" id="menu_tasas">Tasas de rendimiento</a></li><li><a href="javascript:cargaSeccion('portafolio_modelo');" id="menu_portafolio_modelo">Referencias de Portafolios</a></li><li><a href="javascript:cargaSeccion('avisos_importantes');" id="menu_avisos_importantes">Avisos Importantes</a></li><li><a href="javascript:cargaSeccion('contacto');" id="menu_contacto">Contacto</a></li></ul>
+        </div>
+    </div>
+<script>
+$("#T1").keyup(function(event) {
+    if (event.keyCode === 13) {
+        $("#T2").focus();
+    }
+});
+$("#T2").keyup(function(event) {
+    if (event.keyCode === 13) {
+        $("#btnEntrar").click();
+    }
+});
+</script><div id="panelContenido" class="sec-content">
+<script language="javascript">
+$(function () {
+      $('#T1').focus(); 
+});
+</script>
+<!--<div class="row"><div class="col-md-12"><div style="width: 100%;border-style: solid;padding: 0px;margin: 0;border-color:#a94442;border-width:1px;background-color:#fff;box-shadow: 2px 2px 5px #797777;"><h4 class="text-danger" style="margin-top:0px;color:#fff;background-color:#a94442;padding:10px"><i class="glyphicon glyphicon-info-sign"></i>&nbsp;Importante</h4><div id="contenidoAviso" style="padding:10px;margin-bottom: 10px;color:#004080">Estimado cliente:<br><br>Nos permitimos informarles que el <strong>24 de diciembre los fondos que administra Finaccess México SA de CV</strong> cerrarán a las <strong>11:00 horas</strong> (en lugar de las 13:00 horas) derivado de que ese día el horario de las Bolsas de Valores será de las 8:00 am a las 12:00 horas.<br><br>A excepción del fondo <strong>AXESEDM, AXESGLO, AXESGSP, AXESV&D y AXESESG</strong> los cuales <strong>PERMANECERÁN CERRADOS</strong> por el día inhábil Christmas day.<br><br>El día <strong>31 de diciembre</strong> todos nuestros fondos cerrarán en el <strong>horario normal</strong>.</div><div style="padding:10px;margin-bottom: 10px;text-align:right"><a href="aviso.pdf" target="_aviso"></a></div></div></div></div><div class="row">&nbsp;</div>-->
+
+<!--<div id="aviso20241017">
+    <p>Estimado cliente:</p>
+    <br>
+    <p>Durante el fin de semana de 19 y 20 de octubre, nuestra página web no estará disponible o presentará intermitencias por mantenimiento a nuestros sistemas.</p>
+    <br>
+    <p>Gracias por su comprensión.</p>
+</div>-->
+<div id="slider-home">
+    <ul class="bjqs">
+        <li><img src="public_images/home/recepcion.jpg" alt=""></li><!--<li><a href="/tasas_rendimiento.jsp"><img src="/avisos/rendimientos.jpg" alt=""></a></li>
+                <li><img src="public_images/home/slide_home01.jpg" alt=""></li><li><a href="/PDF/FNews.pdf" target="_fnews"><img src="/avisos/aviso2.jpg" alt=""></a></li>-->
+
+    </ul>
+</div>
+<!--<div class="welcome">
+           <div class="wel-left">
+               <img src="public_images/home/img_mensaje.jpg" alt="">
+           </div>
+           <div class="wel-right"><h1>¡Finaccess te da la bienvenida!</h1><p><strong>Somos administradores profesionales de portafolios de inversión</strong> y diseñamos para nuestros clientes el portafolio apropiado a sus necesidades. Por eso queremos brindarte una asesoría especializada y un manejo profesional, sencillo y transparente para tus inversiones. <a href="/fondos.jsp" class="coonocemas">Conoce más</a></p></div>            
+            <div class="clear"></div>
+        </div>-->
+<div class="clear"><br><br></div>
+<div class="welcome">
+    <!--OBJETIVOS-->
+    <div class="thirds">
+        <center>
+            <div class="slide-opciones_home" style="width:20%"><img class="img-opciones_home" src="public_images/home/icono_presentacion2.png" alt=""><a href="/PDF/Presentacion.pdf" class="opciones_home-over" target="_presentacion"></a>
+                <div class="info-opciones_home">
+                    <h3>Presentación Corporativa</h3>
+                </div>
+            </div>
+            <div class="slide-opciones_home" style="width:20%"><img class="img-opciones_home" src="public_images/home/icono_prod_inversion.png" alt=""><a href="/PDF/VehiculoInversion.pdf" class="opciones_home-over" target="_presentacion"></a>
+                <div class="info-opciones_home">
+                    <h3>Nuevo Producto de Inversión</h3>
+                </div>
+            </div>
+            <div class="slide-opciones_home" style="width:20%"><img class="img-opciones_home" src="public_images/home/finaccess_news2.png" alt=""><a href="/PDF/FNews.pdf" class="opciones_home-over" target="_fnews"></a>
+                <div class="info-opciones_home">
+                    <h3>Finaccess News</h3>
+                </div>
+            </div>
+            <div class="slide-opciones_home" style="width:20%"><img class="img-opciones_home" src="public_images/nosotros/ic_objetivo02.png" alt=""><a href="javascript:cargaSeccion('tasas');" class="opciones_home-over"></a>
+                <div class="info-opciones_home">
+                    <h3>Tasas de Rendimiento</h3>
+                </div>
+            </div>
+            <!--<div class="slide-opciones_home"><img class="img-opciones_home" src="/public_images/comunidad/icono_estados.png" alt=""><a href="#" class="opciones_home-over"></a><div class="info-opciones_home"><h3>Perfilador de Inversión</h3></div></div>-->
+        </center>
+    </div><!--FIN OBJETIVOS-->
+</div>
+<div class="clear"></div>
+
+<div class="funds">
+<div style="display:inline-block"><h2>Fondos </h2></div><div style="vertical-align:middle;display:inline-block;margin-top:2px;margin-left:2px;"><img src="public_images/finaccess.png" style="height:50px"></div>
+<div id="slider-funds">
+<ul class="bjqs">
+<li>            
+     <div class="slide-funds">
+         <img src="public_images/home/img_fondos_CP.jpg" class="img-fund">
+         <a href="javascript:cargaFondo('finaccess', 'fondos_finaccess', 'axescp');" class="fund-over">
+         </a>
+         <div class="info-fund">
+             <h3>AXES CP</h3>
+             <p>Deuda Local - Corto Plazo. <br><span>Liquidez:</span> Diaria <br><span>Horizonte:</span> 3 meses</p>             <a href="javascript:cargaFondo('finaccess', 'fondos_finaccess', 'axescp');">
+                 Conoce más</a>
+       <div id="fondoMorningStar"><img src="public_images/morningstar/AXESCP2.png?t=6af334b2670d63.36467258" width="179" height="62"><a id="ligaRatingMorningStar" onclick="abrePopRatingMorningStar();"></a></div>
+         </div>
+     </div>
+            
+     <div class="slide-funds">
+         <img src="public_images/home/img_fondos_MP.jpg" class="img-fund">
+         <a href="javascript:cargaFondo('finaccess', 'fondos_finaccess', 'axesmp');" class="fund-over">
+         </a>
+         <div class="info-fund">
+             <h3>AXES MP</h3>
+             <p>Deuda Local - Mediano Plazo. <br><span>Liquidez:</span> 2 días <br><span>Horizonte:</span> 24 meses</p>             <a href="javascript:cargaFondo('finaccess', 'fondos_finaccess', 'axesmp');">
+                 Conoce más</a>
+       <div id="fondoMorningStar"><img src="public_images/morningstar/AXESMP2.png?t=6af334b2670db3.51353527" width="179" height="62"><a id="ligaRatingMorningStar" onclick="abrePopRatingMorningStar();"></a></div>
+         </div>
+     </div>
+</li><li>            
+     <div class="slide-funds">
+         <img src="public_images/home/img_fondos_LP.jpg" class="img-fund">
+         <a href="javascript:cargaFondo('finaccess', 'fondos_finaccess', 'axeslp');" class="fund-over">
+         </a>
+         <div class="info-fund">
+             <h3>AXES LP</h3>
+             <p>Deuda Local - Largo Plazo. <br><span>Liquidez:</span> 2 días <br><span>Horizonte:</span> 36 meses</p>             <a href="javascript:cargaFondo('finaccess', 'fondos_finaccess', 'axeslp');">
+                 Conoce más</a>
+       <div id="fondoMorningStar"><img src="public_images/morningstar/AXESLP2.png?t=6af334b2670df4.27676390" width="179" height="62"><a id="ligaRatingMorningStar" onclick="abrePopRatingMorningStar();"></a></div>
+         </div>
+     </div>
+            
+     <div class="slide-funds">
+         <img src="public_images/home/img_fondos_BMV.jpg" class="img-fund">
+         <a href="javascript:cargaFondo('finaccess', 'fondos_finaccess', 'axesbmv');" class="fund-over">
+         </a>
+         <div class="info-fund">
+             <h3>AXES BMV</h3>
+             <p>Renta Variable Local - Indizado. <br>Inversión en ETF's y fondos  <br><span>Horizonte:</span> Largo plazo</p>             <a href="javascript:cargaFondo('finaccess', 'fondos_finaccess', 'axesbmv');">
+                 Conoce más</a>
+       <div id="fondoMorningStar"><img src="public_images/morningstar/AXESBMV2.png?t=6af334b2670e26.08452218" width="179" height="62"><a id="ligaRatingMorningStar" onclick="abrePopRatingMorningStar();"></a></div>
+         </div>
+     </div>
+</li><li>            
+     <div class="slide-funds">
+         <img src="public_images/home/img_fondos_GLO.jpg" class="img-fund">
+         <a href="javascript:cargaFondo('finaccess', 'fondos_finaccess', 'axesglo');" class="fund-over">
+         </a>
+         <div class="info-fund">
+             <h3>AXES GLO</h3>
+             <p>Renta Variable Internacional. <br>Inversión en ETF´s, deudas y otros <br><span>Horizonte:</span> Largo plazo</p>             <a href="javascript:cargaFondo('finaccess', 'fondos_finaccess', 'axesglo');">
+                 Conoce más</a>
+       <div id="fondoMorningStar"><img src="public_images/morningstar/AXESGLO2.png?t=6af334b2670e55.16216155" width="179" height="62"><a id="ligaRatingMorningStar" onclick="abrePopRatingMorningStar();"></a></div>
+         </div>
+     </div>
+            
+     <div class="slide-funds">
+         <img src="public_images/home/img_fondos_DVD.jpg" class="img-fund">
+         <a href="javascript:cargaFondo('finaccess', 'fondos_finaccess', 'axesdvd');" class="fund-over">
+         </a>
+         <div class="info-fund">
+             <h3>AXES DVD</h3>
+             <p>Discrecional. <br><span>Liquidez:</span> Diaria <br><span>Horizonte:</span>Largo plazo</p>             <a href="javascript:cargaFondo('finaccess', 'fondos_finaccess', 'axesdvd');">
+                 Conoce más</a>
+         </div>
+     </div>
+</li><li>            
+     <div class="slide-funds">
+         <img src="public_images/home/img_fondos_CAP.jpg" class="img-fund">
+         <a href="javascript:cargaFondo('finaccess', 'fondos_finaccess', 'axescap');" class="fund-over">
+         </a>
+         <div class="info-fund">
+             <h3>AXES CAP</h3>
+             <p>Discrecional. <br><span>Liquidez:</span> 2 días <br><span>Horizonte:</span>36 meses</p>             <a href="javascript:cargaFondo('finaccess', 'fondos_finaccess', 'axescap');">
+                 Conoce más</a>
+         </div>
+     </div>
+            
+     <div class="slide-funds">
+         <img src="public_images/home/img_fondos_PRO.jpg" class="img-fund">
+         <a href="javascript:cargaFondo('finaccess', 'fondos_finaccess', 'axespro');" class="fund-over">
+         </a>
+         <div class="info-fund">
+             <h3>AXES PRO</h3>
+             <p>Especializado en valores de deuda. <br><span>Liquidez:</span> 2 días <br><span>Horizonte:</span>Corto plazo, menos de 1 año.</p>             <a href="javascript:cargaFondo('finaccess', 'fondos_finaccess', 'axespro');">
+                 Conoce más</a>
+         </div>
+     </div>
+</li><li>            
+     <div class="slide-funds">
+         <img src="public_images/home/img_fondos_FIN.jpg" class="img-fund">
+         <a href="javascript:cargaFondo('finaccess', 'fondos_finaccess', 'axesfin');" class="fund-over">
+         </a>
+         <div class="info-fund">
+             <h3>AXES FIN</h3>
+             <p>Discrecional. <br><span>Liquidez:</span> 2 días <br><span>Horizonte:</span>Largo plazo, mayor a 5 años</p>             <a href="javascript:cargaFondo('finaccess', 'fondos_finaccess', 'axesfin');">
+                 Conoce más</a>
+         </div>
+     </div>
+            
+     <div class="slide-funds">
+         <img src="public_images/home/img_fondos_GSP.jpg" class="img-fund">
+         <a href="javascript:cargaFondo('finaccess', 'fondos_finaccess', 'axesgsp');" class="fund-over">
+         </a>
+         <div class="info-fund">
+             <h3>AXES GSP</h3>
+             <p>Renta Variable Internacional. <br>Inversión en acciones de crecimiento o valor<br><span>Horizonte:</span> Largo plazo</p>             <a href="javascript:cargaFondo('finaccess', 'fondos_finaccess', 'axesgsp');">
+                 Conoce más</a>
+         </div>
+     </div>
+</li><li>            
+     <div class="slide-funds">
+         <img src="public_images/home/img_fondos_USA.jpg" class="img-fund">
+         <a href="javascript:cargaFondo('finaccess', 'fondos_finaccess', 'axesusa');" class="fund-over">
+         </a>
+         <div class="info-fund">
+             <h3>AXES USA</h3>
+             <p>Renta Variable Internacional. <br>Inversión en empresas de alta calidad con valuaciones razonables y altos dividendos<br><span>Horizonte:</span> Largo plazo</p>             <a href="javascript:cargaFondo('finaccess', 'fondos_finaccess', 'axesusa');">
+                 Conoce más</a>
+         </div>
+     </div>
+            
+     <div class="slide-funds">
+         <img src="public_images/home/img_fondos_CSD.jpg" class="img-fund">
+         <a href="javascript:cargaFondo('finaccess', 'fondos_finaccess', 'axescob');" class="fund-over">
+         </a>
+         <div class="info-fund">
+             <h3>AXES COB</h3>
+             <p>Deuda Especializado en Dólares. <br><span>Liquidez:</span> Diaria<br><span>Horizonte:</span>  6 a 12 meses</p>             <a href="javascript:cargaFondo('finaccess', 'fondos_finaccess', 'axescob');">
+                 Conoce más</a>
+         </div>
+     </div>
+</li><li>            
+     <div class="slide-funds">
+         <img src="public_images/home/img_fondos_RVD.jpg" class="img-fund">
+         <a href="javascript:cargaFondo('finaccess', 'fondos_finaccess', 'axesrvd');" class="fund-over">
+         </a>
+         <div class="info-fund">
+             <h3>AXES RVD</h3>
+             <p>Renta Variable Discrecional. <br><span>Liquidez:</span> Diaria <br><span>Horizonte:</span> Largo Plazo</p>             <a href="javascript:cargaFondo('finaccess', 'fondos_finaccess', 'axesrvd');">
+                 Conoce más</a>
+         </div>
+     </div>
+            
+     <div class="slide-funds">
+         <img src="public_images/home/img_fondos_ESG.jpg" class="img-fund">
+         <a href="javascript:cargaFondo('finaccess', 'fondos_finaccess', 'axesesg');" class="fund-over">
+         </a>
+         <div class="info-fund">
+             <h3>AXES ESG</h3>
+             <p>Especializado Renta Variable.<br>Inversión en acciones de empresas de responsabilidad social.<br><span>Horizonte:</span> Largo plazo</p>             <a href="javascript:cargaFondo('finaccess', 'fondos_finaccess', 'axesesg');">
+                 Conoce más</a>
+         </div>
+     </div>
+</li></ul>
+</div>
+</div>
+
+
+
+
+<div class="funds"><div style="display:inline-block"><h2>Fondo</h2></div><div style="vertical-align:middle;display:inline-block;margin-top:2px;margin-left:2px;"><img src="public_images/finaccess.png" style="height:50px"></div><div style="display:inline-block"><h2 style="background: none;padding-left:2px">gestionado por</h2></div><div style="vertical-align:middle;display:inline-block;margin-top:-15px;margin-left:10px;"><img src="public_images/edm.jpg" style="height:50px"></div>
+<div id="slider-funds-edm">
+<ul class="bjqs">
+<li>            
+     <div class="slide-funds">
+         <img src="public_images/home/img_fondos_EDM.jpg" class="img-fund">
+         <a href="javascript:cargaFondo('finaccess', 'fondos_finaccess_edm', 'axesedm');" class="fund-over">
+         </a>
+         <div class="info-fund">
+             <h3>AXES EDM</h3>
+             <p>Renta Variable - Bolsa Europea. <br><span>Liquidez:</span> 2 días <br><span>Horizonte:</span> Largo plazo</p>             <a href="javascript:cargaFondo('finaccess', 'fondos_finaccess_edm', 'axesedm');">
+                 Conoce más</a>
+       <div id="fondoMorningStar"><img src="public_images/morningstar/AXESEDM2.png?t=6af334b2671117.89483095" width="179" height="62"><a id="ligaRatingMorningStar" onclick="abrePopRatingMorningStar();"></a></div>
+         </div>
+     </div>
+</ul>
+</div>
+</div>
+
+<style>
+.modal-body{text-align: justify;
+    font-size: 80%;
+    padding: 40px;}
+</style>
+<div class="modal fade" id="ratingMorningStarModal" tabindex="-1" role="dialog" aria-labelledby="ratingMorningStarModal" aria-hidden="true" style="display: none;">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true" style="color:#fff;opacity:1;">x</button>
+                                            <h4 class="modal-title" id="myModalLabel"><strong>Morningstar Rating ™</strong></h4>
+                                        </div>
+                                        <div class="modal-body" id="contenido" style="text-align:justify">
+El Morningstar Rating ™ para fondos, o "calificación de estrellas", se calcula para productos administrados (incluidos fondos mutuos, subcuentas de anualidad variable y vida variable, fondos negociables en bolsa, fondos cerrados, y cuentas separadas) con al menos tres años de historia. Fondos cotizados y de capital variable. Los fondos mutuos se consideran una sola población a efectos comparativos. Se calcula con base a una medida de rentabilidad ajustada al riesgo de Morningstar que tiene en cuenta la variación en el rendimiento mensual de un rendimiento excesivo, poniendo más énfasis en las variaciones a la baja y recompensando actuación. La calificación Morningstar no incluye ningún ajuste por cargas de ventas. El 10% superior de los productos de cada categoría de producto reciben 5 estrellas, el siguiente 22,5% recibe 4 estrellas, el siguiente 35% recibe 3 estrellas, el siguiente 22,5% recibe 2 estrellas y el 10% inferior recibe 1 estrella. La calificación general de Morningstar para un producto administrado se deriva de un promedio ponderado de las cifras de desempeño asociadas con sus métricas de calificación Morningstar de tres, cinco y diez años (si corresponde). Los pesos son: 100% tres años calificación para 36-59 meses de rendimiento total, 60% calificación de cinco años / 40% calificación de tres años para 60-119 meses de rendimientos totales y 50% calificación a 10 años / 30% calificación a cinco años / 20% calificación a tres años durante 120 meses o más de rendimientos totales. Si bien la fórmula de calificación general de estrellas de 10 años parece dar el mayor peso a la calificación de 10 años período de un año, el período de tres años más reciente en realidad tiene el mayor impacto porque está incluido en los tres períodos de calificación.
+</div>
+<!--<div class="modal-footer">
+
+</div>-->
+</div>
+</div>
+</div>
+<script>
+function abrePopRatingMorningStar() {
+     $('#ratingMorningStarModal').modal('show');
+   }
+</script>
+
+<style>
+#fondoMorningStar{margin: auto;
+    text-align: center;padding:20px;position: absolute;
+    right: 0;
+    top: 0;
+}
+#ligaRatingMorningStar{
+width: 10px;
+    position: absolute;
+    height: 20px;
+    margin-left: -30px;
+    margin-top: 20px;
+    background: unset;cursor:pointer;
+}
+</style>
+<script>
+    $(function(){
+        $('#slider-home').bjqs({
+            'animtype' : 'fade',
+            'height' : 448,
+            'width' : 1024,
+            'animspeed':7000,            
+            'animduration' : 450,
+            'showmarkers' : false,
+            'nexttext' : '<img src="public_images/home/flecha_der.png">',
+            'prevtext' : '<img src="public_images/home/flecha_izq.png">'            
+        });
+        $('#slider-funds').bjqs({
+            'animtype' : 'slide',
+            'height' : 448,
+            'width' : 1024,
+            'animspeed':7000,            
+            'animduration' : 450,
+            'showmarkers' : false,
+            'automatic' : false,
+            'nexttext' : '<img src="public_images/home/flecha_prods_der.png">',
+            'prevtext' : '<img src="public_images/home/flecha_prods_izq.png">'            
+        });        
+        $('#slider-funds-cs').bjqs({
+            'animtype' : 'slide',
+            'height' : 448,
+            'width' : 1024,
+            'animspeed':7000,            
+            'animduration' : 450,
+            'showmarkers' : false,
+            'automatic' : false,
+            'nexttext' : '<img src="public_images/home/flecha_prods_der.png">',
+            'prevtext' : '<img src="public_images/home/flecha_prods_izq.png">'            
+        }); 
+        $('#slider-funds-edm').bjqs({
+            'animtype' : 'slide',
+            'height' : 448,
+            'width' : 1024,
+            'animspeed':7000,            
+            'animduration' : 450,
+            'showmarkers' : false,
+            'automatic' : false,
+            'nexttext' : '<img src="public_images/home/flecha_prods_der.png">',
+            'prevtext' : '<img src="public_images/home/flecha_prods_izq.png">'            
+        });        
+        $('#slider-third').bjqs({
+            'animtype' : 'slide',
+            'height' : 448,
+            'width' : 1024,
+            'animspeed':7000,            
+            'animduration' : 450,
+            'showmarkers' : false,
+            'automatic' : false,
+            'nexttext' : '<img src="public_images/home/flecha_terceros_der.png">',
+            'prevtext' : '<img src="public_images/home/flecha_terceros_izq.png">'            
+        });        
+        
+    });
+</script>
+
+<script src="public_assets/js/bjqs.js"></script>
+
+<div class="clear"></div>
+<div class="funds">
+    <h2>Distribuidores del fondo AXES EDM</h2>
+    <div style="width: 100%; height: auto; display: flex; justify-content: space-around; align-items: center; padding: 20px; margin: 40px;">
+        <div style="flex: 0 1 auto; text-align: center;">
+            <img src="public_images/distribuidores/gbm.png" style="height: 50px;" alt="GBM">
+        </div>
+        <div style="flex: 0 1 auto; text-align: center;">
+            <img src="public_images/distribuidores/ci.png" style="height: 50px;" alt="CI">
+        </div>
+        <div style="flex: 0 1 auto; text-align: center;">
+            <img src="public_images/distribuidores/banorte.png" style="height: 50px;" alt="Banorte">
+        </div>
+        <div style="flex: 0 1 auto; text-align: center;">
+            <img src="public_images/distribuidores/skandia.png" style="height: 50px;" alt="Skandia">
+        </div>
+    </div>
+    <div style="width: 100%; height: auto; display: flex; justify-content: space-around; align-items: center; padding: 20px; margin: 40px;">
+        <div style="flex: 0 1 auto; text-align: center;">
+            <img src="public_images/distribuidores/actinver.png" style="height: 50px;" alt="Actinver">
+        </div>
+        <div>
+            <img src="public_images/distribuidores/santander.png" style="height: 70px;" alt="Santander">
+        </div>
+        <!--<div style="flex: 0 1 auto; text-align: center;">
+            <img src="public_images/distribuidores/cibanco.png" style="height: 50px;" alt="CI">
+        </div>-->
+        <div style="flex: 0 1 auto; text-align: center;">
+            <img src="public_images/distribuidores/invex.png" style="height: 50px;" alt="Invex">
+        </div>
+        <div style="flex: 0 1 auto; text-align: center;">
+            <img src="public_images/distribuidores/Azimut.png" style="height: 50px;" alt="Azimut">
+        </div>
+    </div>
+</div>
+
+
+
+<div class="clear"></div>
+<div class="thirds">
+    <h2>Fondos de terceros distribuidos por </h2>
+    <div style="vertical-align:middle;display:float;width:200px;margin-top:-52px;margin-left:480px;"><img src="public_images/finaccess.png" style="height:50px"></div>
+    <div id="slider-third">
+        <ul class="bjqs">
+            <li>
+                <div class="slide-third"><img src="public_images/home/terceros_franklin.jpg" class="img-third"><a href="javascript:cargaFondo('franklin', 'fondos_franklin', 'temgbia');" class="third-over"></a>
+                    <div class="info-third">
+                        <h3>Franklin Templeton</h3>
+                        <p>Invierte en deuda global.</p><a href="fondos_detalle.jsp?subpage=30">Conoce más</a>
+                    </div>
+                </div>
+                <div class="slide-third"><img src="public_images/home/terceros_santander.jpg" class="img-third"><a href="javascript:cargaFondo('santander', 'fondos_santander', 'sameme1');" class="third-over"></a>
+                    <div class="info-third">
+                        <h3>Santander</h3>
+                        <p>Invierte en deuda mixta y global.</p><a href="fondos_detalle.jsp?subpage=60">Conoce más</a>
+                    </div>
+                </div>
+                <div class="slide-third"><img src="public_images/home/terceros_scotia.jpg" class="img-third"><a href="javascript:cargaFondo('scotiabank', 'fondos_scotiabank', 'scotusa');" class="third-over"></a>
+                    <div class="info-third">
+                        <h3>Scotiabank</h3>
+                        <p>Invierte en BMV y acciones globales.</p><a href="fondos_detalle.jsp?subpage=70">Conoce más</a>
+                    </div>
+                </div>
+            </li>
+        </ul>
+    </div>
+</div>
+<div class="clear">
+</div>
+<div class="clear"></div>
+<div class="notification">
+    <h2>Avisos Importantes</h2>
+    <div class="not-left"><img src="public_images/home/img_aviso.jpg" alt=""></div>
+    <div class="not-right">
+        <p>Obtén información de utilidad sobre nuestros fondos de inversión y los fondos de otras operadoras. </p><a href="javascript:cargaSeccion('avisos_importantes');">Leer más</a>
+    </div>
+</div></div>
+<script>
+var menuActual=$("#menu_home");
+
+function cargaSeccion(menu){
+if ($('#menu_' + menu).length ) {
+  if (menuActual){
+    menuActual.removeClass('active');
+  }
+  if (menu){
+   menuActual = $('#menu_' + menu);
+   menuActual.addClass('active');
+  }
+
+  $('#panelCargando').show();
+  $.post("/nav.php?t=6af334b26711d6.86175471", {menu:menu}, function( data ) {
+    $('#panelCargando').hide();
+   $('#panelContenido').empty();
+   $("#panelContenido").html(data);
+  window.scrollTo(0,0);
+  }, "html").fail(function(response) {  });
+ }
+}
+
+function cargaSubSeccion(menu){
+  if (menuActual){
+    menuActual.removeClass('active');
+  }
+  if (menu){
+   menuActual = $('#menu_' + menu);
+   menuActual.addClass('active');
+  }
+
+  $('#panelCargando').show();
+  $.post("/nav.php?t=6af334b26711e3.25099077", {menu:menu}, function( data ) {
+    $('#panelCargando').hide();
+   $('#panelContenido').empty();
+   $("#panelContenido").html(data);
+  window.scrollTo(0,0);
+  }, "html").fail(function(response) {  });
+}
+
+function cargaFondo(operadora, grupo, fondo){
+  if (menuActual){
+    menuActual.removeClass('active');
+  }
+  menuActual = $('#menu_fondos');
+  menuActual.addClass('active');
+  $('#panelCargando').show();
+  $.post("/nav.php?t=6af334b26711f5.86258895", {operadora:operadora, grupo:grupo, fondo:fondo}, function( data ) {
+    $('#panelCargando').hide();
+   $('#panelContenido').empty();
+   $("#panelContenido").html(data);
+  window.scrollTo(0,0);
+  }, "html").fail(function(response) {  });
+
+}
+
+function showAviso(titulo, texto, redireccionaURL){
+  $(".modal-header").css("background-color","#0066cc");
+  $("#avisoTitulo").empty();
+  $("#avisoTitulo").append(titulo);
+  $("#avisoContenido").empty();
+  $("#avisoContenido").append(texto);
+$('#avisoModal').modal('show');
+if (redireccionaURL && redireccionaURL.length>0){
+$('#avisoModal').on('hidden.bs.modal', function(){
+    window.location = redireccionaURL;
+  });
+}
+}
+
+function showError(titulo, texto, redireccionaURL){
+  $(".modal-header").css("background-color","#d73e20");
+  $("#avisoTitulo").empty();
+  $("#avisoTitulo").append(titulo);
+  $("#avisoContenido").empty();
+  $("#avisoContenido").append(texto);
+$('#avisoModal').modal('show');
+if (redireccionaURL && redireccionaURL.length>0){
+$('#avisoModal').on('hidden.bs.modal', function(){
+    window.location = redireccionaURL;
+  });
+}
+}
+
+function showErrorFocus(titulo, texto, obj){
+  $(".modal-header").css("background-color","#d73e20");
+  $("#avisoTitulo").empty();
+  $("#avisoTitulo").append(titulo);
+  $("#avisoContenido").empty();
+  $("#avisoContenido").append(texto);
+$('#avisoModal').modal('show');
+if (obj && obj.length>0){
+$('#avisoModal').on('hidden.bs.modal', function(){
+    obj.focus();
+  });
+}
+}
+
+function login(fa){
+   $('#btnEntrar').hide();
+   $('#waitLogin').show();
+   $.post("/webservices/login.php?t="+ Date.now(), {T1:$("#T1").val(), T2:$("#T2").val(), TOKEN:$("#TOKEN").val(), TZ:new Date().getTimezoneOffset()}, function(data) {
+      var obj = JSON.parse(data);
+      if (obj.Reload){
+	$("#TOKEN").val(obj.Reload);
+	if (fa) login(false);
+	else{
+	  $('#btnEntrar').show();
+	  $('#waitLogin').hide();
+	}
+	return;
+      }
+      else if (obj.Error){
+        $("#T1").val("");
+        $("#T2").val("");
+        $("#TOKEN").val(obj.Token);
+        showError("Finaccess", obj.Error, null);
+	$('#btnEntrar').show();
+	$('#waitLogin').hide();
+        $("#T1").focus();
+      }
+      else if (obj.Ruta){
+	window.location = obj.Ruta;
+     }
+    }).fail(function(response) { 
+	showError("Finaccess", "Lo sentimos, por el momento la página se encuentra fuera de servicio.", "/index.php"); });
+}
+
+function contacto(){
+   $('#btnEnviarContacto').hide();
+   $('#contactoSpinner').show();
+   $.post("/webservices/contacto.php?t="+ Date.now(), {T1:$("#CT1").val(), T2:$("#CT2").val(), T3:$("#CT3").val(), T4:$("#CT4").val(), T5:$("#CT5").val(), CAPTCHA:$("#AC_CAPTCHA").val()}, function(data) {
+   var obj = JSON.parse(data);
+      if (obj.Error){
+         showError("Finaccess", obj.Error, null);
+	$('#btnEnviarContacto').show();
+	$('#contactoSpinner').hide();
+        updateCaptcha();
+        $("#CT1").focus();
+      }
+      else{
+	showAviso("Finaccess", "Su mensaje ha sido enviado exitosamente.<br><br>Gracias por contactarnos.", null);
+	$('#btnEnviarContacto').show();
+	$('#contactoSpinner').hide();
+        $("#CT1").focus();
+        $("#CT1").val("");
+        $("#CT2").val("");
+        $("#CT3").val("");
+        $("#CT4").val("");
+        $("#CT5").val("");
+        updateCaptcha();
+     }
+    }).fail(function(response) { 
+	showError("Finaccess", "Lo sentimos, su mensaje no se pudo enviar, favor de reintentar más tarde.", "/index.php"); });
+}
+
+function isInstalled() {
+  // For iOS
+  if(window.navigator.standalone) return true
+
+  // For Android
+  if(window.matchMedia('(display-mode: standalone)').matches) return true
+
+  // For Other
+  if(!window.matchMedia('(display-mode: browser)').matches) return true
+
+  // If neither is true, it's not installed
+  return false
+}
+
+
+ $(document).ready(function () {
+      if (localStorage){
+         /*if (window.localStorage.getItem("pwa")==1){
+		window.location = "app.php";
+         }*/
+         localStorage.removeItem('perfilador');
+      }
+     if (isInstalled())
+	window.location = "app.php";
+     else
+        $("body").show();
+    });
+
+</script>
+<div class="clear"></div><div class="sec-footer"><div class="decSupFooter"></div>
+<ul class="menu-footer"><li>Copyright 2015, Derechos Reservados Finaccess México S.A. de C.V.</li><li><a href="javascript:cargaSubSeccion('terminos');">Términos y Condiciones</a></li><li><a href="javascript:cargaSubSeccion('mapa');">Mapa del Sitio</a></li></ul><img src="public_images/footer/logo_norton.png" alt="" class="norton" style="float:right;margin-right:20px"></div>
+</div>
+<div class="modal fade" id="avisoModal" tabindex="-1" role="dialog" aria-labelledby="avisoModal" aria-hidden="true" style="display: none;">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                                            <h4 class="modal-title" id="avisoTitulo" style="font-weight: bold;"></h4>
+                                        </div>
+                                        <div class="modal-body" id="avisoContenido" style="text-align:justify">
+</div>
+<div class="modal-footer">
+<button type="button" class="btn btn-danger" data-dismiss="modal" id="btnCerrarAvisoModal" style="min-width:100px;display:inline;background-color:#ff5722;padding:10px 0px;">Cerrar</button>
+</div>
+</div>
+</div>
+</div>
+
+<div class="modal fade" id="confirmacionModal" tabindex="-1" role="dialog" aria-labelledby="confirmacionModal" aria-hidden="true" style="display: none;" data-operadora="" data-liga="">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <button id="btnCierraConfirmacionModal" type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                                            <h4 class="modal-title" id="confirmacionTitulo" style="font-weight: bold;"></h4>
+                                        </div>
+                                        <div class="modal-body" id="confirmacionContenido" style="text-align:justify">
+</div>
+<div class="modal-footer">
+<button type="reset" class="btn btn-primary" data-tag="" value="1" id="btnSiConfirmacionModal" style="display:none;padding:10px 0px;min-width:100px;display:inline;background-color: #0066cc;">Aceptar</button>
+&nbsp;&nbsp;
+<button type="button" class="btn btn-danger" data-dismiss="modal" id="btnNoConfirmacionModal" style="display:none;min-width:100px;display:inline;background-color:#ff5722;padding:10px 0px;">Cancelar</button>
+<button type="button" class="btn btn-danger" data-dismiss="modal" id="btnCerrarConfirmacionModal" style="min-width:100px;display:inline;background-color:#ff5722;padding:10px 0px;">Cerrar</button>
+</div>
+</div>
+</div>
+</div>
+<style>
+.modal-body{text-align: justify;
+    font-size: 80%;
+    padding: 40px;}
+</style>
+<script>
+function abrirLiga(){
+  lg = $('#confirmacionModal').data('liga');
+  operadora = $('#confirmacionModal').data('operadora');
+  window.open(lg, operadora);
+   $('#confirmacionModal').modal('hide');
+}
+
+function confirmaLigaExterna(lg, operadora){
+$('#confirmacionModal').data('liga', lg);
+$('#confirmacionModal').data('operadora', operadora);
+showConfirmacion('Atención', 'Estimado usuario:<br><br>Estás por salir del sitio web de Finaccess México para entrar a uno con políticas de Privacidad y Seguridad que no son responsabilidad nuestra, tu sesión en www.finaccess.com.mx quedará abierta en segundo plano.', abrirLiga, cancelaLiga);
+}
+
+function showConfirmacion(titulo, texto, fnc1, fnc2){ 
+  $(".modal-header").css("background-color","#0066cc");
+  $("#confirmacionTitulo").empty();
+  $("#confirmacionTitulo").append(titulo);
+  $("#confirmacionContenido").empty();
+  $("#confirmacionContenido").append(texto);
+  $('#btnSiConfirmacionModal').unbind( "click" );
+  $('#btnNoConfirmacionModal').unbind( "click" );
+      $('#btnSiConfirmacionModal').on('click', fnc1);
+      $('#btnNoConfirmacionModal').on('click', fnc2);
+      $('#btnSiConfirmacionModal').show();
+      $('#btnNoConfirmacionModal').show();
+     $('#btnCerrarConfirmacionModal').hide(); 
+     $('#btnCierraConfirmacionModal').hide(); 
+      $('#confirmacionModal').modal({
+backdrop: 'static',
+keyboard: false
+});
+  }
+
+function cancelaLiga(){
+   $('#confirmacionModal').modal('hide');
+}
+</script>
+<script src="/public_assets/js/bootstrap.min.js"></script>
+<script src="/public_assets/js/bootstrap-essentials.min.js"></script>
+<script src="/public_assets/js/bootstrap-tooltip.js"></script>
+<script src="/public_assets/js/bootstrap-popover.js"></script>
+</body>
+</html>

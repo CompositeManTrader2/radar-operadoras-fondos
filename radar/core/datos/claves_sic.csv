@@ -1,0 +1,84 @@
+# Nombres de emisoras del SIC confirmados. Si una clave NO está aquí, el entregable
+# la muestra como [POR CONFIRMAR]: no se inventa el nombre de la emisora.
+# Solo se agrega una clave cuando el emisor es inequívoco (sin homónimos entre bolsas).
+# version: 2026-11-10
+clave,nombre
+AAPL,Apple
+ACN,Accenture
+ADSK,Autodesk
+AMGN,Amgen
+AMZN,Amazon
+AVGO,Broadcom
+AXP,American Express
+BAC,Bank of America
+BRKB,Berkshire Hathaway B
+CAT,Caterpillar
+CME,CME Group
+CSCO,Cisco
+CVX,Chevron
+DE,Deere
+GOOGL,Alphabet A
+HD,Home Depot
+IBM,IBM
+JNJ,Johnson & Johnson
+JPM,JPMorgan Chase
+KLAC,KLA
+KO,Coca-Cola
+LLY,Eli Lilly
+LMT,Lockheed Martin
+LRCX,Lam Research
+MCD,McDonald's
+META,Meta Platforms
+MNST,Monster Beverage
+MRK,Merck
+MSFT,Microsoft
+MU,Micron
+NEE,NextEra Energy
+NVDA,NVIDIA
+UBER,Uber
+V,Visa
+VICI,VICI Properties
+VZ,Verizon
+XOM,Exxon Mobil
+ASML,ASML
+CCEP,Coca-Cola Europacific Partners
+IBE,Iberdrola
+ITX,Inditex
+NESN,Nestlé
+RACE,Ferrari
+RYAAY,Ryanair (ADR)
+SAP,SAP
+SPOT,Spotify
+ADM,Archer-Daniels-Midland
+BLK,BlackRock
+BMY,Bristol-Myers Squibb
+DG,Dollar General
+MDLZ,Mondelez International
+MET,MetLife
+NEM,Newmont
+PEP,PepsiCo
+PFE,Pfizer
+PG,Procter & Gamble
+UNH,UnitedHealth Group
+UNP,Union Pacific
+GOOG,Alphabet C
+MELI,MercadoLibre
+TSM,Taiwan Semiconductor (ADR)
+AER,AerCap
+ANET,Arista Networks
+ATI,ATI Inc.
+BNY,BNY Mellon
+COST,Costco
+CRDO,Credo Technology
+FSLR,First Solar
+HOOD,Robinhood
+HWM,Howmet Aerospace
+INCY,Incyte
+INSW,International Seaways
+KEYS,Keysight
+MP,MP Materials
+MPC,Marathon Petroleum
+MS,Morgan Stanley
+STX,Seagate
+TECK,Teck Resources
+TBBB,BBB Foods

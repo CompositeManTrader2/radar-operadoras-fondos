@@ -1,0 +1,8 @@
+# Plataforma (Streamlit Community Cloud lee este archivo)
+requests>=2.31
+pdfplumber>=0.11
+beautifulsoup4>=4.12
+openpyxl>=3.1
+pandas>=2.0
+plotly>=5.20
+streamlit>=1.40
