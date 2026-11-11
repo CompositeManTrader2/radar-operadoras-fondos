@@ -172,6 +172,76 @@ def _selector_operadora(u):
     return nombres[elegido]
 
 
+@st.cache_data(ttl=6 * 3600, show_spinner=False)
+def _noticias(emisora: str, nombre: str):
+    from radar.noticias import noticias
+
+    return noticias(emisora, nombre)
+
+
+def seccion_que_enviarle(m):
+    """Qué research, noticias e ideas mandarle a la operadora, según lo que tiene y lo que operó."""
+    from radar.core.contenido import plan_contenido
+    from radar.noticias import consulta, url_busqueda
+
+    plan = plan_contenido(m)
+    st.subheader("Qué enviarle")
+    st.caption("Sugerencias a partir de su cartera: qué emisoras pesan más, qué compró o vendió entre los dos "
+               "últimos cortes y cómo reparte su renta variable y su renta fija. Reglas fijas, ver Metodología.")
+    for p in plan.perfil:
+        st.markdown(f"- {p}")
+
+    if plan.temas:
+        cols = st.columns(2)
+        for i, t in enumerate(plan.temas):
+            with cols[i % 2].container(border=True):
+                st.markdown(f"**{t.titulo}**")
+                st.markdown(f"<span style='color:#6B737C'>Por qué:</span> {t.por_que}", unsafe_allow_html=True)
+                st.markdown(f"<span style='color:#6B737C'>Qué enviar:</span> {t.que_enviar}", unsafe_allow_html=True)
+
+    st.markdown("**Emisoras clave**")
+    df = pd.DataFrame([{
+        "Emisora": e.emisora, "Nombre": e.nombre, "Sector": e.sector, "Mercado": e.mercado,
+        "Monto (mdp)": e.monto / 1e6, "Peso en su RV": e.peso_rv, "Fondos": e.fondos,
+        "Movimiento": e.movimiento, "Cambio en títulos": e.cambio_titulos,
+        "Compra / venta est. (mdp)": e.monto_movimiento / 1e6,
+        "Noticias": url_busqueda(consulta(e.emisora, e.nombre)),
+    } for e in plan.emisoras])
+    if len(df):
+        st.dataframe(df, hide_index=True, use_container_width=True, column_config={
+            "Monto (mdp)": COL_MDP, "Compra / venta est. (mdp)": COL_MDP, "Cambio en títulos": COL_PCT,
+            "Peso en su RV": st.column_config.ProgressColumn(format="percent", min_value=0,
+                                                             max_value=float(df["Peso en su RV"].max() or 1)),
+            "Noticias": st.column_config.LinkColumn("Noticias", display_text="Ver noticias")})
+    if plan.salidas:
+        st.markdown("**Vendió por completo**")
+        st.dataframe(pd.DataFrame([{"Emisora": e.emisora, "Nombre": e.nombre, "Sector": e.sector,
+                                    "Valor en el corte anterior (mdp)": -e.monto_movimiento / 1e6}
+                                   for e in plan.salidas]),
+                     hide_index=True, use_container_width=True,
+                     column_config={"Valor en el corte anterior (mdp)": COL_MDP})
+
+    con_noticias = [e for e in plan.emisoras if e.mercado in ("México", "SIC")
+                    and not e.nombre.startswith("[") and not e.sector.startswith("ETF")][:6]
+    if con_noticias:
+        st.markdown("**Noticias recientes de sus principales emisoras** (últimos 14 días)")
+        for tab, e in zip(st.tabs([e.emisora for e in con_noticias]), con_noticias):
+            with tab:
+                st.markdown(f"**{e.nombre}** · {e.sector} · {e.peso_rv:.1%} de su renta variable")
+                notas = _noticias(e.emisora, e.nombre)
+                for n in notas:
+                    fecha = n.fecha.strftime("%d-%b") if n.fecha else ""
+                    st.markdown(f"- [{n.titulo}]({n.liga}) <span style='color:#6B737C;font-size:12px'>"
+                                f"{n.fuente} · {fecha}</span>", unsafe_allow_html=True)
+                if not notas:
+                    st.caption("Sin noticias recientes o servicio no disponible.")
+                st.markdown(f"[Más noticias]({url_busqueda(consulta(e.emisora, e.nombre))})")
+        st.caption("Encabezados de Google Noticias; verificar la nota original antes de enviarla.")
+
+    st.download_button("Descargar plan de contenido (Markdown)", plan.markdown(m.nombre),
+                       file_name=f"que_enviarle_{m.clave}_{m.corte.isoformat()}.md", mime="text/markdown")
+
+
 def pagina_operadora():
     u, prm = parametros_sidebar()
     op = _selector_operadora(u)
@@ -226,6 +296,8 @@ def pagina_operadora():
     rot, medida = m.rotacion_ponderada()
     k[2].metric("Rotación media", f"{rot:.2f}x", "medida" if medida else "supuesta (e)", delta_color="off")
     k[3].metric("Headroom RV (mdp)", mdp(m.headroom / 1e6))
+
+    seccion_que_enviarle(m)
 
     html = render_operadora(m, prm)
     st.download_button("Descargar one-pager (HTML)", html, file_name=f"{op}_{m.corte.isoformat()}.html", mime="text/html")
@@ -318,6 +390,23 @@ def pagina_metodologia():
         st.markdown(par.format(version_etfs=version_diccionario_etfs(), tol=f"{prm.tolerancia_cuadre:.1%}",
                                n_cortes=prm.cortes_para_cifra, max_meses=f"{prm.max_meses_par:g}",
                                umbral=f"{prm.umbral_discrepancia:.0%}"))
+    from radar.core import contenido as C
+
+    st.subheader("Qué enviarle (página Operadora)")
+    st.markdown(
+        f"- **Emisoras clave:** las 15 con más monto en su renta variable (acciones México, SIC y ETFs), con su peso, "
+        f"cuántos fondos la tienen y su movimiento entre los dos últimos cortes, medido en **títulos** (sin efecto "
+        f"precio): Nueva, Aumentó o Redujo (±{C.UMBRAL_MOVIMIENTO:.0%}), Estable o Salida. Si un corte agrupa ese tipo "
+        "de valor en un renglón sin emisora, se marca «Sin desglose» y no cuenta como compra ni venta.\n"
+        f"- **Temas:** México si pesa ≥ {C.UMBRAL_MEXICO:.0%} de su RV; SIC ≥ {C.UMBRAL_SIC:.0%}; ETFs ≥ {C.UMBRAL_ETF:.0%}; "
+        f"un sector ≥ {C.UMBRAL_SECTOR:.0%} de su RV con sector conocido; FIBRAs ≥ {C.UMBRAL_FIBRAS:.0%}; compras y "
+        f"ventas recientes; renta fija por segmento (≥ {C.UMBRAL_SEGMENTO_RF:.0%} de su RF) cuando la RF pesa ≥ "
+        f"{C.UMBRAL_RF:.0%} de sus activos; espacio de régimen ≥ {C.UMBRAL_HEADROOM:.0%} de su RV; casa de bolsa hermana.\n"
+        "- **Sectores y nombres:** catálogo propio en radar/core/datos/emisoras.csv (solo emisoras inequívocas); ETFs "
+        "con la descripción del diccionario de ETFs. Lo demás sale «Sin sector» / [POR CONFIRMAR].\n"
+        "- **Noticias:** encabezados de Google Noticias (últimos 14 días) buscados por nombre de la emisora y términos "
+        "bursátiles; se consultan en vivo y no entran al one-pager.")
+
     st.subheader("Notas de la calificación")
     for n in T.NOTAS_COMPARATIVO:
         st.markdown("- " + n.format(t1=f"{prm.tier1_min:.1f}", t2=f"{prm.tier2_min:.1f}",

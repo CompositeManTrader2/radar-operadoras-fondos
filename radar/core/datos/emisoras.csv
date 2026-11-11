@@ -1,0 +1,101 @@
+# Nombre y sector de las emisoras con más tenencia en los fondos (BMV/BIVA y SIC).
+# Solo se agrega una emisora cuando nombre y sector son inequívocos; las demás salen como
+# "Sin sector" y su nombre como [POR CONFIRMAR]. Sectores: clasificación propia del radar para
+# sugerir research (no es GICS oficial). version: 2026-11-11.1
+ticker,mercado,nombre,sector
+GMEXICO,MX,Grupo México,Materiales y minería
+AMX,MX,América Móvil,Telecomunicaciones y medios
+GFINBUR,MX,Grupo Financiero Inbursa,Servicios financieros
+MFRISCO,MX,Minera Frisco,Materiales y minería
+ICH,MX,Industrias CH,Materiales y minería
+GCARSO,MX,Grupo Carso,Industrial e infraestructura
+KUO,MX,Grupo KUO,Industrial e infraestructura
+GFNORTE,MX,Grupo Financiero Banorte,Servicios financieros
+LIVEPOL,MX,El Puerto de Liverpool,Consumo discrecional
+PINFRA,MX,Promotora y Operadora de Infraestructura,Industrial e infraestructura
+FEMSA,MX,FEMSA,Consumo básico
+CEMEX,MX,Cemex,Materiales y minería
+CIE,MX,Corporación Interamericana de Entretenimiento,Consumo discrecional
+SIMEC,MX,Grupo Simec,Materiales y minería
+LACOMER,MX,La Comer,Consumo básico
+ALSEA,MX,Alsea,Consumo discrecional
+POSADAS,MX,Grupo Posadas,Consumo discrecional
+GCC,MX,GCC (Grupo Cementos de Chihuahua),Materiales y minería
+SORIANA,MX,Organización Soriana,Consumo básico
+WALMEX,MX,Walmart de México,Consumo básico
+PE&OLES,MX,Industrias Peñoles,Materiales y minería
+SIGMAF,MX,Sigma Foods,Consumo básico
+GAP,MX,Grupo Aeroportuario del Pacífico,Transporte y aeropuertos
+VESTA,MX,Corporación Inmobiliaria Vesta,Inmobiliario y FIBRAs
+FRAGUA,MX,Corporativo Fragua,Consumo básico
+ORBIA,MX,Orbia Advance,Materiales y minería
+GENTERA,MX,Gentera,Servicios financieros
+ALPEK,MX,Alpek,Materiales y minería
+ASUR,MX,Grupo Aeroportuario del Sureste,Transporte y aeropuertos
+OMA,MX,Grupo Aeroportuario Centro Norte,Transporte y aeropuertos
+CHDRAUI,MX,Grupo Comercial Chedraui,Consumo básico
+DANHOS,MX,Fibra Danhos,Inmobiliario y FIBRAs
+LAMOSA,MX,Grupo Lamosa,Materiales y minería
+BAFAR,MX,Grupo Bafar,Consumo básico
+AC,MX,Arca Continental,Consumo básico
+HERDEZ,MX,Grupo Herdez,Consumo básico
+FUNO,MX,Fibra Uno,Inmobiliario y FIBRAs
+CABLE,MX,Empresas Cablevisión,Telecomunicaciones y medios
+FIBRAPL,MX,Fibra Prologis,Inmobiliario y FIBRAs
+KOF,MX,Coca-Cola FEMSA,Consumo básico
+BIMBO,MX,Grupo Bimbo,Consumo básico
+GRUMA,MX,Gruma,Consumo básico
+TLEVISA,MX,Grupo Televisa,Telecomunicaciones y medios
+FMTY,MX,Fibra Monterrey,Inmobiliario y FIBRAs
+BBAJIO,MX,Banco del Bajío,Servicios financieros
+KIMBER,MX,Kimberly-Clark de México,Consumo básico
+NEMAK,MX,Nemak,Consumo discrecional
+AGUA,MX,Grupo Rotoplas,Industrial e infraestructura
+R,MX,Regional,Servicios financieros
+GISSA,MX,Grupo Industrial Saltillo,Industrial e infraestructura
+ARA,MX,Consorcio ARA,Consumo discrecional
+VOLAR,MX,Volaris,Transporte y aeropuertos
+Q,MX,Quálitas Controladora,Servicios financieros
+GNP,MX,Grupo Nacional Provincial,Servicios financieros
+MEGA,MX,Megacable,Telecomunicaciones y medios
+FNOVA,MX,Fibra Nova,Inmobiliario y FIBRAs
+CMOCTEZ,MX,Corporación Moctezuma,Materiales y minería
+TMM,MX,Grupo TMM,Transporte y aeropuertos
+GMD,MX,Grupo Mexicano de Desarrollo,Industrial e infraestructura
+FIBRAMQ,MX,Fibra Macquarie,Inmobiliario y FIBRAs
+AXTEL,MX,Axtel,Telecomunicaciones y medios
+NAFTRAC,MX,iShares NAFTRAC (IPC),ETF de México
+NVDA,SIC,NVIDIA,Tecnología
+MSFT,SIC,Microsoft,Tecnología
+AMZN,SIC,Amazon,Consumo discrecional
+AAPL,SIC,Apple,Tecnología
+GOOG,SIC,Alphabet (C),Telecomunicaciones y medios
+GOOGL,SIC,Alphabet (A),Telecomunicaciones y medios
+META,SIC,Meta Platforms,Telecomunicaciones y medios
+AVGO,SIC,Broadcom,Tecnología
+FCX,SIC,Freeport-McMoRan,Materiales y minería
+V,SIC,Visa,Servicios financieros
+TX,SIC,Ternium,Materiales y minería
+MU,SIC,Micron Technology,Tecnología
+DIS,SIC,Walt Disney,Telecomunicaciones y medios
+COST,SIC,Costco,Consumo básico
+LLY,SIC,Eli Lilly,Salud
+AMD,SIC,Advanced Micro Devices,Tecnología
+JPM,SIC,JPMorgan Chase,Servicios financieros
+NFLX,SIC,Netflix,Telecomunicaciones y medios
+KLAC,SIC,KLA,Tecnología
+MA,SIC,Mastercard,Servicios financieros
+AMAT,SIC,Applied Materials,Tecnología
+TSLA,SIC,Tesla,Consumo discrecional
+MELI,SIC,MercadoLibre,Consumo discrecional
+WFC,SIC,Wells Fargo,Servicios financieros
+PGR,SIC,Progressive,Servicios financieros
+ASML,SIC,ASML,Tecnología
+AXP,SIC,American Express,Servicios financieros
+ANET,SIC,Arista Networks,Tecnología
+CAH,SIC,Cardinal Health,Salud
+TSM,SIC,Taiwan Semiconductor,Tecnología
+ISRG,SIC,Intuitive Surgical,Salud
+INTC,SIC,Intel,Tecnología
+LRCX,SIC,Lam Research,Tecnología
+UNP,SIC,Union Pacific,Transporte y aeropuertos
