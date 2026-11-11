@@ -7,6 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Probar fuentes
+        shell: bash {0}
         run: |
           probar() { r=$(curl -sS -L -m 45 -r 0-2047 -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/130.0" -o /tmp/b -w "%{http_code} %{size_download}B %{time_total}s" "$2" 2>&1); echo "$1 | $r | $(head -c 5 /tmp/b 2>/dev/null | tr -dc '[:print:]')"; }
           curl -s -m 10 https://ipinfo.io/json | head -c 300; echo
