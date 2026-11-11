@@ -14,9 +14,9 @@ from radar.render.formato import banda, e, mdp, pct, pb, veces
 from radar.render.svg import barra_apilada, barra_peso, dispersion, dona
 
 CSS = """
-:root{--primario:#512D6D;--acento:#00857D;--secundario:#919AA2;--texto:#3C444D;--fondo:#F1F2F4;
---tarjeta:#FFFFFF;--linea:#DCDFE3;--suave:#6B737C;--encabezado:#512D6D;--encabezado-texto:#FFFFFF;
---serie3:#C9A227;--serie4:#B5487A;--serie5:#2F6DB5;--alerta:#A3461F}
+:root{--primario:#522D6D;--acento:#00857D;--secundario:#919AA2;--texto:#3C444D;--fondo:#F7F5F8;
+--tarjeta:#FFFFFF;--linea:#E2E8F0;--suave:#6B737C;--encabezado:#5B296E;--encabezado-texto:#FFFFFF;
+--serie3:#FFB400;--serie4:#0FCB97;--serie5:#2F6DB5;--alerta:#A3461F}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--primario:#9A72B8;--acento:#2BB3A9;
 --secundario:#8A939C;--texto:#E3E6EA;--fondo:#15181C;--tarjeta:#1E2228;--linea:#30363E;--suave:#A7AFB8;
 --encabezado:#2A1838;--encabezado-texto:#F1ECF5;--alerta:#E08A5F}}
@@ -24,8 +24,14 @@ CSS = """
 --fondo:#15181C;--tarjeta:#1E2228;--linea:#30363E;--suave:#A7AFB8;--encabezado:#2A1838;
 --encabezado-texto:#F1ECF5;--alerta:#E08A5F}
 *{box-sizing:border-box}
-body{margin:0;background:var(--fondo);color:var(--texto);font-family:'Archivo',system-ui,-apple-system,'Segoe UI',sans-serif;font-size:14px;line-height:1.45}
+body{margin:0;background:var(--fondo);color:var(--texto);font-family:'Open Sans',system-ui,-apple-system,'Segoe UI',sans-serif;font-size:14px;line-height:1.45}
+h1,h2,h3,.marca-punto{font-family:'Ubuntu','Open Sans','Segoe UI',sans-serif}
 .mono,td.num,.tick,.arco,.kpi .valor{font-family:'IBM Plex Mono',ui-monospace,'Cascadia Mono',Consolas,monospace;font-variant-numeric:tabular-nums}
+.marca-punto{display:flex;align-items:center;gap:14px;margin:0 0 14px;padding-bottom:12px;border-bottom:1px solid rgba(255,255,255,.25)}
+.marca-punto .logo{display:flex;flex-direction:column;line-height:1}
+.marca-punto .logo b{font-size:28px;font-weight:500;letter-spacing:-.5px}
+.marca-punto .logo span{font-size:10.5px;letter-spacing:.3px;margin-top:2px}
+.marca-punto .area{border-left:1px solid rgba(255,255,255,.55);padding-left:14px;font-size:12.5px;opacity:.92}
 .num{text-align:right;white-space:nowrap}
 header.franja{background:var(--encabezado);color:var(--encabezado-texto);padding:20px 24px}
 header.franja h1{margin:0 0 6px;font-size:22px;font-weight:700;letter-spacing:.2px}
@@ -77,11 +83,16 @@ COLOR_CLASE = {"rv": "--primario", "rf": "--acento", "efe": "--secundario"}
 COLORES_SERIES = ("--primario", "--acento", "--serie3", "--serie4", "--serie5", "--secundario")
 
 
+def _marca() -> str:
+    return (f'<div class="marca-punto"><div class="logo"><b>{e(T.MARCA)}</b><span>{e(T.MARCA_SUB)}</span></div>'
+            f'<div class="area">{e(T.MARCA_AREA)}</div></div>')
+
+
 def _doc(titulo: str, cuerpo: str) -> str:
     return (
         "<!doctype html>\n<html lang=\"es\">\n<head>\n<meta charset=\"utf-8\">\n"
         "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n"
-        f"<title>{e(titulo)}</title>\n<style>{CSS}</style>\n</head>\n<body>\n{cuerpo}\n</body>\n</html>\n"
+        f"<title>{e(T.MARCA_NOMBRE)} · {e(titulo)}</title>\n<style>{CSS}</style>\n</head>\n<body>\n{cuerpo}\n</body>\n</html>\n"
     )
 
 
@@ -153,7 +164,7 @@ def render_operadora(m: MetricasOperadora, prm: Parametros) -> str:
 
     # 1. Franja de encabezado
     out.append(
-        '<header class="franja">'
+        '<header class="franja">' + _marca() +
         f'<h1>{e(T.TITULO_OPERADORA.format(operadora=m.nombre))}</h1><div class="meta">'
         f'<span><b>{e(T.ETIQUETA_CORTE)}:</b> <span class="mono">{m.corte.isoformat()}</span></span>'
         f'<span><b>{e(T.ETIQUETA_PARAMETROS)}:</b> {e(T.PARAMETROS.format(local=pb(prm.comision_local_pb), sic=pb(prm.comision_sic_pb), captura=pct(prm.captura_objetivo, 0), alta=alta))}</span>'
@@ -352,7 +363,7 @@ def _pie(m: MetricasOperadora, prm: Parametros) -> str:
 def render_comparativo(ms: list[MetricasOperadora], prm: Parametros, cortes: list[str]) -> str:
     ms = sorted(ms, key=lambda m: (-m.calificacion(prm).total, m.clave))
     out = [
-        '<header class="franja">'
+        '<header class="franja">' + _marca() +
         f"<h1>{e(T.TITULO_COMPARATIVO)}</h1><div class=\"meta\">"
         f"<span>{e(T.SUBTITULO_COMPARATIVO.format(cortes=', '.join(cortes)))}</span>"
         f'<span><b>{e(T.ETIQUETA_PARAMETROS)}:</b> {e(T.PARAMETROS.format(local=pb(prm.comision_local_pb), sic=pb(prm.comision_sic_pb), captura=pct(prm.captura_objetivo, 0), alta=T.ALTA_POR_OPERADORA))}</span>'

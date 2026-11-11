@@ -6,7 +6,15 @@ etiquetas, no reescribir frases. Si algo aquí cambia, es una decisión editoria
 deliberada y se versiona (VERSION_PLANTILLAS); el test de plantillas lo detecta.
 """
 
-VERSION_PLANTILLAS = "2026-11-10.3"
+VERSION_PLANTILLAS = "2026-11-11.1"
+
+# --------------------------------------------------------------- identidad
+# Identidad de Punto Casa de Bolsa (puntocasadebolsa.mx): morado #522D6D, tipografías Ubuntu
+# (títulos y logotipo) y Open Sans (texto). Herramienta interna de la mesa de capitales.
+MARCA = "punto"
+MARCA_SUB = "casa de bolsa"
+MARCA_AREA = "Mesa de Capitales · Radar de operadoras de fondos"
+MARCA_NOMBRE = "Punto Casa de Bolsa"
 
 # --------------------------------------------------------------- encabezado
 TITULO_OPERADORA = "Radar de operadoras · {operadora}"
@@ -109,8 +117,8 @@ TITULO_FUENTES = "Fuentes"
 FUENTE_FONDO = "{clave}: {cita} · sha256 {sha}"
 FUENTE_DICI = "{clave} DICI: {cita}"
 PIE_FINAL = (
-    "Documento generado por radar {version} (plantillas {version_plantillas}). Uso interno de la mesa "
-    "de capitales; no constituye recomendación de inversión."
+    "Punto Casa de Bolsa · Mesa de Capitales. Documento generado por radar {version} (plantillas "
+    "{version_plantillas}). Uso interno; no es material para clientes ni constituye recomendación de inversión."
 )
 
 SUPUESTO_ACTIVO_NETO = "{n} fondo(s) sin activo neto publicado: se aproxima con el total de la cartera de valores."

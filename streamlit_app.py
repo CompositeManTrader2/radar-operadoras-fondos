@@ -24,10 +24,50 @@ from radar.render.html import render_comparativo, render_operadora
 from radar.store.db import Store
 from radar import vistas as V
 
-PRIMARIO, ACENTO, SECUNDARIO = "#512D6D", "#00857D", "#919AA2"
-SERIES = [PRIMARIO, ACENTO, "#C9A227", "#B5487A", "#2F6DB5", SECUNDARIO, "#6B8E23", "#8B4513", "#4682B4", "#DA70D6"]
+# Identidad de Punto Casa de Bolsa (puntocasadebolsa.mx): morado, ámbar y verde de su sitio,
+# Ubuntu en títulos y logotipo, Open Sans en el texto.
+PRIMARIO, ACENTO, SECUNDARIO = "#522D6D", "#00857D", "#919AA2"
+AMBAR, VERDE, MORADO_CLARO = "#FFB400", "#0FCB97", "#9A72B8"
+SERIES = [PRIMARIO, ACENTO, AMBAR, VERDE, MORADO_CLARO, SECUNDARIO, "#3C444D", "#2F6DB5", "#C2185B", "#7A8B2E"]
 
-st.set_page_config(page_title="Radar de operadoras", page_icon="📡", layout="wide")
+st.set_page_config(page_title=f"{T.MARCA_NOMBRE} · Radar de operadoras", page_icon="📊", layout="wide")
+
+px.defaults.color_discrete_sequence = SERIES
+px.defaults.template = "plotly_white"
+
+ESTILO_PUNTO = f"""
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=Ubuntu:wght@400;500;700&display=swap');
+html, body, .stApp, p, li, label, input, textarea, button {{ font-family: 'Open Sans', sans-serif; }}
+[data-testid="stIconMaterial"], .material-symbols-rounded {{ font-family: 'Material Symbols Rounded' !important; }}
+h1, h2, h3, h4 {{ font-family: 'Ubuntu', 'Open Sans', sans-serif !important; color: {PRIMARIO} !important; }}
+.punto-franja {{ background: #5B296E; color: #FFFFFF; border-radius: 10px; padding: 14px 22px;
+  display: flex; align-items: center; gap: 18px; margin: 0 0 18px; }}
+.punto-franja .logo {{ display: flex; flex-direction: column; line-height: 1; font-family: 'Ubuntu', sans-serif; }}
+.punto-franja .logo b {{ font-size: 30px; font-weight: 500; letter-spacing: -0.5px; }}
+.punto-franja .logo span {{ font-size: 11px; letter-spacing: .3px; margin-top: 2px; }}
+.punto-franja .area {{ border-left: 1px solid rgba(255,255,255,.55); padding-left: 18px;
+  font-family: 'Ubuntu', sans-serif; font-size: 15px; }}
+.punto-franja .area small {{ display: block; font-family: 'Open Sans', sans-serif; font-size: 12px; opacity: .85; }}
+.punto-pie {{ margin-top: 32px; padding-top: 10px; border-top: 1px solid #E2E8F0; font-size: 12px; color: #6B737C; }}
+[data-testid="stSidebar"] {{ background: #F7F5F8; }}
+[data-testid="stMetricValue"] {{ color: {PRIMARIO}; font-family: 'Ubuntu', sans-serif; }}
+</style>
+"""
+st.markdown(ESTILO_PUNTO, unsafe_allow_html=True)
+
+
+def franja_punto():
+    st.markdown(
+        f'<div class="punto-franja"><div class="logo"><b>{T.MARCA}</b><span>{T.MARCA_SUB}</span></div>'
+        f'<div class="area">{T.MARCA_AREA}<small>Herramienta interna · no es material para clientes</small></div></div>',
+        unsafe_allow_html=True)
+
+
+def pie_punto():
+    st.markdown(f'<div class="punto-pie">{T.MARCA_NOMBRE} · Mesa de Capitales. Fuentes: CNBV (R1, R7), carteras, '
+                'DICI y prospectos de cada operadora. Las cifras marcadas (e) son supuestos; ver Metodología.</div>',
+                unsafe_allow_html=True)
 
 
 # ------------------------------------------------------------------ datos
@@ -296,4 +336,7 @@ paginas = st.navigation([
     st.Page(pagina_estado, title="Estado de los datos", icon="🩺", url_path="estado"),
     st.Page(pagina_metodologia, title="Metodología", icon="📐", url_path="metodologia"),
 ])
+st.sidebar.markdown(f"**{T.MARCA_NOMBRE}**  \nMesa de Capitales")
+franja_punto()
 paginas.run()
+pie_punto()
