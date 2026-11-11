@@ -20,7 +20,7 @@ import streamlit as st
 from radar.config import cargar_parametros, ruta_db
 from radar.core.modelo import POR_CONFIRMAR
 from radar.render import plantillas as T
-from radar.render.html import render_comparativo, render_operadora
+from radar.render.html import LOGO_PUNTO, render_comparativo, render_operadora
 from radar.store.db import Store
 from radar import vistas as V
 
@@ -43,9 +43,7 @@ html, body, .stApp, p, li, label, input, textarea, button {{ font-family: 'Open 
 h1, h2, h3, h4 {{ font-family: 'Ubuntu', 'Open Sans', sans-serif !important; color: {PRIMARIO} !important; }}
 .punto-franja {{ background: #5B296E; color: #FFFFFF; border-radius: 10px; padding: 14px 22px;
   display: flex; align-items: center; gap: 18px; margin: 0 0 18px; }}
-.punto-franja .logo {{ display: flex; flex-direction: column; line-height: 1; font-family: 'Ubuntu', sans-serif; }}
-.punto-franja .logo b {{ font-size: 30px; font-weight: 500; letter-spacing: -0.5px; }}
-.punto-franja .logo span {{ font-size: 11px; letter-spacing: .3px; margin-top: 2px; }}
+.punto-franja .logo svg {{ display: block; height: 44px; width: auto; }}
 .punto-franja .area {{ border-left: 1px solid rgba(255,255,255,.55); padding-left: 18px;
   font-family: 'Ubuntu', sans-serif; font-size: 15px; }}
 .punto-franja .area small {{ display: block; font-family: 'Open Sans', sans-serif; font-size: 12px; opacity: .85; }}
@@ -59,7 +57,7 @@ st.markdown(ESTILO_PUNTO, unsafe_allow_html=True)
 
 def franja_punto():
     st.markdown(
-        f'<div class="punto-franja"><div class="logo"><b>{T.MARCA}</b><span>{T.MARCA_SUB}</span></div>'
+        f'<div class="punto-franja"><div class="logo">{LOGO_PUNTO}</div>'
         f'<div class="area">{T.MARCA_AREA}<small>Herramienta interna · no es material para clientes</small></div></div>',
         unsafe_allow_html=True)
 

@@ -3,6 +3,7 @@ corte => mismo HTML byte a byte (sin marcas de tiempo, todo ordenado)."""
 from __future__ import annotations
 
 from collections import defaultdict
+from pathlib import Path
 
 from radar import __version__
 from radar.config import Parametros
@@ -28,9 +29,7 @@ body{margin:0;background:var(--fondo);color:var(--texto);font-family:'Open Sans'
 h1,h2,h3,.marca-punto{font-family:'Ubuntu','Open Sans','Segoe UI',sans-serif}
 .mono,td.num,.tick,.arco,.kpi .valor{font-family:'IBM Plex Mono',ui-monospace,'Cascadia Mono',Consolas,monospace;font-variant-numeric:tabular-nums}
 .marca-punto{display:flex;align-items:center;gap:14px;margin:0 0 14px;padding-bottom:12px;border-bottom:1px solid rgba(255,255,255,.25)}
-.marca-punto .logo{display:flex;flex-direction:column;line-height:1}
-.marca-punto .logo b{font-size:28px;font-weight:500;letter-spacing:-.5px}
-.marca-punto .logo span{font-size:10.5px;letter-spacing:.3px;margin-top:2px}
+.marca-punto .logo svg{display:block;height:40px;width:auto}
 .marca-punto .area{border-left:1px solid rgba(255,255,255,.55);padding-left:14px;font-size:12.5px;opacity:.92}
 .num{text-align:right;white-space:nowrap}
 header.franja{background:var(--encabezado);color:var(--encabezado-texto);padding:20px 24px}
@@ -83,8 +82,12 @@ COLOR_CLASE = {"rv": "--primario", "rf": "--acento", "efe": "--secundario"}
 COLORES_SERIES = ("--primario", "--acento", "--serie3", "--serie4", "--serie5", "--secundario")
 
 
+LOGO_PUNTO = (Path(__file__).with_name("logo_punto.svg")).read_text(encoding="utf-8").strip()
+
+
 def _marca() -> str:
-    return (f'<div class="marca-punto"><div class="logo"><b>{e(T.MARCA)}</b><span>{e(T.MARCA_SUB)}</span></div>'
+    """Logotipo oficial de Punto Casa de Bolsa (SVG en blanco, de puntocasadebolsa.mx)."""
+    return (f'<div class="marca-punto"><div class="logo">{LOGO_PUNTO}</div>'
             f'<div class="area">{e(T.MARCA_AREA)}</div></div>')
 
 
