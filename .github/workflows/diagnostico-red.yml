@@ -1,0 +1,28 @@
+# Temporal: mide qué fuentes alcanza un runner de GitHub (EE. UU.). Se borra al terminar.
+name: diagnostico-red
+on: { workflow_dispatch: {} }
+permissions: { contents: read }
+jobs:
+  red:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Probar fuentes
+        run: |
+          probar() { r=$(curl -sS -L -m 45 -r 0-2047 -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/130.0" -o /tmp/b -w "%{http_code} %{size_download}B %{time_total}s" "$2" 2>&1); echo "$1 | $r | $(head -c 5 /tmp/b 2>/dev/null | tr -dc '[:print:]')"; }
+          curl -s -m 10 https://ipinfo.io/json | head -c 300; echo
+          probar CNBV_R7 "https://portafolioinfdoctos.cnbv.gob.mx/Documentacion/minfo/XLS/52/Reporte7/052_1G_R7_2026.xlsm"
+          probar CNBV_R1 "https://portafolioinfdoctos.cnbv.gob.mx/Documentacion/minfo/XLS/52/Reporte1/052_1G_R1_2026_S2.xlsm"
+          probar CNBV_home "https://www.cnbv.gob.mx/"
+          probar Finaccess "https://www.finaccess.com.mx/"
+          probar Multiva "https://www.multiva.com.mx/"
+          probar Compass "https://latam.vincicompass.com/es/mexico"
+          probar BlackRock "https://www.blackrock.com/mx/intermediarios/literature/fact-sheet/blkem1-dici.pdf"
+          probar Citi "https://www.citigroup.com/rcs/citigpa/storage/public/Mexico/BLKEM1_DocumentoClaveActualizacionAnual.pdf"
+          probar Principal "https://principal.com.mx/PRINRVA-DICI"
+          probar Franklin "https://www.franklintempleton.com.mx/api/literature/v1/documents?channel=es-mx"
+          probar Skandia "https://hubdigital.skandia.com.mx/portalpublico/Fondos%20de%20inversi%C3%B3n/FONDOS%20SK/RENTA%20VARIABLE/SK-RVMX/DICI_SK-RVMX.pdf"
+          probar Nafinsa "https://www.ofnafin.com.mx/webofinsa/index.php?a=ofn&c=fund:index"
+          r=$(curl -sS -m 60 -X POST -H "Content-Type: application/json" -H "Origin: https://www.surainvestments.com" -H "Referer: https://www.surainvestments.com/" -d '{"fondo":"SURRVMX","serie":"BF0"}' -o /tmp/s -w "%{http_code} %{size_download}B %{time_total}s" https://inversiones.suramexico.com/cs-api-sites-suraim/v1/resumen/fondo 2>&1); echo "SURA | $r | $(head -c 40 /tmp/s)"
+          echo "--- segundo intento CNBV y Finaccess (por si es intermitente)"
+          probar CNBV_R7 "https://portafolioinfdoctos.cnbv.gob.mx/Documentacion/minfo/XLS/52/Reporte7/052_1G_R7_2026.xlsm"
+          probar Finaccess "https://www.finaccess.com.mx/"
