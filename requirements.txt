@@ -1,5 +1,6 @@
 # Plataforma (Streamlit Community Cloud lee este archivo)
 requests>=2.31
+certifi>=2023.7
 pdfplumber>=0.11
 beautifulsoup4>=4.12
 openpyxl>=3.1

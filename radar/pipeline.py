@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import hashlib
+import json
 import re
 from datetime import date
 from pathlib import Path
@@ -63,7 +64,17 @@ def descargar(operadora: str, store: Store, cli: Cliente, log=print) -> list[str
     """Descarga todo lo descubierto y lo registra fechado por su contenido (sha256)."""
     ad = adaptador(operadora)
     if isinstance(ad, AdaptadorCnbvConDici):
-        # Híbrido: el universo es el de la CNBV; aquí solo se bajan DICI y prospectos.
+        # Híbrido: el universo es el de la CNBV; aquí solo se bajan DICI y prospectos. Los DICI
+        # cambian ~1 vez al mes y son cientos de MB: se revisan cada DIAS_REVISION_DICI días.
+        marca = dir_datos() / "cache" / "revision_dici" / f"{operadora}.txt"
+        if not cli.refrescar and marca.exists() and _dici_al_dia(operadora, store):
+            previa = json.loads(marca.read_text(encoding="utf-8"))
+            ultima = date.fromisoformat(previa["fecha"])
+            if (date.today() - ultima).days < DIAS_REVISION_DICI:
+                log(f"  DICI revisados el {ultima}; siguiente revisión en "
+                    f"{DIAS_REVISION_DICI - (date.today() - ultima).days} día(s)")
+                return list(previa.get("avisos", []))  # mismos avisos: el estado no cambia en falso
+        marca.parent.mkdir(parents=True, exist_ok=True)
         try:
             fondos, docs = ad.descubrir(cli, claves_cnbv(operadora, ad.clave_cnbv, store))
         except (ErrorDescarga, ErrorParseo, KeyError, ValueError) as e:
@@ -115,7 +126,23 @@ def descargar(operadora: str, store: Store, cli: Cliente, log=print) -> list[str
         if tipo == "dici":  # un prospecto faltante solo deja el régimen [POR CONFIRMAR]
             avisos.append(f"Sin DICI publicado ({len(claves)} de {sum(1 for d in docs if d.tipo == tipo)}): "
                           + ", ".join(sorted(claves)))
+    if isinstance(ad, AdaptadorCnbvConDici):
+        marca.write_text(json.dumps({"fecha": hoy.isoformat(), "avisos": avisos}, ensure_ascii=False),
+                         encoding="utf-8")
     return avisos
+
+
+#: Cada cuántos días se vuelven a revisar los DICI y prospectos de las operadoras híbridas.
+DIAS_REVISION_DICI = 7
+
+
+def _dici_al_dia(operadora: str, store: Store) -> bool:
+    """El DICI más reciente de cada fondo sigue en disco (si se perdió, hay que volver a bajar)."""
+    ultimos: dict[str, Documento] = {}
+    for d in store.documentos(operadora):
+        if d.tipo == "dici" and (d.fondo_clave not in ultimos or _ultimo([ultimos[d.fondo_clave], d]) is d):
+            ultimos[d.fondo_clave] = d
+    return bool(ultimos) and all((dir_datos() / d.archivo).exists() for d in ultimos.values())
 
 
 def claves_cnbv(operadora: str, cve: str | None, store: Store) -> list[str]:

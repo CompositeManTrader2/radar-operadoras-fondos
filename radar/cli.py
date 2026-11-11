@@ -77,7 +77,18 @@ def cmd_fetch(a) -> int:
         print(f"== fetch {op}")
 
         def etapa(op=op):
-            avisos = descargar(op, store, cli)
+            from radar.adapters.base import ErrorParseo
+            from radar.red import ErrorDescarga
+
+            try:
+                avisos = descargar(op, store, cli)
+            except (ErrorDescarga, ErrorParseo) as e:
+                if not REGISTRO[op].clave_cnbv:
+                    raise
+                # Sitio caído o inalcanzable (Finaccess no responde a IPs fuera de México): se
+                # re-parsea lo ya guardado y entra la cartera de la CNBV del mes; no se pierde el mes.
+                avisos = [f"Sitio de la operadora sin respuesta ({type(e).__name__}); "
+                          "se usan sus documentos guardados y la cartera de la CNBV"]
             for av in avisos:
                 print(f"  AVISO {av}")
             return avisos + parsear(op, store, prm)

@@ -11,6 +11,21 @@ from pathlib import Path
 
 import requests
 
+#: Certificados intermedios públicos que algunos servidores no envían (la CNBV no manda el de
+#: GlobalSign): Windows los baja solo, OpenSSL en Linux (runners de GitHub) no y rechaza la
+#: conexión. Se agregan a los raíces de certifi; la verificación TLS sigue completa.
+DIR_CERTS = Path(__file__).resolve().parents[1] / "config" / "certs"
+
+
+def ca_bundle(destino: Path) -> Path:
+    import certifi
+
+    partes = [Path(certifi.where()).read_text(encoding="ascii")]
+    partes += [p.read_text(encoding="ascii") for p in sorted(DIR_CERTS.glob("*.pem"))]
+    destino.write_text(chr(10).join(partes), encoding="ascii")
+    return destino
+
+
 USER_AGENT = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
     "(KHTML, like Gecko) Chrome/130.0 Safari/537.36"
@@ -55,6 +70,7 @@ class Cliente:
         self.refrescar = refrescar
         self._ultimo = 0.0
         self._sesion = requests.Session()
+        self._sesion.verify = str(ca_bundle(self.dir_cache / "ca_bundle.pem"))
         self._sesion.headers.update(
             {
                 "User-Agent": USER_AGENT,
