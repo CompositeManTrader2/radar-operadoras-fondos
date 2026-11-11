@@ -12,11 +12,20 @@ pip install -r requirements.txt
 streamlit run streamlit_app.py
 ```
 
-Páginas: **Comparativo** (calificación de las 29 operadoras, filtros, dispersión), **Operadora**
-(los seis bloques del one-pager + descarga del HTML idéntico), **Fondo** (posiciones con su fuente,
-rotación por tramo, régimen, comisiones del DICI), **Estado de los datos** (resultado de la última
-corrida por operadora, ETFs pendientes, conciliaciones) y **Metodología**. Los parámetros de la barra
-lateral solo afectan la sesión; los permanentes están en `config/parametros.toml`.
+Diseño institucional de Punto Casa de Bolsa (logotipo, morado de la marca, Ubuntu y Open Sans), sin barra
+lateral: navegación superior con cinco páginas.
+
+- **Panorama:** indicadores generales, calificación por operadora (gráfica y ranking; un clic en un renglón
+  abre su ficha), mapa de exposición por fondo y tabla completa con los seis criterios.
+- **Operadora:** ficha con calificación, tier y casa de bolsa hermana, indicadores y pestañas *Resumen*
+  (composición y cómo se forma la calificación), *Qué enviarle* (research, noticias e ideas según su cartera),
+  *Fondos*, *Posiciones* y *One-pager* (vista y descarga del HTML).
+- **Fondo:** posiciones con su fuente, rotación por tramo, DICI e historia.
+- **Estado de los datos:** resultado de la última corrida, ETFs pendientes, documentos y conciliaciones.
+- **Metodología.**
+
+Los supuestos de comisión se ajustan con el botón *Supuestos* y solo afectan la sesión; los permanentes están
+en `config/parametros.toml`.
 
 **Despliegue (Streamlit Community Cloud):** share.streamlit.io → *New app* → este repositorio, rama
 `main`, archivo `streamlit_app.py`. Al ser privado, Streamlit pide autorizar el acceso a la cuenta de

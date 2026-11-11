@@ -62,6 +62,18 @@ th{font-size:11.5px;color:var(--suave);font-weight:600}
 th.num{text-align:right;white-space:normal}
 tr.total td{font-weight:700;border-top:2px solid var(--texto)}
 .tops{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:12px}
+.intro{margin:0 0 12px;color:var(--suave);font-size:12.5px}
+.perfil{margin:0 0 14px;padding-left:18px}
+.perfil li{margin:3px 0}
+.temas{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:10px;margin:0 0 16px}
+.tema{border:1px solid var(--linea);border-left:4px solid var(--primario);border-radius:6px;padding:10px 12px}
+.tema h3{margin:0 0 6px;font-size:13.5px;color:var(--texto)}
+.tema p{margin:3px 0;font-size:12.5px}
+.tema .rotulo{color:var(--suave)}
+.mov{display:inline-block;padding:1px 7px;border-radius:10px;font-size:11px;font-weight:600;background:var(--fondo)}
+.mov.compra{background:#E3F6EF;color:#05704F}
+.mov.venta{background:#FBE9E3;color:#A3461F}
+h3.sub{font-size:13px;margin:14px 0 6px;color:var(--primario)}
 footer.pie{font-size:12px;color:var(--suave)}
 footer.pie h3{font-size:12.5px;color:var(--texto);margin:14px 0 4px}
 footer.pie p,footer.pie li{margin:3px 0}
@@ -241,10 +253,47 @@ def render_operadora(m: MetricasOperadora, prm: Parametros) -> str:
                + _tabla_top(T.TITULO_TOP_RF, _top(m.fondos, (RF,)), "--acento")
                + "</section>")
 
-    # 6. Pie
+    # 6. Qué enviarle (research, noticias e ideas según su cartera)
+    out.append(_que_enviarle(m))
+
+    # 7. Pie
     out.append(_pie(m, prm))
     out.append("</main>")
     return _doc(T.TITULO_OPERADORA.format(operadora=m.nombre) + f" · {m.corte.isoformat()}", "".join(out))
+
+
+def _que_enviarle(m: MetricasOperadora) -> str:
+    from radar.core.contenido import plan_contenido
+
+    plan = plan_contenido(m, n_emisoras=12)
+    h = [f'<section class="panel"><h2>{e(T.TITULO_QUE_ENVIARLE)}</h2><p class="intro">{e(T.INTRO_QUE_ENVIARLE)}</p>',
+         '<ul class="perfil">' + "".join(f"<li>{e(p)}</li>" for p in plan.perfil) + "</ul>"]
+    if plan.temas:
+        h.append('<div class="temas">')
+        for t in plan.temas:
+            h.append(f'<div class="tema"><h3>{e(t.titulo)}</h3>'
+                     f'<p><span class="rotulo">{e(T.ETIQUETA_POR_QUE)}:</span> {e(t.por_que)}</p>'
+                     f'<p><span class="rotulo">{e(T.ETIQUETA_QUE_ENVIAR)}:</span> {e(t.que_enviar)}</p></div>')
+        h.append("</div>")
+    else:
+        h.append(f"<p>{e(T.SIN_TEMAS)}</p>")
+    if plan.emisoras:
+        cols = T.COLUMNAS_EMISORAS_CLAVE
+        h.append(f'<h3 class="sub">{e(T.TITULO_EMISORAS_CLAVE)}</h3><div class="tabla-scroll"><table><thead><tr>'
+                 + "".join(f'<th class="num">{e(c)}</th>' if i in (3, 4) else f"<th>{e(c)}</th>" for i, c in enumerate(cols))
+                 + "</tr></thead><tbody>")
+        for x in plan.emisoras:
+            clase = "compra" if x.movimiento in ("Nueva", "Aumentó") else "venta" if x.movimiento in ("Redujo", "Salida") else ""
+            h.append(f'<tr><td class="mono">{e(x.emisora)}</td><td>{e(x.nombre)}</td><td>{e(x.sector)}</td>'
+                     f'<td class="num">{pct(x.peso_rv)}</td><td class="num">{x.fondos}</td>'
+                     f'<td><span class="mov {clase}">{e(x.movimiento)}</span></td></tr>')
+        h.append("</tbody></table></div>")
+    if plan.salidas:
+        h.append(f'<h3 class="sub">{e(T.TITULO_SALIDAS)}</h3><p>'
+                 + e("; ".join(T.SALIDA.format(emisora=x.emisora, mdp=mdp(-x.monto_movimiento)) for x in plan.salidas))
+                 + "</p>")
+    h.append("</section>")
+    return "".join(h)
 
 
 def _historia(f: MetricasFondo):

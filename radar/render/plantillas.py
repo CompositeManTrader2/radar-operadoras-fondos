@@ -6,7 +6,7 @@ etiquetas, no reescribir frases. Si algo aquí cambia, es una decisión editoria
 deliberada y se versiona (VERSION_PLANTILLAS); el test de plantillas lo detecta.
 """
 
-VERSION_PLANTILLAS = "2026-11-11.1"
+VERSION_PLANTILLAS = "2026-11-11.2"
 
 # --------------------------------------------------------------- identidad
 # Identidad de Punto Casa de Bolsa (puntocasadebolsa.mx): morado #522D6D, tipografías Ubuntu
@@ -71,6 +71,20 @@ COLUMNAS_TOP = ("#", "Emisora", "Monto (mdp)", "Peso relativo")
 SIN_POSICIONES = "Sin posiciones en esta clase."
 
 # --------------------------------------------------------------- pie
+# --------------------------------------------------------------- qué enviarle
+TITULO_QUE_ENVIARLE = "Qué enviarle"
+INTRO_QUE_ENVIARLE = (
+    "Research, noticias e ideas sugeridos a partir de su cartera: qué emisoras pesan más, qué compró o vendió "
+    "entre los dos últimos cortes (en títulos, sin efecto precio) y cómo reparte su renta variable y su renta fija."
+)
+ETIQUETA_POR_QUE = "Por qué"
+ETIQUETA_QUE_ENVIAR = "Qué enviar"
+SIN_TEMAS = "Sin temas sugeridos para este corte."
+TITULO_EMISORAS_CLAVE = "Emisoras clave"
+COLUMNAS_EMISORAS_CLAVE = ("Emisora", "Nombre", "Sector", "Peso en su RV", "Fondos", "Movimiento")
+TITULO_SALIDAS = "Vendió por completo"
+SALIDA = "{emisora} ({mdp} mdp en el corte anterior)"
+
 TITULO_METODOLOGIA = "Metodología"
 METODOLOGIA = (
     "Fuente primaria: cartera de valores mensual publicada por la operadora; régimen de inversión "
