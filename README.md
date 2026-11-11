@@ -24,17 +24,22 @@ GitHub. Cada commit de la tarea programada vuelve a desplegar la app con los dat
 
 ## Actualización automática
 
-`.github/workflows/actualizar.yml` corre `python -m radar actualizar` de lunes a viernes a las 07:00
-(CDMX) y también a mano (*Actions → actualizar-radar → Run workflow*). Descarga todo, re-parsea,
-valida y genera entregables; solo hace commit si llegó un documento nuevo o cambió el estado de una
-operadora (`data/estado.txt`). Una operadora que falla (sitio caído, formato nuevo, ETF sin
-clasificar) queda registrada en "Estado de los datos" y no detiene a las demás.
+`.github/workflows/actualizar.yml` corre `python -m radar actualizar` **en los servidores de GitHub**
+(no depende de ninguna PC) de lunes a viernes a las 07:17 y a las 15:17 (CDMX; la segunda es respaldo)
+y también a mano (*Actions → actualizar-radar → Run workflow*). Descarga todo, re-parsea, valida y
+genera entregables; solo hace commit si llegó un documento nuevo o cambió el estado de una operadora
+(`data/estado.txt`). Una operadora que falla (sitio caído, formato nuevo, ETF sin clasificar) queda
+registrada en "Estado de los datos" y no detiene a las demás. Los DICI de las híbridas se revisan cada
+7 días; sus PDF y la caché de extracción viven en la caché de Actions (si se pierde, se vuelven a bajar).
 
-**Runner propio (desde 2026-11-10):** la tarea corre en el *self-hosted runner* `radar-pc-mx`
-(etiqueta `radar-mx`) instalado en `%USERPROFILE%\actions-runner-radar`, porque desde los servidores de
-GitHub (EE. UU.) el sitio de Finaccess y los archivos de la CNBV no responden. La PC tiene que estar
-encendida con la sesión abierta y el runner corriendo (`run.cmd` en esa carpeta); si no, el trabajo
-espera en la cola hasta 24 h. Quitarlo: `config.cmd remove --token <token>` en esa carpeta.
+- **CNBV:** su servidor no envía el certificado intermedio (GlobalSign RSA OV SSL CA 2018); va en
+  `config/certs/` y se suma a los raíces de certifi (la verificación TLS sigue completa). Si la CNBV
+  cambia de certificadora, agregar ahí el nuevo intermedio público.
+- **Finaccess** no responde a IPs fuera de México: desde GitHub se usan sus documentos guardados y la
+  cartera de la CNBV (aviso en el estado). Su cartera mensual propia requiere una IP mexicana.
+- Hasta el 2026-11-11 corría en un *self-hosted runner* de la PC (`radar-pc-mx`, en
+  `%USERPROFILE%\actions-runner-radar`); ya no se usa. Quitarlo: `config.cmd remove --token <token>` en esa
+  carpeta (token en *Settings → Actions → Runners*).
 
 ## Uso
 
