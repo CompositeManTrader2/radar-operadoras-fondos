@@ -6,7 +6,7 @@ bbva	OK	fetch	ok	0 doc(s)
 blackrock	OK	fetch	ok con 1 aviso(s): Sin DICI publicado (9 de 40): BLKLIQ+, BLKSYSB, BLKSYSC, BLKUDI+, GOLD1+, GOLD2+, GOLD3+, GOLD4+, GOLD5+	66 doc(s), DICI al 2026-10-31
 btg	OK	fetch	ok	0 doc(s)
 cifondos	OK	fetch	ok	0 doc(s)
-compass	OK	fetch	ok	49 doc(s), DICI al 2026-10-31
+compass	OK	fetch	ok	63 doc(s), DICI al 2026-10-31
 finaccess	OK	fetch	ok con 1 aviso(s): Sitio de la operadora sin respuesta (ErrorDescarga); se usan sus documentos guardados y la cartera de la CNBV	60 doc(s), DICI al 2026-10-31
 finamex	OK	fetch	ok	0 doc(s)
 franklin	OK	fetch	ok	21 doc(s), DICI al 2026-10-30
