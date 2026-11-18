@@ -18,8 +18,8 @@ kapital	OK	fetch	ok	0 doc(s)
 mifel	OK	fetch	ok	0 doc(s)
 monex	OK	fetch	ok	0 doc(s)
 multiva	OK	fetch	ok	35 doc(s), DICI al 2026-10-31
-nafinsa	OK	fetch	ok	26 doc(s), DICI al 2026-10-30
-principal	OK	fetch	ok	33 doc(s), DICI al 2026-10-30
+nafinsa	OK	fetch	ok	28 doc(s), DICI al 2026-10-30
+principal	OK	fetch	ok	46 doc(s), DICI al 2026-10-30
 punto	OK	fetch	ok	0 doc(s)
 santander	OK	fetch	ok	0 doc(s)
 scotia	OK	fetch	ok	0 doc(s)
