@@ -1,9 +1,9 @@
-actinver	OK	parse	ok	0 doc(s)
+actinver	OK	fetch	ok	0 doc(s)
 afirme	OK	fetch	ok	0 doc(s)
 azimut	OK	fetch	ok	0 doc(s)
 banorte	OK	fetch	ok	0 doc(s)
 bbva	OK	fetch	ok	0 doc(s)
-blackrock	OK	parse	ok con 5 aviso(s): DICI BLK2030: falta el archivo raw/blackrock/2275974b6122_DICI_BLK2030.pdf (se conserva lo guardado) | DICI BLK2040: falta el archivo raw/blackrock/f14e4341effe_DICI_BLK2040.pdf (se conserva lo guardado) | DICI BLK2050: falta el archivo raw/blackrock/31518d2776f0_DICI_BLK2050.pdf 	72 doc(s), DICI al 2026-10-31
+blackrock	OK	fetch	ok con 6 aviso(s): Sin DICI publicado (9 de 40): BLKLIQ+, BLKSYSB, BLKSYSC, BLKUDI+, GOLD1+, GOLD2+, GOLD3+, GOLD4+, GOLD5+ | DICI BLK2030: falta el archivo raw/blackrock/39931c364696_DICI_BLK2030.pdf (se conserva lo guardado) | DICI BLK2040: falta el archivo raw/blackrock/86ba2ca46f4a_DICI_BLK2040.	72 doc(s), DICI al 2026-10-31
 btg	OK	fetch	ok	0 doc(s)
 cifondos	OK	fetch	ok	0 doc(s)
 compass	OK	fetch	ok	63 doc(s), DICI al 2026-10-31
