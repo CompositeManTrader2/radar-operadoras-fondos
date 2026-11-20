@@ -330,7 +330,7 @@ aplica por `fondo_clave`).
   - Ninguno es apalancado o inverso. En los pendientes de otras operadoras sí aparece SPXL
     (3×): al agregarlo convendría marcarlo.
 - **Tipos de valor**: 1A/1ASP/1ESP/1MSP/YYSP → acción SIC; 1I/1ISP → ETF extranjero;
-  1B → TRAC local; CF/FF/FE → FIBRA; 51/52/53 → fondo; CH*/AIM/EAIM → efectivo; 56SP → deuda.
+  1B → TRAC local; CF/FF/FE → FIBRA; 51/52/53 → fondo; CH*/AIM/EAIM → efectivo; 56SP (fondo extranjero vía SIC) → por subyacente según radar/core/datos/fondos_extranjeros.csv: RV/multiactivo → RV_ETF (multiactivo marcado (e)), deuda → RF, sin identificar → RF [POR CONFIRMAR]. Antes iba todo a deuda: SURGLOB y ALTER1+ salían bajo su mínimo de RV (21 fondos, ~15,900 mdp).
   Son consistentes.
 - **HTML**:
   - La fila de totales usa el activo neto como base: %RV total = exposición/AN, igual que

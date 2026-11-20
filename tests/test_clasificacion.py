@@ -66,3 +66,24 @@ def test_diccionario_sin_duplicados_y_subyacentes_validos():
     d = diccionario_etfs()
     assert set(d.values()) <= {"RV", "DEUDA", "MATERIA_PRIMA"}
     assert d["NAFTRAC"] == "RV"
+
+
+def test_fondo_extranjero_56sp_por_subyacente():
+    """56SP = fondo extranjero vía SIC. La CNBV lo llama "de deuda", pero hay de renta variable."""
+    from datetime import date as _d
+    from radar.core.clasificacion import clasificar_posicion, fondo_extranjero_por_confirmar
+    from radar.core.modelo import RF, RV_ETF, Categoria, Posicion, Procedencia
+
+    def p(em):
+        return Posicion(f"56SP_{em}_LX", "56SP", em, "LX", 10, 100.0, None, "", "", "", Categoria.DEUDA,
+                        Procedencia("x", "r7.xlsm", 1, _d(2026, 9, 30)))
+
+    rv, deuda, mixto, nada = p("AMEGFMU"), p("TEMGBIA"), p("BGDHIX2"), p("ZZZZ56")
+    for x in (rv, deuda, mixto, nada):
+        clasificar_posicion(x, "t")
+    assert (rv.clase, rv.categoria) == (RV_ETF, Categoria.ETF_EXTRANJERO)      # AM SURA Equity Global
+    assert deuda.clase == RF                                                    # Templeton Global Bond
+    assert mixto.clase == RV_ETF and "(e)" in mixto.nota
+    assert nada.clase == RF and "[POR CONFIRMAR]" in nada.nota
+    assert fondo_extranjero_por_confirmar("ZZZZ56") and fondo_extranjero_por_confirmar("CGCG")
+    assert not fondo_extranjero_por_confirmar("AMEGFMU")

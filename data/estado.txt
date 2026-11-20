@@ -1,29 +1,29 @@
-actinver	OK	fetch	ok	0 doc(s)
-afirme	OK	fetch	ok	0 doc(s)
-azimut	OK	fetch	ok	0 doc(s)
-banorte	OK	fetch	ok	0 doc(s)
-bbva	OK	fetch	ok	0 doc(s)
-blackrock	OK	fetch	ok con 6 aviso(s): Sin DICI publicado (9 de 40): BLKLIQ+, BLKSYSB, BLKSYSC, BLKUDI+, GOLD1+, GOLD2+, GOLD3+, GOLD4+, GOLD5+ | DICI BLK2030: falta el archivo raw/blackrock/39931c364696_DICI_BLK2030.pdf (se conserva lo guardado) | DICI BLK2040: falta el archivo raw/blackrock/86ba2ca46f4a_DICI_BLK2040.	72 doc(s), DICI al 2026-10-31
-btg	OK	fetch	ok	0 doc(s)
-cifondos	OK	fetch	ok	0 doc(s)
-compass	OK	fetch	ok	63 doc(s), DICI al 2026-10-31
-finaccess	OK	fetch	ok con 1 aviso(s): Sitio de la operadora sin respuesta (ErrorDescarga); se usan sus documentos guardados y la cartera de la CNBV	60 doc(s), DICI al 2026-10-31
-finamex	OK	fetch	ok	0 doc(s)
-franklin	OK	fetch	ok	21 doc(s), DICI al 2026-10-30
-gbm	OK	fetch	ok	0 doc(s)
-hsbc	OK	fetch	ok	0 doc(s)
-inbursa	OK	fetch	ok	0 doc(s)
-invex	OK	fetch	ok	0 doc(s)
-kapital	OK	fetch	ok	15 doc(s), DICI al 2026-10-31
-mifel	OK	fetch	ok	0 doc(s)
-monex	OK	fetch	ok	0 doc(s)
-multiva	OK	fetch	ok	35 doc(s), DICI al 2026-10-31
-nafinsa	OK	fetch	ok con 14 aviso(s): Sin DICI publicado (13 de 13): BONDDIA, ENERFIN, NAF-ESG, NAF-USD, NAFCDVI, NAFCGUB, NAFFP28, NAFG-LP, NAFGUBD, NAFINDX, NAFINTR, NAFM-EX, NAFMEX7 | DICI BONDDIA: falta el archivo raw/nafinsa/c6c00a9f1c54_DICI_BONDDIA.pdf (se conserva lo guardado) | DICI ENERFIN: falta el archivo	28 doc(s), DICI al 2026-10-30
-principal	OK	fetch	ok con 1 aviso(s): Sin DICI publicado (1 de 21): MEXEQTY	46 doc(s), DICI al 2026-10-30
-punto	OK	fetch	ok	0 doc(s)
-santander	OK	fetch	ok	0 doc(s)
-scotia	OK	fetch	ok	0 doc(s)
-skandia	OK	fetch	ok	10 doc(s), DICI al 2026-10-30
-sura	OK	fetch	ok con 1 aviso(s): Sin DICI publicado (1 de 36): SUR2074	70 doc(s), DICI al 2026-10-31
-valmex	OK	fetch	ok	0 doc(s)
-value	OK	fetch	ok	0 doc(s)
+actinver	OK	parse	ok	0 doc(s)
+afirme	OK	parse	ok	0 doc(s)
+azimut	OK	parse	ok	0 doc(s)
+banorte	OK	parse	ok	0 doc(s)
+bbva	OK	parse	ok	0 doc(s)
+blackrock	OK	parse	ok con 5 aviso(s): DICI BLK2030: falta el archivo raw/blackrock/2275974b6122_DICI_BLK2030.pdf (se conserva lo guardado) | DICI BLK2040: falta el archivo raw/blackrock/f14e4341effe_DICI_BLK2040.pdf (se conserva lo guardado) | DICI BLK2050: falta el archivo raw/blackrock/31518d2776f0_DICI_BLK2050.pdf 	72 doc(s), DICI al 2026-10-31
+btg	OK	parse	ok	0 doc(s)
+cifondos	OK	parse	ok	0 doc(s)
+compass	OK	parse	ok	63 doc(s), DICI al 2026-10-31
+finaccess	OK	parse	ok	60 doc(s), DICI al 2026-10-31
+finamex	OK	parse	ok	0 doc(s)
+franklin	OK	parse	ok	21 doc(s), DICI al 2026-10-30
+gbm	OK	parse	ok	0 doc(s)
+hsbc	OK	parse	ok	0 doc(s)
+inbursa	OK	parse	ok	0 doc(s)
+invex	OK	parse	ok	0 doc(s)
+kapital	OK	parse	ok	15 doc(s), DICI al 2026-10-31
+mifel	OK	parse	ok	0 doc(s)
+monex	OK	parse	ok	0 doc(s)
+multiva	OK	parse	ok	35 doc(s), DICI al 2026-10-31
+nafinsa	OK	parse	ok	28 doc(s), DICI al 2026-10-30
+principal	OK	parse	ok	46 doc(s), DICI al 2026-10-30
+punto	OK	parse	ok	0 doc(s)
+santander	OK	parse	ok	0 doc(s)
+scotia	OK	parse	ok	0 doc(s)
+skandia	OK	parse	ok	10 doc(s), DICI al 2026-10-30
+sura	OK	parse	ok	70 doc(s), DICI al 2026-10-31
+valmex	OK	parse	ok	0 doc(s)
+value	OK	parse	ok	0 doc(s)

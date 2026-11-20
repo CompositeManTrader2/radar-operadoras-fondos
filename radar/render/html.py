@@ -378,6 +378,12 @@ def _pie(m: MetricasOperadora, prm: Parametros) -> str:
                     and x.emisora_canonica in etfs_confianza_media()})
     if media:
         h.append(T.HUECO_ETF_MEDIA.format(claves=", ".join(media), lista=", ".join(media)))
+    from radar.core.clasificacion import fondo_extranjero_por_confirmar
+
+    extranjeros = sorted({p.emisora_canonica for f in m.fondos for p in f.cartera.posiciones
+                          if p.tipo_valor.upper() == "56SP" and fondo_extranjero_por_confirmar(p.emisora_canonica)})
+    if extranjeros:
+        h.append(T.HUECO_FONDOS_EXTRANJEROS.format(lista=", ".join(extranjeros)))
     if est:
         h.append(T.HUECO_ACTIVO_NETO.format(claves=", ".join(sorted(f.clave for f in est))))
     hermana = m.perfil.casa_de_bolsa_hermana if m.perfil else None

@@ -6,7 +6,7 @@ etiquetas, no reescribir frases. Si algo aquí cambia, es una decisión editoria
 deliberada y se versiona (VERSION_PLANTILLAS); el test de plantillas lo detecta.
 """
 
-VERSION_PLANTILLAS = "2026-11-11.2"
+VERSION_PLANTILLAS = "2026-11-20.1"
 
 # --------------------------------------------------------------- identidad
 # Identidad de Punto Casa de Bolsa (puntocasadebolsa.mx): morado #522D6D, tipografías Ubuntu
@@ -150,6 +150,9 @@ HUECO_SIC = "Claves SIC sin emisora confirmada: {claves}."
 HUECO_REGIMEN = "Límite máximo de renta variable sin localizar: {claves}."
 HUECO_ACTIVO_NETO = "Activo neto oficial (CNBV) pendiente para: {claves}."
 HUECO_CASA_BOLSA = "Casa de bolsa hermana sin confirmar."
+HUECO_FONDOS_EXTRANJEROS = (
+    "Fondos extranjeros vía SIC (TV 56SP) sin identificar o con fuente secundaria (verificar): {lista}."
+)
 HUECO_ETF_MEDIA = "ETFs clasificados con fuente secundaria (verificar): {lista}."
 NOTA_HERMANOS = (
     "† Excluye {mdp} mdp en acciones de fondos de la misma operadora: ya se cuentan en el fondo "

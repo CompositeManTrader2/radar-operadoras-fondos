@@ -87,6 +87,19 @@ def canonica(emisora: str) -> str:
     return s.strip(" *")
 
 
+@lru_cache(maxsize=1)
+def diccionario_fondos_extranjeros() -> dict[str, tuple[str, str]]:
+    """Fondos extranjeros vía SIC (TV 56SP): ticker -> (subyacente, confianza)."""
+    return {r["ticker"].strip().upper(): (r["subyacente"].strip().upper(), r.get("confianza", "media").strip().lower())
+            for r in _leer_csv("fondos_extranjeros.csv")}
+
+
+def fondo_extranjero_por_confirmar(ticker: str) -> bool:
+    """Sin identificar o identificado con fuente secundaria: se lista como hueco."""
+    d = diccionario_fondos_extranjeros().get(canonica(ticker))
+    return d is None or d[1] != "alta"
+
+
 def subyacente_etf(ticker: str, contexto: str) -> str:
     t = canonica(ticker)
     d = diccionario_etfs()
@@ -139,6 +152,18 @@ def clasificar_posicion(p: Posicion, contexto: str) -> None:
         p.clase, p.mercado = (RF if sub == "DEUDA" else RV_ETF), MERCADO_SIC
         if sub == "MATERIA_PRIMA":
             p.nota = "ETF de materia prima: contado en RV_ETF (e)"
+    elif c is Categoria.DEUDA and p.tipo_valor.upper() == "56SP":
+        # Fondo extranjero vía SIC: la CNBV lo describe como "de deuda", pero el código abarca fondos
+        # de renta variable. Se clasifica por subyacente (radar/core/datos/fondos_extranjeros.csv).
+        sub = diccionario_fondos_extranjeros().get(p.emisora_canonica, (None, ""))[0]
+        if sub in ("RV", "MIXTO"):
+            p.categoria, p.clase, p.mercado = Categoria.ETF_EXTRANJERO, RV_ETF, MERCADO_SIC
+            if sub == "MIXTO":
+                p.nota = "Fondo extranjero multiactivo/alternativo: contado en RV_ETF (e)"
+        else:
+            p.clase, p.mercado = RF, None
+            if sub is None:
+                p.nota = "Fondo extranjero sin identificar: se toma la descripción de la CNBV (deuda) [POR CONFIRMAR]"
     elif c is Categoria.DEUDA:
         p.clase, p.mercado = RF, None
     elif c in (Categoria.REPORTO, Categoria.DEPOSITO):

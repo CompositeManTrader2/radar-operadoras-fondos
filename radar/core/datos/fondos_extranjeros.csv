@@ -1,0 +1,26 @@
+# Fondos extranjeros que los fondos mexicanos tienen vía el SIC (tipo de valor 56SP en el R7 de la CNBV).
+# La CNBV los describe como "Sociedades de Inversión de Deuda Extranjera", pero el código abarca fondos de
+# cualquier tipo (p. ej. renta variable global). Se clasifican por SUBYACENTE: RV | DEUDA | MIXTO.
+# MIXTO (multiactivo / alternativo) se cuenta en RV_ETF y se marca (e). Un 56SP que no esté aquí se deja
+# como deuda (descripción de la CNBV) y se lista como [POR CONFIRMAR]. Identificación 2026-11-20 (OpenFIGI y
+# fichas de las gestoras); confianza: alta = ticker exacto en la fuente, media = inferido.
+# version: 2026-11-20.1
+ticker,subyacente,descripcion,fuente,confianza
+AMEGFMU,RV,AM SURA Equity Global - clase FMX USD Cap,https://api.openfigi.com/v3/search (OpenFIGI%2C query=ticker),alta
+BGDHIX2,MIXTO,BGF Dynamic High Income Fund - Clase X2 USD Acc,https://www.blackrock.com/dk/individual/products/292583/blackrock-dynamic-high-income-fund,alta
+PIDIIMH,DEUDA,PIMCO GIS Diversified Income Fund - Institutional MXN (Hedged) Acc,https://www.finanzen.at/fonds/pimco-gis-diversified-income-fund-institutional-mxn-ie00bmvmc131,alta
+AQSCU3M,MIXTO,AQR UCITS Funds II - Style Capture UCITS Fund; clase IAM3 (MXN),https://www.finect.com/fondos-inversion/LU2090064721-Aqr_style_capture_ucits_iam3,alta
+BRTOUSA,MIXTO,BlackRock Tactical Opportunities Fund (BlackRock Investment Funds ICAV) - Clase D USD Acc,https://www.blackrock.com/sg/en/products/309622/,alta
+AMCRFMX,DEUDA,AM SURA Latin America Corporate Debt USD - clase FMX,https://api.openfigi.com/v3/search (OpenFIGI%2C query=ticker),alta
+AQSCU3U,MIXTO,AQR UCITS Funds II - Style Capture UCITS Fund; clase IAU3 (USD),https://ycharts.com/mutual_funds/M:LU2090061032/allocations,alta
+TEMGBIA,DEUDA,Franklin Templeton Investment Funds - Templeton Global Bond Fund; clase I (acc) USD,https://www.finanzen.at/fonds/templeton-global-bond-fund-i-lu0181997262,alta
+BBVCP16,RV,BBVA Capital Privado 2016; FCR - capital privado; no cotiza,https://www.bbva.mx/personas/productos/patrimonial-y-privada/inversiones/fondos-de-inversion/fondo-de-capital-privado-internacional-bbvacap.html,media
+SAGDBMU,DEUDA,Santander GO Dynamic Bond - clase M USD,https://api.openfigi.com/v3/search (OpenFIGI%2C query=ticker),alta
+EIALRFI,DEUDA,EDM International - Alterna Renta Fija; clase I,https://api.openfigi.com/v3/search (OpenFIGI%2C query=ticker),media
+JPUSDGA,DEUDA,JPMorgan Liquidity Funds - USD Standard Money Market VNAV Fund; clase G (acc),https://api.openfigi.com/v3/search (OpenFIGI%2C query=ticker),alta
+PFIUSMI,DEUDA,Pictet - USD Short Mid-Term Bonds; clase I USD,https://api.openfigi.com/v3/search (OpenFIGI%2C query=ticker),alta
+JPSDBAI,DEUDA,JPMorgan Funds - Short Duration Bond Fund; clase I (acc) USD,https://api.openfigi.com/v3/search (OpenFIGI%2C query=ticker),alta
+DBFRNIC,DEUDA,DWS Invest USD Floating Rate Notes; clase IC (FIGI 'DWS USD FLT RTE NOTE-IC'),https://api.openfigi.com/v3/search (OpenFIGI%2C query=ticker),alta
+UBMSSIC,DEUDA,UBAM - USD Floating Rate Notes; clase IC USD,https://api.openfigi.com/v3/search (OpenFIGI%2C query=ticker),alta
+CGCG,RV,CG Funds SAC (Compass Group; BISX Bahamas) - inferido: único activo de ALTER1+ (RV 80-100 %),https://www.bisxbahamas.com/mutual-funds/cg-funds-sac-class-cg-shares-cgcg,media
+GBMMEXB,RV,GBM Mexico Fund - clase B Cap USD,https://www.quefondos.com/es/fondos/ficha/index.html?isin=LU0709025752,media
