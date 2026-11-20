@@ -14,7 +14,7 @@ gbm	OK	fetch	ok	0 doc(s)
 hsbc	OK	fetch	ok	0 doc(s)
 inbursa	OK	fetch	ok	0 doc(s)
 invex	OK	fetch	ok	0 doc(s)
-kapital	OK	fetch	ok	14 doc(s), DICI al 2026-10-31
+kapital	OK	parse	ok	15 doc(s), DICI al 2026-10-31
 mifel	OK	fetch	ok	0 doc(s)
 monex	OK	fetch	ok	0 doc(s)
 multiva	OK	fetch	ok	35 doc(s), DICI al 2026-10-31

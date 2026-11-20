@@ -115,6 +115,18 @@ class Store:
         ).fetchone()
         return r[0] if r else None
 
+    def cartera_sin_titulos(self, operadora: str, fondo: str, fecha: str) -> bool:
+        """True si ningún renglón de esa cartera trae número de títulos."""
+        r = self.cx.execute("SELECT COUNT(*), COUNT(titulos) FROM posiciones WHERE operadora=? AND fondo_clave=? "
+                            "AND fecha_corte=?", (operadora, fondo, fecha)).fetchone()
+        return bool(r[0]) and r[1] == 0
+
+    def borrar_cartera(self, operadora: str, fondo: str, fecha: str) -> None:
+        for t in ("posiciones", "carteras"):
+            self.cx.execute(f"DELETE FROM {t} WHERE operadora=? AND fondo_clave=? AND fecha_corte=?",
+                            (operadora, fondo, fecha))
+        self.cx.commit()
+
     def guardar_cartera(self, c: Cartera) -> bool:
         """Guarda un corte. Prioridad dentro de un mismo mes: la cartera mensual de
         la operadora manda sobre R7 de la CNBV (que entonces solo concilia), para

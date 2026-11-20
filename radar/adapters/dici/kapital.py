@@ -10,6 +10,9 @@ los PDF se bajan con a.php?archivo=/Fondos/Documentos/... o /Fondos/Prospecto/..
 Hay un DICI por serie; se toma la F1 (personas físicas) o, si no existe, la primera serie. Algunos
 DICI aún traen la clave anterior (+TASAMX = KPTLMPG): manda la clave de la CNBV. El DICI lista a
 Kapital México Casa de Bolsa entre las distribuidoras (casa de bolsa hermana: veto).
+
+Cartera mensual: un PDF con los siete fondos (metodo=datos_operadora -> "carteraMen"), un mes antes
+que el R7 de la CNBV; se revisa en cada corrida (ver formato_kapital).
 """
 from __future__ import annotations
 
@@ -20,7 +23,7 @@ from urllib.parse import quote
 
 from radar.adapters.base import DocARevisar, ErrorParseo
 from radar.adapters.cnbv_generico import AdaptadorCnbvConDici
-from radar.core.modelo import Dici, Documento
+from radar.core.modelo import Cartera, Dici, Documento
 from radar.red import Cliente
 
 BASE = "https://www.ibex.com.mx/dfondos"
@@ -71,6 +74,28 @@ class Kapital(AdaptadorCnbvConDici):
             if pros:
                 docs.append(DocARevisar(k, "prospecto", pros, f"Prospecto_{k}.pdf", opcional=True))
         return docs
+
+    def documentos_diarios(self, cliente: Cliente) -> list[DocARevisar]:
+        """Cartera mensual de los siete fondos (un PDF; la clave de cada página va en sus marcadores)."""
+        datos = json.loads(cliente.post_form(SERVICIO, {"metodo": "datos_operadora", "txtOperId": ID_OPERADORA},
+                                             ENCABEZADOS))
+        nombre = datos.get("carteraMen") or ""
+        if not nombre:
+            raise ErrorParseo("Kapital: el buscador no publica cartera mensual")
+        return [DocARevisar(None, "cartera_mensual", url_archivo("/Fondos/carteramensual/" + nombre),
+                            "CarteraMensual_Kapital.pdf")]
+
+    def fecha_documento(self, tipo: str, ruta: Path):
+        if tipo == "cartera_mensual":
+            from radar.adapters import formato_kapital
+
+            return formato_kapital.fecha_cartera(ruta)
+        return super().fecha_documento(tipo, ruta)
+
+    def parsear_cartera(self, ruta: Path, doc: Documento) -> list[Cartera]:
+        from radar.adapters import formato_kapital
+
+        return formato_kapital.parsear(ruta, doc, self.clave)
 
     def parsear_dici(self, ruta: Path, doc: Documento, prospecto) -> Dici:
         d = super().parsear_dici(ruta, doc, prospecto)

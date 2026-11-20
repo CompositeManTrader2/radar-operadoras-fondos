@@ -121,7 +121,7 @@ línea en `radar/adapters/__init__.py`. Los helpers de tablas de DICI
   | Principal | 20 de 20 | alias fijos `principal.com.mx/{CLAVE}-DICI` |
   | Franklin Templeton | 11 de 11 | JSON público de documentos (URL de Widen no predecible) |
   | Skandia | 5 de 5 | blob público con la clave en la ruta |
-  | Kapital (KPTL, antes Intercam) | 7 de 7 | buscador de fondos de Kapital en ibex.com.mx (servicio de la página); tiene casa de bolsa hermana |
+  | Kapital (KPTL, antes Intercam) | 7 de 7 | buscador de fondos de Kapital en ibex.com.mx (servicio de la página), más su **cartera mensual** de los 7 fondos (un mes antes que la CNBV; sin títulos, así que el R7 del mismo mes la sustituye en cuanto llega y ella queda como conciliación); tiene casa de bolsa hermana |
   | Nafinsa | 13 de 13 | fichas del sitio (`fund:detail`); un DICI por tipo de adquirente, se toma el de personas físicas |
 
   Ninguna lista una casa de bolsa propia: distribuyen por Citi/Banamex, Actinver, GBM, Monex, Multiva,

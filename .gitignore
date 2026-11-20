@@ -15,4 +15,6 @@ data/raw/principal/
 data/raw/franklin/
 data/raw/skandia/
 data/raw/nafinsa/
-data/raw/kapital/
+# Kapital: se versiona su cartera mensual (histórico de cortes), no sus DICI ni prospectos.
+data/raw/kapital/*
+!data/raw/kapital/*CarteraMensual*

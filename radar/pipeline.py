@@ -73,16 +73,32 @@ def descargar(operadora: str, store: Store, cli: Cliente, log=print) -> list[str
             if (date.today() - ultima).days < DIAS_REVISION_DICI:
                 log(f"  DICI revisados el {ultima}; siguiente revisión en "
                     f"{DIAS_REVISION_DICI - (date.today() - ultima).days} día(s)")
-                return list(previa.get("avisos", []))  # mismos avisos: el estado no cambia en falso
+                avisos_previos = list(previa.get("avisos", []))  # el estado no cambia en falso
+                try:
+                    diarios = ad.documentos_diarios(cli)
+                except (ErrorDescarga, ErrorParseo, KeyError, ValueError) as e:
+                    return avisos_previos + [f"No se pudo listar la cartera de la operadora ({type(e).__name__})"]
+                if not diarios:
+                    return avisos_previos
+                return avisos_previos + _bajar_documentos(operadora, ad, diarios, store, cli, log)
         marca.parent.mkdir(parents=True, exist_ok=True)
         try:
             fondos, docs = ad.descubrir(cli, claves_cnbv(operadora, ad.clave_cnbv, store))
+            docs = docs + ad.documentos_diarios(cli)
         except (ErrorDescarga, ErrorParseo, KeyError, ValueError) as e:
             # El DICI complementa a la CNBV: si el sitio falla, se avisa y se sigue con R7/R1.
             return [f"No se pudieron listar los DICI ({type(e).__name__}: {e})"]
     else:
         fondos, docs = ad.descubrir(cli)
         store.guardar_universo(operadora, fondos)
+    avisos = _bajar_documentos(operadora, ad, docs, store, cli, log)
+    if isinstance(ad, AdaptadorCnbvConDici):
+        marca.write_text(json.dumps({"fecha": date.today().isoformat(), "avisos": avisos}, ensure_ascii=False),
+                         encoding="utf-8")
+    return avisos
+
+
+def _bajar_documentos(operadora: str, ad, docs: list[DocARevisar], store: Store, cli: Cliente, log) -> list[str]:
     avisos: list[str] = []
     faltan: dict[str, list[str]] = {}
     hoy = date.today()
@@ -126,9 +142,6 @@ def descargar(operadora: str, store: Store, cli: Cliente, log=print) -> list[str
         if tipo == "dici":  # un prospecto faltante solo deja el régimen [POR CONFIRMAR]
             avisos.append(f"Sin DICI publicado ({len(claves)} de {sum(1 for d in docs if d.tipo == tipo)}): "
                           + ", ".join(sorted(claves)))
-    if isinstance(ad, AdaptadorCnbvConDici):
-        marca.write_text(json.dumps({"fecha": hoy.isoformat(), "avisos": avisos}, ensure_ascii=False),
-                         encoding="utf-8")
     return avisos
 
 
@@ -312,13 +325,31 @@ def _ingestar_r7(operadora: str, cve: str, store: Store, fechas: dict[tuple[int,
         if previo is not None and nombre and previo.nombre_comercial != nombre:
             nuevos.append(FondoDescubierto(c.fondo_clave, nombre, previo.estatus, {}, previo.nota))
         if c.fondo_clave not in universo:
-            nota = "Solo en CNBV: no aparece en el sitio de la operadora"
-            if previas and (pa := _posible_alias(c, previas)):
+            nota = ("En la CNBV y en la cartera de la operadora" if c.fondo_clave in previas
+                    else "Solo en CNBV: no aparece en el sitio de la operadora")
+            if previas and c.fondo_clave not in previas and (pa := _posible_alias(c, previas)):
                 nota += f" (¿alias de {pa[0]}? traslape {pa[1]:.0%}; ver config/alias_fondos.toml)"
                 log(f"  AVISO posible alias {c.fondo_clave} -> {pa[0]} ({pa[1]:.0%})")
             nuevos.append(FondoDescubierto(c.fondo_clave, nombre, ADMINISTRADO, {}, nota))
         _aplicar_activo_oficial(c, store)
         mismo_mes = store.mensual_del_mes(operadora, c.fondo_clave, c.fecha_corte)
+        if mismo_mes and store.cartera_sin_titulos(operadora, c.fondo_clave, mismo_mes):
+            # La cartera de la operadora no trae títulos (Kapital): fue el adelanto del mes; el R7
+            # (con títulos, mide rotación) la sustituye y ella queda como conciliación.
+            op = next(x for x in store.carteras(operadora, date.fromisoformat(mismo_mes))
+                      if x.fondo_clave == c.fondo_clave)
+            store.guardar_conciliacion(
+                operadora, c.fondo_clave, op.fecha_corte, "total de cartera",
+                ("Cartera de la operadora", op.total_cartera, op.procedencia.cita()),
+                ("CNBV R7 suma de posiciones", c.total_cartera, c.procedencia.cita()),
+            )
+            store.borrar_cartera(operadora, c.fondo_clave, mismo_mes)
+            mismo_mes = None
+            if c.activo_neto_estimado and not op.activo_neto_estimado:
+                c.activo_neto, c.activo_neto_estimado = op.activo_neto, False
+                c.notas.append(f"Activo neto publicado por la operadora en su cartera mensual "
+                               f"({op.procedencia.cita()}).")
+            log(f"  CNBV R7 {c.fondo_clave:8s} {c.fecha_corte} sustituye a la cartera de la operadora (sin títulos)")
         if mismo_mes:
             op = next(x for x in store.carteras(operadora, date.fromisoformat(mismo_mes)))
             store.guardar_conciliacion(
@@ -365,18 +396,22 @@ def parsear(operadora: str, store: Store, prm: Parametros, log=print) -> list[st
     for d in docs:
         if not d.tipo.startswith("cartera"):
             continue
+        if not (dir_datos() / d.archivo).exists():
+            avisos.append(f"Cartera {d.fondo_clave or '-'}: falta el archivo {d.archivo} (se conserva lo guardado)")
+            continue
         try:
-            c = ad.parsear_cartera(dir_datos() / d.archivo, d)
+            res = ad.parsear_cartera(dir_datos() / d.archivo, d)
         except ErrorParseo as e:
             raise ErrorParseo(f"{operadora}/{d.fondo_clave} {d.archivo}: {e}") from e
-        validar_cuadre(c, prm.tolerancia_cuadre)
-        clasificar_cartera(c, _referencia_r7(ad, operadora, c, store))
-        c.nombre_corto = nombres.get(c.fondo_clave, "") or c.nombre_corto
-        _aplicar_activo_oficial(c, store)
-        store.guardar_cartera(c)
-        if c.fondo_clave not in ultimas or c.fecha_corte > ultimas[c.fondo_clave].fecha_corte:
-            ultimas[c.fondo_clave] = c
-        log(f"  cartera {c.fondo_clave:8s} {c.fecha_corte} {len(c.posiciones):3d} posiciones  cuadra")
+        for c in (res if isinstance(res, list) else [res]):  # un PDF puede traer varios fondos
+            validar_cuadre(c, prm.tolerancia_cuadre)
+            clasificar_cartera(c, _referencia_r7(ad, operadora, c, store))
+            c.nombre_corto = nombres.get(c.fondo_clave, "") or c.nombre_corto
+            _aplicar_activo_oficial(c, store)
+            store.guardar_cartera(c)
+            if c.fondo_clave not in ultimas or c.fecha_corte > ultimas[c.fondo_clave].fecha_corte:
+                ultimas[c.fondo_clave] = c
+            log(f"  cartera {c.fondo_clave:8s} {c.fecha_corte} {len(c.posiciones):3d} posiciones  cuadra")
 
     confirmar = getattr(ad, "confirmar_universo", None)
     if confirmar:

@@ -55,6 +55,7 @@ jobs:
             data/raw/franklin
             data/raw/skandia
             data/raw/nafinsa
+            data/raw/kapital
             data/cache/pdf
             data/cache/revision_dici
           key: radar-datos-sin-coincidencia
@@ -80,6 +81,7 @@ jobs:
             data/raw/franklin
             data/raw/skandia
             data/raw/nafinsa
+            data/raw/kapital
             data/cache/pdf
             data/cache/revision_dici
           # Una entrada nueva solo cuando cambian las revisiones de DICI o el estado.

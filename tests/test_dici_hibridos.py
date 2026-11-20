@@ -138,3 +138,43 @@ def test_kapital_dici_con_clave_anterior_usa_la_de_la_cnbv():
     x = REGISTRO["kapital"].parsear_dici(f, doc(f, "kapital", "KPTLMPG", "dici"), None)
     assert x.fondo_clave == "KPTLMPG" and any("+TASAMX" in n for n in x.notas)
     assert (x.rv_min, x.rv_max) == (0.0, 0.0)  # fondo de deuda: sin RV por categoría
+
+
+def test_kapital_cartera_mensual_clave_por_marcadores_y_reportos_por_seccion():
+    from radar.adapters import formato_kapital
+    from radar.core.modelo import Categoria
+    from radar.core.validacion import validar_cuadre
+
+    f = D / "kapital_cartera_mensual_2026-09.pdf"
+    assert formato_kapital.claves_por_pagina(f) == {1: "+TASA", 2: "+TASAA1", 3: "+TASACP", 4: "+TASAPR",
+                                                    5: "KPTLGLO", 6: "KPTLMPG", 7: "KPTLUSD"}
+    cs = {c.fondo_clave: c for c in REGISTRO["kapital"].parsear_cartera(f, doc(f, "kapital", None, "cartera_mensual"))}
+    assert len(cs) == 7 and all(c.fecha_corte.isoformat() == "2026-09-30" for c in cs.values())
+    for c in cs.values():
+        validar_cuadre(c, 0.001)                       # cada fondo cuadra contra su TOTAL CARTERA
+        assert all(p.titulos is None for p in c.posiciones)
+    tasa = cs["+TASA"]
+    assert tasa.total_cartera == pytest.approx(4_908_063_185) and tasa.activo_neto == pytest.approx(4_902_223_233)
+    assert all(p.categoria is Categoria.REPORTO for p in tasa.posiciones)   # LF/IS bajo "Reportos"
+    usd = cs["KPTLUSD"]
+    assert {p.categoria for p in usd.posiciones} == {Categoria.ETF_EXTRANJERO, Categoria.DEUDA, Categoria.DEPOSITO}
+    assert cs["KPTLGLO"].tipo_fondo == "RV" and cs["+TASA"].tipo_fondo == "RF"
+
+
+def test_r7_sustituye_cartera_de_la_operadora_sin_titulos(tmp_path):
+    from datetime import date
+    from radar.core.modelo import RV_LOCAL, Cartera, Categoria, Posicion, Procedencia
+    from radar.store.db import Store
+
+    def cartera(tipo, titulos):
+        p = Posicion("1_AMX_*", "1", "AMX", "*", titulos, 100.0, None, "", "", "", Categoria.ACCION_LOCAL,
+                     Procedencia("x", "f.pdf", 1, date(2026, 9, 30)), emisora_canonica="AMX", clase=RV_LOCAL)
+        return Cartera("kapital", "F1", "", "", date(2026, 9, 30), tipo, 100.0, False, 100.0, [p],
+                       Procedencia("x", "f.pdf", 1, date(2026, 9, 30)))
+
+    s = Store(tmp_path / "r.sqlite")
+    s.guardar_cartera(cartera("cartera_mensual", None))
+    assert s.cartera_sin_titulos("kapital", "F1", "2026-09-30")
+    s.borrar_cartera("kapital", "F1", "2026-09-30")
+    assert s.guardar_cartera(cartera("cnbv_r7", 10.0))
+    assert not s.cartera_sin_titulos("kapital", "F1", "2026-09-30")

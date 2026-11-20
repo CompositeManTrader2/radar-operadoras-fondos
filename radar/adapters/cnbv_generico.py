@@ -96,6 +96,11 @@ class AdaptadorCnbvConDici(AdaptadorCnbv):
         """DICI y prospectos a bajar. `claves`: fondos de la operadora en el último R7."""
         raise NotImplementedError
 
+    def documentos_diarios(self, cliente: Cliente) -> list[DocARevisar]:
+        """Documentos que se revisan en cada corrida aunque los DICI estén al día (p. ej. la
+        cartera mensual de la operadora). Por omisión, ninguno."""
+        return []
+
     def bajar(self, cliente: Cliente, doc: DocARevisar) -> Respuesta | None:
         """Descarga especial (p. ej. una API que devuelve el PDF en base64). None: GET normal."""
         return None

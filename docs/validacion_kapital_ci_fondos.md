@@ -82,5 +82,6 @@ un documento de la operadora.
 - ~~Régimen de RV de Kapital [POR CONFIRMAR]~~ Resuelto el 2026-11-20: Kapital es operadora híbrida (DICI
   y prospecto de sus siete fondos desde su buscador en ibex.com.mx). KPTLGLO 50 %–100 %, +TASAA1 1 %–100 %,
   fondos de deuda 0 % por categoría. El DICI de la serie F1 de KPTLMPG y KPTLUSD es de jun-2026.
-- Kapital publica una cartera mensual de sus siete fondos (`CMINTERCAM.pdf`, corte 30-sep-2026) un mes antes
-  que la CNBV; integrarla requiere identificar cada página (no trae la clave del fondo).
+- ~~Cartera mensual de Kapital sin integrar~~ Resuelto el 2026-11-20: `CMINTERCAM.pdf` (los siete fondos; la
+  clave de cada página sale de los marcadores del PDF). Al 30-sep-2026 cuadra al peso contra el R7 de la CNBV
+  en los siete fondos. Sin títulos: es el corte adelantado del mes hasta que llega el R7, que la sustituye.
