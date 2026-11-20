@@ -1,9 +1,9 @@
-actinver	PENDIENTE	fetch	EtfsPendientes: actinver: 2 ETF sin clasificar en radar/core/datos/etfs.csv (51.3 mdp): ROBO (29.1 mdp), RSPD (22.2 mdp)	0 doc(s)
+actinver	OK	parse	ok	0 doc(s)
 afirme	OK	fetch	ok	0 doc(s)
 azimut	OK	fetch	ok	0 doc(s)
 banorte	OK	fetch	ok	0 doc(s)
 bbva	OK	fetch	ok	0 doc(s)
-blackrock	PENDIENTE	fetch	TipoValorDesconocido: Tipo de valor desconocido 'CHCA' (CNBV R7 IMPFOND/BLKSYSB 2026-09 fila 2137). Agrégalo a radar/core/tipos_valor.py.	72 doc(s), DICI al 2026-10-31
+blackrock	OK	parse	ok con 5 aviso(s): DICI BLK2030: falta el archivo raw/blackrock/2275974b6122_DICI_BLK2030.pdf (se conserva lo guardado) | DICI BLK2040: falta el archivo raw/blackrock/f14e4341effe_DICI_BLK2040.pdf (se conserva lo guardado) | DICI BLK2050: falta el archivo raw/blackrock/31518d2776f0_DICI_BLK2050.pdf 	72 doc(s), DICI al 2026-10-31
 btg	OK	fetch	ok	0 doc(s)
 cifondos	OK	fetch	ok	0 doc(s)
 compass	OK	fetch	ok	63 doc(s), DICI al 2026-10-31
