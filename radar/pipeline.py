@@ -213,6 +213,18 @@ def alias_fondos(operadora: str) -> dict[str, str]:
     return dict(tomllib.loads(ruta.read_text(encoding="utf-8")).get(operadora, {}))
 
 
+def nombres_fondos(operadora: str) -> dict[str, str]:
+    """Nombre comercial de fondos que solo llegan por la CNBV (config/nombres_fondos.toml)."""
+    import tomllib
+
+    from radar.config import RAIZ
+
+    ruta = RAIZ / "config" / "nombres_fondos.toml"
+    if not ruta.exists():
+        return {}
+    return dict(tomllib.loads(ruta.read_text(encoding="utf-8")).get(operadora, {}))
+
+
 def _aplicar_alias(c: Cartera, alias: dict[str, str]) -> Cartera:
     c.fondo_clave = alias.get(c.fondo_clave, c.fondo_clave)
     for p in c.posiciones:
@@ -279,6 +291,7 @@ def _ingestar_r7(operadora: str, cve: str, store: Store, fechas: dict[tuple[int,
     universo = {f.clave: f for f in store.universo(operadora)}
     nuevos: list[FondoDescubierto] = []
     alias = alias_fondos(operadora)
+    nombres = nombres_fondos(operadora)
     carteras_r7 = [_aplicar_alias(c, alias) for d in store.documentos(cnbv.OPERADORA, "cnbv_r7")
                    for c in cnbv.carteras_r7(_minfo(d), operadora, cve, d, fechas)]
     pendientes: dict[str, float] = {}
@@ -293,12 +306,17 @@ def _ingestar_r7(operadora: str, cve: str, store: Store, fechas: dict[tuple[int,
         if ref is not None:
             c.nombre_legal, c.categoria, c.nombre_corto, c.tipo_fondo = (
                 ref.nombre_legal, ref.categoria, ref.nombre_corto, ref.tipo_fondo)
+        nombre = nombres.get(c.fondo_clave, "")
+        c.nombre_corto = c.nombre_corto or nombre
+        previo = universo.get(c.fondo_clave)
+        if previo is not None and nombre and previo.nombre_comercial != nombre:
+            nuevos.append(FondoDescubierto(c.fondo_clave, nombre, previo.estatus, {}, previo.nota))
         if c.fondo_clave not in universo:
             nota = "Solo en CNBV: no aparece en el sitio de la operadora"
             if previas and (pa := _posible_alias(c, previas)):
                 nota += f" (¿alias de {pa[0]}? traslape {pa[1]:.0%}; ver config/alias_fondos.toml)"
                 log(f"  AVISO posible alias {c.fondo_clave} -> {pa[0]} ({pa[1]:.0%})")
-            nuevos.append(FondoDescubierto(c.fondo_clave, "", ADMINISTRADO, {}, nota))
+            nuevos.append(FondoDescubierto(c.fondo_clave, nombre, ADMINISTRADO, {}, nota))
         _aplicar_activo_oficial(c, store)
         mismo_mes = store.mensual_del_mes(operadora, c.fondo_clave, c.fecha_corte)
         if mismo_mes:

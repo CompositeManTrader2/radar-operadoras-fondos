@@ -70,9 +70,9 @@ casa_de_bolsa_hermana = false
 [cifondos]
 nombre = "CI Fondos"
 clave_cnbv = "CIFONDO"
-grupo = "Ex Grupo CIBanco [POR CONFIRMAR]"
+grupo = "CIBanco (en liquidación, IPAB)"
 casa_de_bolsa_hermana = false
-nota = "Su casa de bolsa ya no aparece en el padrón vigente."
+nota = """Subsidiaria de CIBanco, en liquidación por el IPAB (liquidador: Alvarez & Marsal). El liquidador subastó en mayo-junio de 2026 las acciones serie A de sus siete fondos (convocatoria del 21-may-2026 y adendum del 05-jun-2026, gob.mx): es una operadora en desinversión, con salidas fuertes en 2026 (+CIGUB de 1,439 mdp en enero a 115 mdp en agosto). No es Kapital: Kapital compró Intercam Fondos (KPTL)."""
 
 # ---------------------------------------------------------------- con casa de bolsa hermana
 [actinver]
@@ -130,6 +130,7 @@ clave_cnbv = "OPKPTL"
 grupo = "Kapital México Grupo Financiero"
 casa_de_bolsa_hermana = true
 casa_de_bolsa = "Kapital México Casa de Bolsa"
+nota = """Antes Intercam Fondos (Kapital la adquirió el 29-ago-2025). Kapital México Casa de Bolsa (99.997 %) y la operadora (99.9992 %) son del mismo grupo (Estructura del Grupo Financiero, kapital.com). En la CNBV, KPTLUSD = +TasaUS, KPTLGLO = +TasaD1 (Fondo Dinámico) y KPTLMPG = +TasaMX."""
 
 [value]
 nombre = "Value Operadora"

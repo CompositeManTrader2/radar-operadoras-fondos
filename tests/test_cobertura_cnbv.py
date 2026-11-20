@@ -113,3 +113,20 @@ def test_hibrido_detecta_casa_de_bolsa_hermana_en_el_dici():
     assert limpio.casa_de_bolsa_hermana is False and "Actinver" in limpio.evidencia_casa_de_bolsa
     sucio = a.perfil([dici(["Casa de Bolsa Ejemplo, S.A. de C.V."])])
     assert sucio.casa_de_bolsa_hermana is True and "DISCREPANCIA" in sucio.evidencia_casa_de_bolsa
+
+
+def test_nombres_de_fondos_solo_cnbv():
+    from radar.pipeline import nombres_fondos
+
+    k = nombres_fondos("kapital")
+    assert k["KPTLUSD"].startswith("+Tasa US") and k["KPTLGLO"].startswith("Kapital México Fondo Dinámico")
+    assert nombres_fondos("cifondos")["+CIGUB"] == "CI Gubernamental"
+    assert nombres_fondos("no-existe") == {}
+
+
+def test_contexto_corporativo_kapital_y_ci_fondos():
+    from radar.adapters.cnbv_generico import cargar_config
+
+    cfg = {c.clave: c for c in cargar_config()}
+    assert cfg["kapital"].casa_de_bolsa_hermana is True and "Intercam" in cfg["kapital"].nota
+    assert "liquidación" in cfg["cifondos"].grupo and "No es Kapital" in cfg["cifondos"].nota

@@ -1,0 +1,22 @@
+# Nombre comercial de fondos que solo llegan por la CNBV (el R7 no trae nombre). Solo se agregan
+# nombres confirmados en un documento oficial; la fuente va en el comentario.
+
+[kapital]
+# Estados financieros al 30-jun-2026 y prospectos de KPTL México Operadora (antes Intercam Fondos).
+"+TASA" = "+Tasa"
+"+TASAPR" = "+Tasa Previsional"
+"+TASACP" = "+Tasa Largo Plazo"
+"+TASAA1" = "+Tasa Activo"
+KPTLGLO = "Kapital México Fondo Dinámico (antes +TASAD1)"
+KPTLMPG = "+Tasa MX (antes +TASAMX)"
+KPTLUSD = "+Tasa US (antes +TASAUS)"
+
+[cifondos]
+# Convocatoria de subasta de CIBanco en liquidación (gob.mx, 21-may-2026 y adendum 05-jun-2026).
+"+CIGUB" = "CI Gubernamental"
+"+CIUSD" = "CI Institucional"
+"+CIPLUS" = "CI Rendimiento"
+"+CIGUMP" = "CIGUBMP"
+CIEQU30 = "CI Fondo30"
+"+CIBOLS" = "CI Crecimiento"
+"+CIEQUS" = "CI Fondo"
