@@ -37,6 +37,7 @@ TV: dict[str, Categoria] = {
     "CHE": Categoria.DEPOSITO,        # cuenta de cheques en euros
     "CHL": Categoria.DEPOSITO,        # cuenta de cheques en libras
     "CHDK": Categoria.DEPOSITO,       # cuenta de cheques en corona danesa
+    "CHCA": Categoria.DEPOSITO,       # cuenta de cheques en dólares canadienses (CNBV R7, sep-2026)
     "AIM": Categoria.DEPOSITO,        # aportaciones iniciales mínimas (garantía en efectivo, MexDer)
     "EAIM": Categoria.DEPOSITO,       # aportaciones extraordinarias (garantía en efectivo)
     "1S": Categoria.ACCION_LOCAL,     # SAPIB listadas en BMV

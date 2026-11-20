@@ -1,6 +1,6 @@
 # Diccionario versionado de ETFs. Un ETF NO es renta variable por ser ETF:
 # se clasifica por SUBYACENTE. El parser FALLA ante un ETF que no esté aquí.
-# version: 2026-11-10.3
+# version: 2026-11-20.1
 # subyacente: RV | DEUDA | MATERIA_PRIMA
 # MATERIA_PRIMA (oro, plata, petróleo, canastas de commodities) no es RV ni deuda; como las cinco
 # clases no tienen cubeta de materias primas se cuenta en RV_ETF y se marca (e).
@@ -560,3 +560,8 @@ ERUS,RV,iShares MSCI Russia ETF (in liquidation since 2022),https://www.ishares.
 IXN,RV,iShares Global Tech ETF,https://www.ishares.com/us/products/239750/,media
 GMF,RV,SPDR S&P Emerging Asia Pacific ETF,https://www.ssga.com/us/en/intermediary/etfs/spdr-sp-emerging-asia-pacific-etf-gmf,media
 COMT,MATERIA_PRIMA,iShares GSCI Commodity Dynamic Roll Strategy ETF,https://www.ishares.com/us/products/271479/,media
+ROBO,RV,ROBO Global Robotics and Automation Index ETF (Exchange Traded Concepts),https://www.roboglobaletfs.com/robo,alta
+RSPD,RV,Invesco S&P 500 Equal Weight Consumer Discretionary ETF,https://www.invesco.com/us/financial-products/etfs/product-detail?audienceType=Investor&ticker=RSPD,alta
+ITA,RV,iShares U.S. Aerospace & Defense ETF,https://www.ishares.com/us/products/239502/,alta
+EWK,RV,iShares MSCI Belgium ETF,https://www.ishares.com/us/products/239650/,alta
+CITY,RV,iShares Smart City Infrastructure UCITS ETF (inferido del ticker y del fondo temático BLKMEGA; verificar),https://www.ishares.com/uk/individual/en/products/305245/,media
