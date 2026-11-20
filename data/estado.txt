@@ -6,7 +6,7 @@ bbva	OK	parse	ok	0 doc(s)
 blackrock	OK	parse	ok con 5 aviso(s): DICI BLK2030: falta el archivo raw/blackrock/2275974b6122_DICI_BLK2030.pdf (se conserva lo guardado) | DICI BLK2040: falta el archivo raw/blackrock/f14e4341effe_DICI_BLK2040.pdf (se conserva lo guardado) | DICI BLK2050: falta el archivo raw/blackrock/31518d2776f0_DICI_BLK2050.pdf 	72 doc(s), DICI al 2026-10-31
 btg	OK	parse	ok	0 doc(s)
 cifondos	OK	parse	ok	0 doc(s)
-compass	OK	parse	ok	63 doc(s), DICI al 2026-10-31
+compass	OK	fetch	ok	63 doc(s), DICI al 2026-10-31
 finaccess	OK	parse	ok	60 doc(s), DICI al 2026-10-31
 finamex	OK	parse	ok	0 doc(s)
 franklin	OK	parse	ok	21 doc(s), DICI al 2026-10-30

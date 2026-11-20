@@ -97,3 +97,24 @@ def test_descubrimiento_pagina_de_fondo():
     assert [f.clave for f in fondos] == ["COLRVL"]
     assert {d.tipo for d in docs} == {"cartera_mensual", "dici", "prospecto", "prospecto_generico"}
     assert all(not d.nombre_archivo.startswith("X Montos") for d in docs)
+
+
+def test_pagina_que_enlaza_la_cartera_de_otro_fondo():
+    """Nov-2026: la página de I+CORP enlazaba la cartera de AMVALOR. La clave sale del DICI y esa
+    cartera se descarta; el DICI y el prospecto quedan en I+CORP."""
+    html = (DIR / "fondo_colrvl.html").read_text(encoding="utf-8")
+    html = html.replace("COMPASSCOLRVLPublicaciones20260930.pdf", "COMPASSAMVALORPublicaciones20261030.pdf")
+    html = html.replace("DICI_COLRVL_", "DICI_I+CORP_")
+    fondos, docs = A.descubrir_desde_html({"icorp": html})
+    assert [f.clave for f in fondos] == ["I+CORP"]
+    assert "AMVALOR" in fondos[0].nota
+    assert "cartera_mensual" not in {d.tipo for d in docs}
+    assert {d.fondo_clave for d in docs if d.tipo in ("dici", "prospecto")} == {"I+CORP"}
+
+
+def test_prospecto_que_nombra_al_fondo_manda():
+    from radar.pipeline import _nombra_fondo
+
+    assert _nombra_fondo("2603e8931860_Prospecto_7_AMVALOR_-_Act_Sept_2026.pdf", "AMVALOR")
+    assert not _nombra_fondo("f54feaece6ad_Prospecto_9_I+CORP_-_Act_Marzo_2026.pdf", "AMVALOR")
+    assert _nombra_fondo("x_Prospecto_17_BX+USD.pdf", "BX+USD")

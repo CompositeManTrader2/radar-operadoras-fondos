@@ -119,8 +119,15 @@ class Compass(Adaptador):
                 fondos.append(FondoDescubierto(slug.upper(), "", NO_DISPONIBLE, urls,
                                                "Página del fondo sin cartera mensual publicada"))
                 continue
-            clave = m.group("clave")
-            fondos.append(FondoDescubierto(clave, "", ADMINISTRADO, urls))
+            # La clave sale del DICI de la página: el sitio a veces enlaza la cartera de OTRO fondo
+            # (nov-2026: la página de I+CORP traía la de AMVALOR y la de I+USD la de BX+USD). Esa
+            # cartera se descarta aquí; el fondo conserva su última cartera propia.
+            md = RE_DICI.search(_nombre(urls["dici"])) if "dici" in urls else None
+            clave, nota = (md.group("clave") if md else m.group("clave")), ""
+            if m.group("clave") != clave:
+                nota = (f"La página del fondo enlaza la cartera de {m.group('clave')} "
+                        f"({_nombre(urls.pop('cartera_mensual'))}); se descarta")
+            fondos.append(FondoDescubierto(clave, "", ADMINISTRADO, urls, nota))
             docs.extend(DocARevisar(clave, t, u, _nombre(u)) for t, u in sorted(urls.items()))
         for u in sorted(genericos)[:1]:
             docs.append(DocARevisar(None, "prospecto_generico", u, _nombre(u)))

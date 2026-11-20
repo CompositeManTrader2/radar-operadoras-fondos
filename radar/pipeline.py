@@ -379,6 +379,10 @@ def _referencia_r7(ad, operadora: str, c: Cartera, store: Store) -> Cartera | No
     return mejor
 
 
+def _nombra_fondo(archivo: str, clave: str | None) -> bool:
+    return bool(clave) and re.sub(r"[^A-Z0-9]", "", clave.upper()) in re.sub(r"[^A-Z0-9]", "", archivo.upper())
+
+
 def _ultimo(docs: list[Documento]) -> Documento | None:
     return max(docs, key=lambda d: (d.fecha_doc or date.min, d.descargado, d.doc_id)) if docs else None
 
@@ -426,7 +430,11 @@ def parsear(operadora: str, store: Store, prm: Parametros, log=print) -> list[st
     for d in docs:
         if d.tipo != "dici":
             continue
-        p = _ultimo([x for x in docs if x.tipo == "prospecto" and x.fondo_clave == d.fondo_clave])
+        candidatos = [x for x in docs if x.tipo == "prospecto" and x.fondo_clave == d.fondo_clave]
+        # Si alguno nombra al fondo en el archivo, manda (evita tomar el prospecto de otro fondo
+        # que el sitio enlazó por error en la página de éste).
+        propios = [x for x in candidatos if _nombra_fondo(Path(x.archivo).name, d.fondo_clave)]
+        p = _ultimo(propios or candidatos)
         if p is not None and not (dir_datos() / p.archivo).exists():
             p = None
         if not (dir_datos() / d.archivo).exists():
