@@ -15,7 +15,7 @@ def _dici(op, nombre):
     return REGISTRO[op].parsear_dici(D / nombre, doc(D / nombre, op, None, "dici"), None)
 
 
-@pytest.mark.parametrize("op", ["blackrock", "sura", "principal", "franklin", "skandia", "nafinsa"])
+@pytest.mark.parametrize("op", ["blackrock", "sura", "principal", "franklin", "skandia", "nafinsa", "kapital"])
 def test_registradas_como_hibridas(op):
     assert isinstance(REGISTRO[op], AdaptadorCnbvConDici)
 
@@ -78,9 +78,12 @@ def test_fondo_de_deuda_no_hereda_rv_de_acciones_de_fondos():
     from radar.adapters.formato_dici import rv_coherente
 
     notas = []
-    assert rv_coherente("Largo Plazo General (IDLP)", 0.9, 1.0, notas) == (None, None) and "fondo de deuda" in notas[0]
+    assert rv_coherente("Largo Plazo General (IDLP)", 0.9, 1.0, notas) == (0.0, 0.0) and "fondo de deuda" in notas[0]
     assert rv_coherente("Discrecional (RVDIS)", 0.0, 1.0, []) == (0.0, 1.0)
     assert rv_coherente("Corto Plazo IDCP", 0.0, 0.0, []) == (0.0, 0.0)
+    notas = ["Régimen: no se encontró la tabla de parámetros en el prospecto [POR CONFIRMAR]"]
+    assert rv_coherente("GUBERNAMENTAL (IDCPGUB)", None, None, notas) == (0.0, 0.0)
+    assert notas == ["Régimen: fondo de deuda (GUBERNAMENTAL (IDCPGUB)), sin renta variable por categoría"]
 
 
 def test_nafinsa_indice_y_ficha():
@@ -102,3 +105,36 @@ def test_nafinsa_dici_sin_nombre_de_serie_en_comisiones():
     assert s["PF1"].comision_administracion == pytest.approx(0.002365) and s["PF1"].costo_total == pytest.approx(0.00252)
     assert x.distribuidoras == ["Operadora de Fondos Nafinsa, S.A. de C.V., Sociedad Operadora de Fondos de Inversión"]
     assert REGISTRO["nafinsa"].perfil([x]).casa_de_bolsa_hermana is False
+
+
+def test_kapital_buscador_de_fondos():
+    from radar.adapters.dici.kapital import serie_representativa, series_por_fondo, url_archivo
+
+    html = ('<option value="0"> SELECCIONA FONDO </option><option value="275">+TASA F1</option>'
+            '<option value="280">+TASA F2</option><option value="1049">+TASA AHO1</option>'
+            '<option value="900">KPTLGLO M1</option>')
+    f = series_por_fondo(html)
+    assert set(f) == {"+TASA", "KPTLGLO"}
+    assert serie_representativa(f["+TASA"]) == ("F1", "275") and serie_representativa(f["KPTLGLO"]) == ("M1", "900")
+    assert url_archivo("/Fondos/Documentos/DocumentoTASAD1F1.pdf").endswith(
+        "a.php?archivo=%2FFondos%2FDocumentos%2FDocumentoTASAD1F1.pdf")
+
+
+def test_kapital_dici_clave_con_etiqueta_y_regimen_min_max():
+    """Kapital: 'Clave de Pizarra: KPTLGLO' en la misma línea; tabla de régimen con 'MIN MÁX'."""
+    pros = D / "KPTLGLO_prospecto.pdf"
+    x = REGISTRO["kapital"].parsear_dici(D / "KPTLGLO_dici.pdf", doc(D / "KPTLGLO_dici.pdf", "kapital", "KPTLGLO", "dici"),
+                                         (pros, doc(pros, "kapital", "KPTLGLO", "prospecto")))
+    assert x.fondo_clave == "KPTLGLO" and x.categoria_regulatoria == "DISCRECIONAL (RVDIS)"
+    assert x.fecha_doc.isoformat() == "2026-10-31" and (x.rv_min, x.rv_max) == (0.5, 1.0)
+    s = x.series[0]
+    assert s.serie == "F1" and s.comision_administracion == pytest.approx(0.007) and s.costo_total == pytest.approx(0.038)
+    p = REGISTRO["kapital"].perfil([x])
+    assert p.casa_de_bolsa_hermana is True and "Kapital México Casa de Bolsa" in p.evidencia_casa_de_bolsa
+
+
+def test_kapital_dici_con_clave_anterior_usa_la_de_la_cnbv():
+    f = D / "KPTLMPG_dici_clave_anterior.pdf"
+    x = REGISTRO["kapital"].parsear_dici(f, doc(f, "kapital", "KPTLMPG", "dici"), None)
+    assert x.fondo_clave == "KPTLMPG" and any("+TASAMX" in n for n in x.notas)
+    assert (x.rv_min, x.rv_max) == (0.0, 0.0)  # fondo de deuda: sin RV por categoría

@@ -151,3 +151,32 @@ class Cliente:
                     break
                 time.sleep(2**intento)
         raise ErrorDescarga(f"No se pudo consultar {url}: {ultimo_error}")
+
+    def post_form(self, url: str, datos: dict, encabezados: dict | None = None) -> str:
+        """POST de formulario (application/x-www-form-urlencoded) con respuesta de texto: el
+        servicio que la página pública de fondos usa al cargar. Caché del día y reintentos."""
+        cuerpo_req = json.dumps(datos, sort_keys=True, ensure_ascii=False)
+        cuerpo, meta = self._rutas("FORM " + url + "\n" + cuerpo_req)
+        hoy = date.today().isoformat()
+        if not self.refrescar and cuerpo.exists() and meta.exists():
+            if json.loads(meta.read_text(encoding="utf-8")).get("fecha") == hoy:
+                return cuerpo.read_bytes().decode("utf-8", errors="replace")
+        ultimo_error: Exception | None = None
+        for intento in range(self.reintentos):
+            espera = self.intervalo - (time.monotonic() - self._ultimo)
+            if espera > 0:
+                time.sleep(espera)
+            try:
+                r = self._sesion.post(url, data=datos, headers=encabezados or {}, timeout=self.timeout)
+                self._ultimo = time.monotonic()
+                if r.status_code != 200:
+                    raise ErrorDescarga(f"HTTP {r.status_code} en {url}")
+                cuerpo.write_bytes(r.content)
+                meta.write_text(json.dumps({"url": url, "fecha": hoy, "status": 200}, ensure_ascii=False),
+                                encoding="utf-8")
+                return r.content.decode("utf-8", errors="replace")
+            except (requests.RequestException, ErrorDescarga) as e:
+                self._ultimo = time.monotonic()
+                ultimo_error = e
+                time.sleep(2**intento)
+        raise ErrorDescarga(f"No se pudo consultar {url}: {ultimo_error}")

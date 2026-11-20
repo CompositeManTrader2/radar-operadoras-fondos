@@ -61,13 +61,17 @@ def parsear(ruta: Path, doc: Documento, prospecto: tuple[Path, Documento] | None
     notas: list[str] = []
     for i, pg in enumerate(paginas):
         filas = pg.filas()
-        if not any("Clave de pizarra" in f.texto for f in filas):
+        if not any("clave de pizarra" in norm(f.texto) for f in filas):
             continue
         for f in filas:
-            if f.texto.startswith("Clave de pizarra"):
-                clave = clave or f.texto_entre(120, 320).strip()
+            if norm(f.texto).startswith("clave de pizarra"):
+                # Valor en su columna (x >= 120) o, en Kapital, pegado a la etiqueta "Clave de Pizarra:".
+                valor = f.texto_entre(120, 320).strip() or _tras_etiqueta(f.texto_entre(0, 320), "pizarra")
+                clave = clave or valor
             if not categoria and f.texto.startswith("Categor"):
                 categoria = f.texto_entre(120, 320).strip()
+                if categoria.startswith("(") or not categoria:
+                    categoria = _tras_etiqueta(f.texto_entre(0, 320), "categor") or categoria
                 if not categoria:  # BlackRock: el valor va en el renglón siguiente
                     sig_f = next((g for g in filas if 0 < g.top - f.top < 12), None)
                     categoria = sig_f.texto_entre(120, 320).strip() if sig_f else ""
@@ -116,14 +120,25 @@ def parsear(ruta: Path, doc: Documento, prospecto: tuple[Path, Documento] | None
     )
 
 
+def _tras_etiqueta(texto: str, etiqueta: str) -> str:
+    """'Clave de Pizarra: KPTLGLO' -> 'KPTLGLO'; 'Categoría: DISCRECIONAL (RVDIS)' -> 'DISCRECIONAL (RVDIS)'."""
+    partes = texto.split(":", 1)
+    return partes[1].strip() if len(partes) == 2 and etiqueta in norm(partes[0]) else ""
+
+
 def rv_coherente(categoria: str, rv_min, rv_max, notas: list[str]):
-    """Un fondo de deuda (IDCP, IDLP...) no puede tener RV: si se leyó, el renglón habla de
-    acciones de fondos (p. ej. TEMGBIA, alimentador de un fondo de bonos extranjero)."""
-    if rv_max and re.search(r"\bID[A-Z]{2,}", categoria):
+    """Un fondo de deuda (IDCP, IDLP...) no puede invertir en renta variable: su máximo es 0 %.
+    Si se leyó RV, el renglón habla de acciones de fondos (p. ej. TEMGBIA, alimentador de un
+    fondo de bonos extranjero); si no se encontró la tabla, la categoría basta."""
+    if not re.search(r"\bID[A-Z]{2,}", categoria):
+        return rv_min, rv_max
+    if rv_max:
         notas.append(f"Régimen: se leyó RV hasta {rv_max:.0%} en un fondo de deuda ({categoria}); "
-                     "se descarta [POR CONFIRMAR]")
-        return None, None
-    return rv_min, rv_max
+                     "se toma 0 % por categoría")
+    elif rv_max is None:
+        notas[:] = [n for n in notas if not n.startswith("Régimen")]
+        notas.append(f"Régimen: fondo de deuda ({categoria}), sin renta variable por categoría")
+    return 0.0, 0.0
 
 
 def _indice_en_politica(filas: list[Fila]) -> str:

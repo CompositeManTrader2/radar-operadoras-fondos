@@ -87,8 +87,8 @@ def _es_encabezado_regimen(f: Fila) -> bool:
     palabras = [sin_acentos(p.texto).upper().strip(".:") for p in f.palabras]
     return (
         len(palabras) <= 12
-        and any(w in ("MINIMO", "MINIMOS") for w in palabras)
-        and any(w in ("MAXIMO", "MAXIMOS") for w in palabras)
+        and any(w in ("MINIMO", "MINIMOS", "MIN") for w in palabras)
+        and any(w in ("MAXIMO", "MAXIMOS", "MAX") for w in palabras)
         and not any(es_pct(p.texto) for p in f.palabras)
     )
 
@@ -124,7 +124,7 @@ def _regimen_por_inciso(region, hdr: Fila, x_min: float) -> list[tuple[str, floa
     # uno propio (arriba, abajo o a media etiqueta); el mínimo en blanco o "--" es 0 %.
     # Columna (mínimo / máximo) por la X respecto del encabezado. Una tabla con más
     # de dos cifras por renglón (LifePath: una columna por año) no se puede leer.
-    x_max = next(p.x0 for p in hdr.palabras if "MAXIMO" in sin_acentos(p.texto).upper())
+    x_max = next(p.x0 for p in hdr.palabras if sin_acentos(p.texto).upper().strip(".:").startswith("MAX"))
     corte = (x_min + x_max) / 2
     textos: dict[int, list[str]] = {i: [] for i in range(len(literales))}
     cifras: dict[int, list[Palabra]] = {i: [] for i in range(len(literales))}
@@ -174,7 +174,7 @@ def regimen_desde_tabla(paginas, max_paginas: int = 40) -> tuple[float | None, f
         sig = next(it, None)
         if sig is not None:
             filas = filas + [Fila(f.pagina, f.top + 10_000, f.palabras) for f in sig.filas()]
-        x_min = next(p.x0 for p in hdr.palabras if "MINIMO" in sin_acentos(p.texto).upper())
+        x_min = next(p.x0 for p in hdr.palabras if sin_acentos(p.texto).upper().strip(".:").startswith("MIN"))
         # Región de la tabla: desde el encabezado hasta 5 renglones sin valores
         # seguidos o el renglón del VaR.
         region: list[tuple[Fila, list[str], list[str]]] = []
@@ -285,7 +285,10 @@ def serie_portada(filas: list[Fila]) -> tuple[str, str, str]:
         raise ErrorParseo("DICI: no se encontró el bloque Clase y Serie")
     x_clase = next(p.x0 for p in hdr.palabras if p.texto == "Clase")
     x_pos = next(p.x0 for p in pos.palabras if p.texto == "Posibles")
-    x_mon = next(p.x0 for p in hdr.palabras if p.texto == "Montos")
+    # "Montos mínimos" puede ir uno o dos renglones arriba del encabezado (Kapital).
+    x_mon = next((p.x0 for g in filas if abs(g.top - hdr.top) <= 12 for p in g.palabras if p.texto == "Montos"), None)
+    if x_mon is None:
+        raise ErrorParseo("DICI: no se encontró la columna de montos mínimos")
     serie = ""
     adq_l: list[str] = []
     minimo: list[str] = []

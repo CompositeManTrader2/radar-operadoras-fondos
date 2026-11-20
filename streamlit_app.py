@@ -726,7 +726,7 @@ def pagina_metodologia():
         st.markdown(
             "- **CNBV:** R7 (cartera mensual de todos los fondos) y R1 (activo neto), con ~45 días de rezago.\n"
             "- **Operadoras con documentos propios:** carteras de Finaccess, Multiva y Vinci Compass; DICI y "
-            "prospectos de BlackRock, SURA, Principal, Franklin Templeton, Skandia y Nafinsa.\n"
+            "prospectos de BlackRock, SURA, Principal, Franklin Templeton, Skandia, Nafinsa y Kapital.\n"
             "- **Actualización:** automática en los servidores de GitHub, lunes a viernes a las 07:17 y 15:17 "
             "(CDMX). Solo se publica una versión nueva cuando llega un documento nuevo.\n"
             "- **Supuestos (e):** comisiones, captura, probabilidad de alta y fricción en config/parametros.toml.")
