@@ -18,7 +18,7 @@ kapital	OK	fetch	ok	15 doc(s), DICI al 2026-10-31
 mifel	OK	fetch	ok	0 doc(s)
 monex	OK	fetch	ok	0 doc(s)
 multiva	OK	fetch	ok	35 doc(s), DICI al 2026-10-31
-nafinsa	OK	fetch	ok con 14 aviso(s): Sin DICI publicado (13 de 13): BONDDIA, ENERFIN, NAF-ESG, NAF-USD, NAFCDVI, NAFCGUB, NAFFP28, NAFG-LP, NAFGUBD, NAFINDX, NAFINTR, NAFM-EX, NAFMEX7 | DICI BONDDIA: falta el archivo raw/nafinsa/c6c00a9f1c54_DICI_BONDDIA.pdf (se conserva lo guardado) | DICI ENERFIN: falta el archivo	28 doc(s), DICI al 2026-10-30
+nafinsa	OK	fetch	ok	28 doc(s), DICI al 2026-10-30
 principal	OK	fetch	ok con 1 aviso(s): Sin DICI publicado (1 de 21): MEXEQTY	46 doc(s), DICI al 2026-10-30
 punto	OK	fetch	ok	0 doc(s)
 santander	OK	fetch	ok	0 doc(s)
