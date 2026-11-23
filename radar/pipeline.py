@@ -136,7 +136,7 @@ def _bajar_documentos(operadora: str, ad, docs: list[DocARevisar], store: Store,
             avisos.append(f"{d.fondo_clave} {d.tipo}: fecha ilegible ({e})")
             fecha = None
         store.guardar_documento(Documento(sha, operadora, d.fondo_clave, d.tipo, d.url, rel.as_posix(),
-                                          fecha, hoy, len(r.contenido)))
+                                          fecha, hoy, len(r.contenido), r.modificado))
         log(f"  {d.fondo_clave or '-':8s} {d.tipo:18s} {fecha or 's/f'}  {d.nombre_archivo}")
     for tipo, claves in sorted(faltan.items()):
         if tipo == "dici":  # un prospecto faltante solo deja el régimen [POR CONFIRMAR]
@@ -195,7 +195,7 @@ def descargar_cnbv(store: Store, cli: Cliente, log=print) -> list[str]:
             avisos.append(f"CNBV {nombre}: solo trae {n_ops} operadora(s) (archivo parcial); "
                           "las demás no tienen corte para ese periodo")
         store.guardar_documento(Documento(sha, cnbv.OPERADORA, None, tipo, url, rel.as_posix(), fecha, hoy,
-                                          len(r.contenido)))
+                                          len(r.contenido), r.modificado))
         log(f"  CNBV     {tipo:18s} {fecha or 's/f'}  {nombre}")
     return avisos
 

@@ -6,7 +6,8 @@ import hashlib
 import json
 import time
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, timedelta, timezone
+from email.utils import parsedate_to_datetime
 from pathlib import Path
 
 import requests
@@ -36,6 +37,20 @@ class ErrorDescarga(RuntimeError):
     pass
 
 
+#: Ciudad de México: UTC-6 todo el año (sin horario de verano desde 2022).
+CDMX = timezone(timedelta(hours=-6))
+
+
+def fecha_modificado(encabezado: str | None) -> date | None:
+    """'Thu, 12 Nov 2026 18:05:19 GMT' -> date(2026, 11, 12) en hora de la Ciudad de México."""
+    if not encabezado:
+        return None
+    try:
+        return parsedate_to_datetime(encabezado).astimezone(CDMX).date()
+    except (TypeError, ValueError, IndexError):
+        return None
+
+
 @dataclass(frozen=True)
 class Respuesta:
     url: str
@@ -43,6 +58,8 @@ class Respuesta:
     content_type: str
     contenido: bytes
     desde_cache: bool
+    #: Fecha en que la fuente registró el archivo (encabezado Last-Modified), si la envía.
+    modificado: date | None = None
 
     @property
     def texto(self) -> str:
@@ -89,7 +106,8 @@ class Cliente:
         if not self.refrescar and cuerpo.exists() and meta.exists():
             m = json.loads(meta.read_text(encoding="utf-8"))
             if m.get("fecha") == hoy:
-                return Respuesta(url, m["status"], m["content_type"], cuerpo.read_bytes(), True)
+                mod = date.fromisoformat(m["modificado"]) if m.get("modificado") else None
+                return Respuesta(url, m["status"], m["content_type"], cuerpo.read_bytes(), True, mod)
 
         ultimo_error: Exception | None = None
         for intento in range(self.reintentos):
@@ -101,12 +119,14 @@ class Cliente:
                 self._ultimo = time.monotonic()
                 if r.status_code in (429, 500, 502, 503, 504):
                     raise ErrorDescarga(f"HTTP {r.status_code}")
-                resp = Respuesta(url, r.status_code, r.headers.get("Content-Type", ""), r.content, False)
+                resp = Respuesta(url, r.status_code, r.headers.get("Content-Type", ""), r.content, False,
+                                 fecha_modificado(r.headers.get("Last-Modified")))
                 if r.status_code == 200:
                     cuerpo.write_bytes(r.content)
                     meta.write_text(
                         json.dumps(
-                            {"url": url, "fecha": hoy, "status": r.status_code, "content_type": resp.content_type},
+                            {"url": url, "fecha": hoy, "status": r.status_code, "content_type": resp.content_type,
+                             "modificado": resp.modificado.isoformat() if resp.modificado else None},
                             ensure_ascii=False,
                         ),
                         encoding="utf-8",

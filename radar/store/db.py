@@ -54,11 +54,21 @@ def _d(s: str | None) -> date | None:
     return date.fromisoformat(s) if s else None
 
 
+_COLS_DOC = "doc_id, operadora, fondo_clave, tipo, url, archivo, fecha_doc, descargado, bytes, publicado"
+
+
+def _documento(r) -> Documento:
+    return Documento(r[0], r[1], r[2], r[3], r[4], r[5], _d(r[6]), date.fromisoformat(r[7]), r[8], _d(r[9]))
+
+
 class Store:
     def __init__(self, ruta: Path) -> None:
         ruta.parent.mkdir(parents=True, exist_ok=True)
         self.cx = sqlite3.connect(ruta)
         self.cx.executescript(ESQUEMA)
+        if "publicado" not in {r[1] for r in self.cx.execute("PRAGMA table_info(documentos)")}:
+            self.cx.execute("ALTER TABLE documentos ADD COLUMN publicado TEXT")
+            self.cx.commit()
 
     def cerrar(self) -> None:
         self.cx.commit()
@@ -66,24 +76,33 @@ class Store:
 
     # -------------------------------------------------------------- documentos
     def guardar_documento(self, d: Documento) -> None:
+        """Alta o actualización por sha256. La fecha de registro (descargado) es la PRIMERA vez que
+        se vio el archivo: volver a bajarlo idéntico no la mueve."""
         self.cx.execute(
-            "INSERT OR REPLACE INTO documentos VALUES (?,?,?,?,?,?,?,?,?)",
+            "INSERT INTO documentos (doc_id, operadora, fondo_clave, tipo, url, archivo, fecha_doc, descargado, "
+            "bytes, publicado) VALUES (?,?,?,?,?,?,?,?,?,?) ON CONFLICT(doc_id) DO UPDATE SET "
+            "operadora=excluded.operadora, fondo_clave=excluded.fondo_clave, tipo=excluded.tipo, url=excluded.url, "
+            "archivo=excluded.archivo, fecha_doc=excluded.fecha_doc, bytes=excluded.bytes, "
+            "descargado=min(documentos.descargado, excluded.descargado), "
+            "publicado=coalesce(documentos.publicado, excluded.publicado)",
             (d.doc_id, d.operadora, d.fondo_clave, d.tipo, d.url, d.archivo,
-             d.fecha_doc.isoformat() if d.fecha_doc else None, d.descargado.isoformat(), d.bytes),
+             d.fecha_doc.isoformat() if d.fecha_doc else None, d.descargado.isoformat(), d.bytes,
+             d.publicado.isoformat() if d.publicado else None),
         )
         self.cx.commit()
 
+    def documento(self, doc_id: str) -> Documento | None:
+        r = self.cx.execute(f"SELECT {_COLS_DOC} FROM documentos WHERE doc_id=?", (doc_id,)).fetchone()
+        return _documento(r) if r else None
+
     def documentos(self, operadora: str, tipo: str | None = None) -> list[Documento]:
-        q = "SELECT * FROM documentos WHERE operadora=?"
+        q = f"SELECT {_COLS_DOC} FROM documentos WHERE operadora=?"
         args: list = [operadora]
         if tipo:
             q += " AND tipo=?"
             args.append(tipo)
         q += " ORDER BY fondo_clave, tipo, fecha_doc, descargado, doc_id"
-        return [
-            Documento(r[0], r[1], r[2], r[3], r[4], r[5], _d(r[6]), date.fromisoformat(r[7]), r[8])
-            for r in self.cx.execute(q, args)
-        ]
+        return [_documento(r) for r in self.cx.execute(q, args)]
 
     # ---------------------------------------------------------------- universo
     def guardar_universo(self, operadora: str, fondos: list[FondoDescubierto]) -> None:

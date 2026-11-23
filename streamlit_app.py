@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import os
 from dataclasses import replace
-from datetime import datetime
+from datetime import date, datetime
 
 import pandas as pd
 import plotly.express as px
@@ -119,6 +119,24 @@ h1, h2, h3, h4 {{ font-family: 'Ubuntu', 'Open Sans', sans-serif !important; col
 .pc-nota a:hover {{ color: {MARCA}; text-decoration: underline; }}
 .pc-nota .f {{ font-size: 12px; color: {SUAVE}; margin-top: 2px; }}
 
+/* tarjeta de fondo (vigencia) */
+.pc-fcard .top {{ display: flex; justify-content: space-between; align-items: center; gap: 8px; }}
+.pc-fcard .clave {{ font-family: 'Ubuntu', sans-serif; font-size: 18px; font-weight: 500; color: {TINTA}; }}
+.pc-fcard .top .pc-badge {{ margin-right: 0; }}
+.pc-fcard .nom {{ font-size: 12.5px; color: {SUAVE}; margin: 2px 0 8px; min-height: 18px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }}
+.pc-fcard .an {{ font-family: 'Ubuntu', sans-serif; font-size: 20px; color: {TINTA}; font-variant-numeric: tabular-nums; }}
+.pc-fcard .an span {{ font-size: 12px; color: {SUAVE}; font-family: 'Open Sans', sans-serif; }}
+.pc-fcard .barra {{ display: flex; height: 8px; border-radius: 4px; overflow: hidden; background: #EEE9F2; margin: 8px 0 4px; }}
+.pc-fcard .barra i {{ display: block; height: 100%; }}
+.pc-fcard .mezcla {{ font-size: 11.5px; color: {SUAVE}; font-variant-numeric: tabular-nums; }}
+.pc-fcard dl {{ display: grid; grid-template-columns: auto 1fr; gap: 3px 10px; margin: 10px 0 0; font-size: 12.5px; }}
+.pc-fcard dt {{ color: {SUAVE}; white-space: nowrap; }}
+.pc-fcard .motivo {{ margin-top: 8px; padding: 7px 9px; border-radius: 8px; background: #FBE9E3; color: #7A3417;
+  font-size: 11.5px; line-height: 1.4; word-break: break-word; }}
+.pc-fcard dd {{ margin: 0; color: {TINTA}; text-align: right; font-variant-numeric: tabular-nums; }}
+.pc-fcard dd.fuerte {{ font-weight: 700; }}
+
 /* componentes de Streamlit */
 .stTabs [data-baseweb="tab-list"] {{ gap: 4px; border-bottom: 1px solid {LINEA}; }}
 .stTabs [data-baseweb="tab"] {{ padding: 10px 16px !important; }}
@@ -198,8 +216,37 @@ def mdp(x: float | None, dec: int = 1) -> str:
     return "—" if x is None else f"{x:,.{dec}f}"
 
 
+def fecha(d) -> str:
+    return d.strftime("%d/%m/%Y") if d else "—"
+
+
+def hace(dias: int | None) -> str:
+    if dias is None:
+        return ""
+    return "hoy" if dias == 0 else "hace 1 día" if dias == 1 else f"hace {dias} días"
+
+
+@st.cache_data(show_spinner=False)
+def _vigencia(mtime: float, op: str, _m) -> list[dict]:
+    store = Store(ruta_db())
+    try:
+        return V.vigencia_fondos(store, _m)
+    finally:
+        store.cerrar()
+
+
+@st.cache_data(show_spinner=False)
+def _documentos_fondo(mtime: float, op: str, clave: str, corte: str, _f) -> pd.DataFrame:
+    store = Store(ruta_db())
+    try:
+        return V.documentos_fondo(store, op, _f)
+    finally:
+        store.cerrar()
+
+
 COL_PCT = st.column_config.NumberColumn(format="percent")
 COL_MDP = st.column_config.NumberColumn(format="%,.1f")
+COL_FECHA = st.column_config.DateColumn(format="DD/MM/YYYY")
 
 
 # ------------------------------------------------------------------ componentes
@@ -474,6 +521,107 @@ def _tab_que_enviarle(m):
                 st.link_button("Más noticias", url_busqueda(consulta(e.emisora, e.nombre)), icon=":material/open_in_new:")
 
 
+def _tarjeta_fondo(v: dict) -> str:
+    """HTML de la tarjeta de un fondo: tamaño, mezcla y fechas de sus documentos."""
+    if v["pct_rv"] is not None:
+        rv, rf, efe = (max(0.0, x or 0.0) for x in (v["pct_rv"], v["pct_rf"], v["pct_efe"]))
+        barra = (f'<div class="barra"><i style="width:{rv:.1%};background:{SERIE_RV}"></i>'
+                 f'<i style="width:{rf:.1%};background:{SERIE_RF}"></i>'
+                 f'<i style="width:{efe:.1%};background:{SERIE_EFE}"></i></div>'
+                 f'<div class="mezcla">RV {rv:.0%} · RF {rf:.0%} · Efectivo {efe:.0%}</div>')
+    else:
+        barra = '<div class="barra"></div><div class="mezcla">Sin cartera en el corte actual</div>'
+    nombre = " · ".join(x for x in (v["nombre"], v["categoria"]) if x) or "&nbsp;"
+    est = " (e)" if v["estimado"] else ""
+    filas = [
+        ("Corte de la cartera", f'{fecha(v["corte"])} · {hace(v["dias_corte"])}', True),
+        ("Fuente", v["fuente"].replace(" (cartera)", ""), False),
+        ("Registrado en la fuente", fecha(v["publicado"]) if v["publicado"] else "no lo informa", False),
+        ("Registrado en el radar", fecha(v["registrado"]), False),
+        ("Activo neto", "estimado (e)" if v["estimado"] else v["an_fuente"].replace("CNBV R1 al ", "R1 al "), False),
+        ("DICI", fecha(v["dici_fecha"]) if v["dici_fecha"] else "no integrado", False),
+    ]
+    dl = "".join(f'<dt>{a}</dt><dd{" class=fuerte" if f else ""}>{b}</dd>' for a, b, f in filas)
+    return (f'<div class="pc-fcard"><div class="top"><span class="clave">{v["clave"]}</span>'
+            f'{badge(v["estado"], v["clase"])}</div><div class="nom" title="{nombre}">{nombre}</div>'
+            f'<div class="an">{mdp(v["activo_neto"] / 1e6)} <span>mdp{est}</span></div>{barra}<dl>{dl}</dl>'
+            + (f'<div class="motivo">{v["motivo"]}</div>' if v.get("motivo") else "") + '</div>')
+
+
+def _tab_fondos(m, op: str):
+    vig = _vigencia(_mtime(), op, m)
+    if not vig:
+        st.info("Sin fondos analizables en el corte.")
+        return
+    al_dia = sum(1 for v in vig if v["rezago"] == 0)
+    registros = [v["registrado"] for v in vig if v["registrado"]]
+    tarjetas([
+        ("Fondos al día", f"{al_dia} de {len(vig)}", f"con la cartera del {fecha(vig[0]['ultimo_operadora'])}"),
+        ("Corte más reciente", fecha(vig[0]["ultimo_operadora"]), hace((date.today() - vig[0]["ultimo_operadora"]).days)),
+        ("Último archivo registrado", fecha(max(registros)) if registros else "—",
+         hace((date.today() - max(registros)).days) if registros else ""),
+        ("Rezagados", f"{len(vig) - al_dia}", "sin la cartera más reciente"),
+    ], principal=0)
+
+    c1, c2, c3, c4 = st.columns([1.3, 1.2, 1.1, 1], vertical_alignment="bottom")
+    texto = c1.text_input("Buscar fondo", placeholder="Clave o nombre", key=f"bus_fondo_{op}")
+    filtro = c2.segmented_control("Mostrar", ["Todos", "Al día", "Rezagados"], default="Todos",
+                                  key=f"fil_fondo_{op}") or "Todos"
+    orden = c3.selectbox("Ordenar por", ["Activo neto", "Corte más antiguo", "Clave"], key=f"ord_fondo_{op}")
+    vista = c4.segmented_control("Vista", ["Tarjetas", "Tabla"], default="Tarjetas", key=f"vis_fondo_{op}") or "Tarjetas"
+
+    sel = [v for v in vig
+           if (filtro == "Todos" or (filtro == "Al día") == (v["rezago"] == 0))
+           and (not texto or texto.lower() in f'{v["clave"]} {v["nombre"]}'.lower())]
+    if orden == "Corte más antiguo":
+        sel.sort(key=lambda v: (v["corte"] or date.min, -v["activo_neto"]))
+    elif orden == "Clave":
+        sel.sort(key=lambda v: v["clave"])
+    if not sel:
+        st.info("Ningún fondo cumple el filtro.")
+        return
+
+    if vista == "Tabla":
+        df = pd.DataFrame([{
+            "Clave": v["clave"], "Nombre": v["nombre"], "Estado": v["estado"],
+            "Corte de la cartera": v["corte"], "Días desde el corte": v["dias_corte"], "Fuente": v["fuente"],
+            "Registrado en la fuente": v["publicado"], "Registrado en el radar": v["registrado"],
+            "Activo neto (mdp)": v["activo_neto"] / 1e6, "Activo neto": v["an_fuente"], "DICI al": v["dici_fecha"],
+            "% RV": v["pct_rv"], "Liga": v["url"] if str(v["url"]).startswith("http") else None} for v in sel])
+        for col in ("Corte de la cartera", "Registrado en la fuente", "Registrado en el radar", "DICI al"):
+            df[col] = pd.to_datetime(df[col], errors="coerce")
+        st.dataframe(df, hide_index=True, use_container_width=True, column_config={
+            "% RV": st.column_config.ProgressColumn(format="percent", min_value=0, max_value=1),
+            "Activo neto (mdp)": COL_MDP, "Liga": st.column_config.LinkColumn(display_text="abrir"),
+            "Corte de la cartera": COL_FECHA, "Registrado en la fuente": COL_FECHA,
+            "Registrado en el radar": COL_FECHA, "DICI al": COL_FECHA})
+        with st.expander("Indicadores por fondo (rotación, headroom, régimen)"):
+            st.dataframe(V.tabla_fondos(m), hide_index=True, use_container_width=True, column_config={
+                "% RV": st.column_config.ProgressColumn(format="percent", min_value=0, max_value=1),
+                "% RF": COL_PCT, "% Efectivo": COL_PCT, "Activos netos (mdp)": COL_MDP, "RV (mdp)": COL_MDP,
+                "RF (mdp)": COL_MDP, "Máx. RV régimen": COL_PCT, "Headroom (mdp)": COL_MDP,
+                "En fondos hermanos (mdp)": COL_MDP})
+    else:
+        mostrar = st.session_state.get(f"mas_fondo_{op}", 24)
+        cols = st.columns(3, gap="medium")
+        for i, v in enumerate(sel[:mostrar]):
+            with cols[i % 3].container(border=True):
+                st.markdown(_tarjeta_fondo(v), unsafe_allow_html=True)
+                if not v.get("sin_cartera"):
+                    if st.button("Ver detalle del fondo", key=f"ir_{op}_{v['clave']}", icon=":material/arrow_forward:",
+                                 use_container_width=True):
+                        st.session_state[f"sel_fondo_{op}"] = v["clave"]
+                        st.switch_page(PAGINAS["fondo"])
+        if len(sel) > mostrar:
+            if st.button(f"Mostrar {min(24, len(sel) - mostrar)} fondos más (de {len(sel) - mostrar} restantes)",
+                         key=f"btn_mas_{op}"):
+                st.session_state[f"mas_fondo_{op}"] = mostrar + 24
+                st.rerun()
+    st.caption("Registrado en la fuente: última modificación del archivo según el servidor de la CNBV o la operadora "
+               "(algunos sitios no la informan). Registrado en el radar: primera vez que el radar descargó ese archivo. "
+               "Rezagado: la operadora ya tiene un corte más reciente y este fondo aún no aparece en él.")
+
+
 def pagina_operadora():
     u, prm = universo()
     titulo("Ficha de operadora", "Operadoras", "Elige una operadora o ábrela desde el Panorama.", supuestos=True)
@@ -540,12 +688,7 @@ def pagina_operadora():
     with tabs[1]:
         _tab_que_enviarle(m)
     with tabs[2]:
-        st.dataframe(V.tabla_fondos(m), hide_index=True, use_container_width=True, column_config={
-            "% RV": st.column_config.ProgressColumn(format="percent", min_value=0, max_value=1),
-            "% RF": COL_PCT, "% Efectivo": COL_PCT, "Activos netos (mdp)": COL_MDP, "RV (mdp)": COL_MDP,
-            "RF (mdp)": COL_MDP, "Máx. RV régimen": COL_PCT, "Headroom (mdp)": COL_MDP,
-            "En fondos hermanos (mdp)": COL_MDP})
-        st.caption("Para ver las posiciones de un fondo, abre la página Fondo.")
+        _tab_fondos(m, op)
     with tabs[3]:
         t1, t2 = st.columns(2, gap="large")
         for col, tit, df in ((t1, T.TITULO_TOP_RV, V.top_rv(m)), (t2, T.TITULO_TOP_RF, V.top_rf(m))):
@@ -577,7 +720,8 @@ def pagina_fondo():
     clave = c2.selectbox("Fondo", orden, format_func=lambda k: f"{k} · {fondos[k].nombre_corto or fondos[k].categoria_regulatoria or ''}",
                          key=f"sel_fondo_{op}")
     f = fondos[clave]
-    insignias = badge(f.categoria_regulatoria or "Sin categoría")
+    v = next((x for x in _vigencia(_mtime(), op, m) if x["clave"] == clave), None)
+    insignias = (badge(v["estado"], v["clase"]) if v else "") + badge(f.categoria_regulatoria or "Sin categoría")
     if f.es_fondo_de_fondos:
         insignias += badge("Fondo de fondos · excluido de cifras", "alerta")
     insignias += badge("Rotación medida" if f.rotacion.medida else "Rotación supuesta (e)",
@@ -585,7 +729,11 @@ def pagina_fondo():
     st.markdown(
         f'<div class="pc-ficha"><div><div class="nombre">{f.clave} · {f.nombre_corto or f.nombre_legal or ""}</div>'
         f'<div class="meta">{m.nombre} · corte {f.fecha_corte:%d/%m/%Y} · {f.cartera.procedencia.cita()}</div>'
-        f'<div style="margin-top:10px">{insignias}</div></div></div>', unsafe_allow_html=True)
+        + (f'<div class="meta">{v["fuente"]} · registrado en la fuente: '
+           f'{fecha(v["publicado"]) if v["publicado"] else "no lo informa"} · registrado en el radar: '
+           f'{fecha(v["registrado"])} ({hace((date.today() - v["registrado"]).days) if v["registrado"] else "—"})</div>'
+           if v else "")
+        + f'<div style="margin-top:10px">{insignias}</div></div></div>', unsafe_allow_html=True)
     lo, hi = f.bolsa_banda(prm)
     tarjetas([
         ("Activo neto", mdp(f.activo_neto / 1e6), "estimado (e)" if f.activo_neto_estimado else "publicado (mdp)"),
@@ -596,7 +744,7 @@ def pagina_fondo():
         ("Bolsa de comisión", f"{lo / 1e6:,.2f}–{hi / 1e6:,.2f}", "mdp al año"),
     ], principal=None)
 
-    nombres = ["Posiciones", "Rotación", "DICI", "Historia"]
+    nombres = ["Posiciones", "Rotación", "DICI", "Historia", "Fechas y documentos"]
     tabs = st.tabs(nombres, key="tabs_fondo")
     with tabs[0]:
         st.dataframe(V.posiciones(f), hide_index=True, use_container_width=True,
@@ -633,6 +781,15 @@ def pagina_fondo():
             st.plotly_chart(estilo(fig, 320), use_container_width=True, config={"displayModeBar": False})
         else:
             st.info("Solo hay un corte de este fondo.", icon=":material/info:")
+    with tabs[4]:
+        seccion("De dónde sale cada dato y cuándo se registró",
+                "Fecha del dato: corte que reporta el documento. Registrado en la fuente: última modificación del archivo según el "
+                "servidor de la CNBV o de la operadora. Registrado en el radar: primera descarga de ese archivo.")
+        docs = _documentos_fondo(_mtime(), op, f.clave, f.fecha_corte.isoformat(), f)
+        st.dataframe(docs, hide_index=True, use_container_width=True, column_config={
+            "Fecha del dato": COL_FECHA, "Registrado en la fuente": COL_FECHA, "Registrado en el radar": COL_FECHA,
+            "Días desde el registro": st.column_config.NumberColumn(format="%d"),
+            "Liga": st.column_config.LinkColumn(display_text="abrir"), "Nota": st.column_config.TextColumn(width="medium")})
     for n in f.discrepancias:
         st.warning(f"‡ {n}")
     if f.notas:

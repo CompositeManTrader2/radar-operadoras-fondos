@@ -210,3 +210,123 @@ def documentos(store: Store) -> pd.DataFrame:
                       "Último descargado": max(d.descargado for d in docs).isoformat(),
                       "Corte más reciente": max((d.fecha_doc for d in docs if d.fecha_doc), default=None)})
     return pd.DataFrame(filas)
+
+
+# ------------------------------------------------------------------ vigencia (qué tan actualizado está)
+FUENTE_CARTERA = {
+    "cnbv_r7": "CNBV · Reporte R7 (cartera)",
+    "cartera_mensual": "Cartera mensual de la operadora",
+    "cartera_diaria": "Cartera semanal de la operadora",
+}
+
+
+def _meses(a, b) -> int:
+    return (b.year - a.year) * 12 + b.month - a.month
+
+
+def estado_vigencia(rezago: int) -> tuple[str, str]:
+    """(texto, clase de insignia) según los meses de atraso contra el corte más reciente."""
+    if rezago <= 0:
+        return "Al día", "ok"
+    return (f"Rezagado {rezago} mes" + ("es" if rezago > 1 else ""), "alerta")
+
+
+def vigencia_fondos(store: Store, m: MetricasOperadora, hoy=None) -> list[dict]:
+    """Por fondo: corte, documento de origen con sus fechas (registrado en la fuente y registrado
+    en el radar), activo neto oficial o estimado, DICI y atraso contra el corte más reciente de la
+    operadora."""
+    from datetime import date
+
+    hoy = hoy or date.today()
+    fila = store.cx.execute("SELECT max(fecha_corte) FROM carteras WHERE operadora=?", (m.clave,)).fetchone()
+    ultimo = date.fromisoformat(fila[0]) if fila and fila[0] else m.corte
+    docs: dict[str, object] = {}
+
+    def doc(doc_id):
+        if doc_id and doc_id not in docs:
+            docs[doc_id] = store.documento(doc_id)
+        return docs.get(doc_id) if doc_id else None
+
+    out = []
+    for f in sorted(m.fondos + m.excluidos_fdf, key=lambda x: (-x.activo_neto, x.clave)):
+        c = f.cartera
+        dc = doc(c.procedencia.doc_id)
+        an = None if f.activo_neto_estimado else store.activo_neto_oficial(m.clave, f.clave, f.fecha_corte)
+        dan = doc(an[1].doc_id) if an else None
+        dd = doc(f.dici.procedencia.doc_id) if f.dici else None
+        rezago = max(0, _meses(f.fecha_corte, ultimo))
+        estado, clase = estado_vigencia(rezago)
+        out.append({
+            "clave": f.clave, "nombre": f.nombre_corto or f.nombre_legal or f.categoria_regulatoria or "",
+            "categoria": f.categoria_regulatoria, "activo_neto": f.activo_neto, "estimado": f.activo_neto_estimado,
+            "pct_rv": f.pct_rv, "pct_rf": f.pct_rf, "pct_efe": f.pct_efe, "fondo_de_fondos": f.es_fondo_de_fondos,
+            "corte": f.fecha_corte, "dias_corte": (hoy - f.fecha_corte).days, "ultimo_operadora": ultimo,
+            "rezago": rezago, "estado": estado, "clase": clase,
+            "fuente": FUENTE_CARTERA.get(c.tipo_doc, c.tipo_doc), "archivo": c.procedencia.archivo,
+            "publicado": getattr(dc, "publicado", None), "registrado": getattr(dc, "descargado", None),
+            "url": getattr(dc, "url", ""),
+            "an_fuente": (f"CNBV R1 al {an[1].fecha_doc:%d/%m/%Y}" if an else "Estimado (e): suma de la cartera"),
+            "an_registrado": getattr(dan, "descargado", None),
+            "dici_fecha": f.dici.fecha_doc if f.dici else None, "dici_registrado": getattr(dd, "descargado", None),
+        })
+    # Administrados sin cartera en el corte: se muestra su última cartera guardada y el atraso.
+    for clave, motivo in m.sin_cartera:
+        r = store.cx.execute(
+            "SELECT fecha_corte, tipo_doc, doc_id, archivo, activo_neto, nombre_corto, categoria FROM carteras "
+            "WHERE operadora=? AND fondo_clave=? ORDER BY fecha_corte DESC LIMIT 1", (m.clave, clave)).fetchone()
+        corte = date.fromisoformat(r[0]) if r else None
+        rezago = max(1, _meses(corte, ultimo)) if corte else None
+        dc = doc(r[2]) if r else None
+        di = store.cx.execute("SELECT max(fecha_doc) FROM dicis WHERE operadora=? AND fondo_clave=?",
+                              (m.clave, clave)).fetchone()
+        out.append({
+            "clave": clave, "nombre": (r[5] if r else "") or "", "categoria": (r[6] if r else "") or "",
+            "activo_neto": (r[4] or 0.0) if r else 0.0, "estimado": False, "pct_rv": None, "pct_rf": None,
+            "pct_efe": None, "fondo_de_fondos": False, "corte": corte,
+            "dias_corte": (hoy - corte).days if corte else None, "ultimo_operadora": ultimo, "rezago": rezago,
+            "estado": (f"Sin cartera al {ultimo:%d/%m/%Y}" if corte else "Sin cartera"), "clase": "alerta",
+            "fuente": FUENTE_CARTERA.get(r[1], r[1]) if r else "—", "archivo": r[3] if r else "",
+            "publicado": getattr(dc, "publicado", None), "registrado": getattr(dc, "descargado", None),
+            "url": getattr(dc, "url", ""), "an_fuente": f"de la cartera del {corte:%d/%m/%Y}" if corte else "—",
+            "an_registrado": None, "dici_fecha": date.fromisoformat(di[0]) if di and di[0] else None,
+            "dici_registrado": None, "sin_cartera": True, "motivo": motivo,
+        })
+    return out
+
+
+def documentos_fondo(store: Store, operadora: str, f: MetricasFondo) -> pd.DataFrame:
+    """Cada documento del que salen las cifras del fondo, con sus fechas."""
+    from datetime import date
+
+    filas = []
+
+    def agrega(uso: str, proc, nota: str = ""):
+        d = store.documento(proc.doc_id) if proc else None
+        filas.append({
+            "Dato": uso, "Documento": (d.archivo.rsplit("/", 1)[-1] if d else (proc.archivo if proc else "—")),
+            "Fecha del dato": proc.fecha_doc if proc else None,
+            "Registrado en la fuente": d.publicado if d else None,
+            "Registrado en el radar": d.descargado if d else None,
+            "Días desde el registro": (date.today() - d.descargado).days if d else None,
+            "Liga": d.url if d and d.url.startswith("http") else None, "Nota": nota})
+
+    agrega(f"Cartera ({FUENTE_CARTERA.get(f.cartera.tipo_doc, f.cartera.tipo_doc)})", f.cartera.procedencia,
+           f"Página/fila {f.cartera.procedencia.pagina}")
+    an = None if f.activo_neto_estimado else store.activo_neto_oficial(operadora, f.clave, f.fecha_corte)
+    if an:
+        agrega("Activo neto (CNBV R1)", an[1])
+    else:
+        filas.append({"Dato": "Activo neto", "Documento": "—", "Fecha del dato": f.fecha_corte,
+                      "Registrado en la fuente": None, "Registrado en el radar": None, "Días desde el registro": None,
+                      "Liga": None, "Nota": "Estimado (e): suma de la cartera; la CNBV aún no publica el R1 del mes"})
+    if f.dici:
+        agrega("DICI (comisiones y series)", f.dici.procedencia)
+        if f.dici.fuente_regimen:
+            agrega("Régimen de inversión (prospecto)", f.dici.fuente_regimen,
+                   f"Página {f.dici.fuente_regimen.pagina}")
+    df = pd.DataFrame(filas)
+    for col in ("Fecha del dato", "Registrado en la fuente", "Registrado en el radar"):
+        df[col] = pd.to_datetime(df[col], errors="coerce")
+    df["Días desde el registro"] = pd.to_numeric(df["Días desde el registro"], errors="coerce").astype("Int64")
+    df["Nota"] = df["Nota"].fillna("")
+    return df

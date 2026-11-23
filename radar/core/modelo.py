@@ -66,8 +66,9 @@ class Documento:
     url: str
     archivo: str         # ruta relativa al directorio de datos
     fecha_doc: date | None
-    descargado: date
+    descargado: date     # primera vez que el radar vio ESTE archivo (mismo sha256): fecha de registro
     bytes: int
+    publicado: date | None = None  # fecha en que la fuente lo registró (Last-Modified), si la envía
 
 
 @dataclass
