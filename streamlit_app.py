@@ -271,7 +271,8 @@ def html_var(v: float | None) -> str:
 
 def con_noticias(emisoras) -> list:
     """Emisoras con nombre conocido de México o del SIC (los ETFs no tienen noticias de empresa)."""
-    return [e for e in emisoras if e.mercado in ("México", "SIC") and not e.nombre.startswith("[")]
+    return [e for e in emisoras if e.mercado in ("México", "SIC") and not e.nombre.startswith("[")
+            and not e.sector.startswith("ETF")]
 
 
 @st.cache_data(show_spinner=False)

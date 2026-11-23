@@ -87,9 +87,10 @@ GENERICAS = {
 }
 #: Encabezados que nombran a la emisora pero no son de la empresa (estadios, deportes, eventos).
 EXCLUIR = re.compile(r"\b(estadio|stadium|nfl|liga mx|futbol|football|partido|gol|concierto|boletos|"
-                     r"telenovela|serie de tv)\b", re.I)
+                     r"telenovela|serie de tv|en vivo|live score|premier league|champions|vs\.?)\b", re.I)
 #: Páginas de cotización automáticas que Google indexa como nota.
-RUIDO = re.compile(r"cotizaci[oó]n e historial|stock price, news|stock forecasts?|price forecast|quote shifts|"
+RUIDO = re.compile(r"cotizaci[oó]n e historial|precio de la acci[oó]n de|gr[aá]fico y an[aá]lisis|"
+                   r"stock price, news|stock forecasts?|price forecast|quote shifts|"
                    r"TSXV:|CSE:|ASX:", re.I)
 #: Términos bursátiles: esas notas van primero.
 BURSATIL = re.compile(
