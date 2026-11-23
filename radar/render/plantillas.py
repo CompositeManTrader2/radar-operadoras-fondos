@@ -150,6 +150,13 @@ HUECO_SIC = "Claves SIC sin emisora confirmada: {claves}."
 HUECO_REGIMEN = "Límite máximo de renta variable sin localizar: {claves}."
 HUECO_ACTIVO_NETO = "Activo neto oficial (CNBV) pendiente para: {claves}."
 HUECO_CASA_BOLSA = "Casa de bolsa hermana sin confirmar."
+NOTA_PRECIOS = (
+    "Precio prom. al corte: precio de mercado ponderado por títulos de todos sus fondos (valor ÷ títulos del R7). "
+    "No es su costo de compra: ninguna fuente pública (CNBV, carteras, DICI, prospectos, estados financieros) "
+    "publica el costo promedio de adquisición, así que no se puede saber su ganancia o pérdida real. "
+    "«Desde el corte»: cómo se ha movido el precio desde esa fecha; «Mes previo al corte»: variación del precio "
+    "entre los dos últimos cortes. Precio hoy: Yahoo Finance (BMV, con retraso de ~15 min)."
+)
 HUECO_FONDOS_EXTRANJEROS = (
     "Fondos extranjeros vía SIC (TV 56SP) sin identificar o con fuente secundaria (verificar): {lista}."
 )

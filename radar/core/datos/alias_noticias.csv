@@ -1,0 +1,91 @@
+# Cómo aparece cada emisora en los encabezados de las noticias (además de su nombre del catálogo y su
+# clave). Una nota solo cuenta si su encabezado menciona alguno de estos nombres (sin importar acentos,
+# respetando mayúsculas: "Meta" sí, "meta de inflación" no). Separar con |.
+# version: 2026-11-23.1
+ticker,alias
+GMEXICO,Grupo México|GMéxico|Southern Copper|Asarco
+AMX,América Móvil|AMX
+GFINBUR,Inbursa
+GCARSO,Grupo Carso|Carso
+GFNORTE,Banorte
+LIVEPOL,Liverpool
+PINFRA,Pinfra
+FEMSA,FEMSA|Femsa
+CEMEX,Cemex|CEMEX
+LACOMER,La Comer
+ALSEA,Alsea
+GCC,GCC|Cementos de Chihuahua
+SORIANA,Soriana
+WALMEX,Walmex|Walmart de México
+PE&OLES,Peñoles
+GAP,Aeropuerto del Pacífico|Aeroportuario del Pacífico
+VESTA,Vesta
+ORBIA,Orbia
+GENTERA,Gentera|Compartamos
+ALPEK,Alpek
+ASUR,ASUR|Asur|Aeroportuario del Sureste
+OMA,OMA|Aeroportuario Centro Norte
+CHDRAUI,Chedraui
+DANHOS,Fibra Danhos|Danhos
+AC,Arca Continental
+HERDEZ,Herdez
+FUNO,Fibra Uno|FUNO
+FIBRAPL,Fibra Prologis
+KOF,Coca-Cola FEMSA|Coca-Cola Femsa|KOF
+BIMBO,Bimbo
+GRUMA,Gruma
+TLEVISA,Televisa|TelevisaUnivision
+FMTY,Fibra Monterrey|Fibra Mty
+BBAJIO,BanBajío|Banco del Bajío
+KIMBER,Kimberly-Clark de México|Kimberly-Clark
+NEMAK,Nemak
+AGUA,Rotoplas
+R,Banregio|Regional
+ARA,Consorcio ARA
+VOLAR,Volaris
+Q,Quálitas
+GNP,GNP
+MEGA,Megacable
+FNOVA,Fibra Nova
+CMOCTEZ,Cementos Moctezuma|Moctezuma
+FIBRAMQ,Fibra Macquarie
+AXTEL,Axtel
+NVDA,NVIDIA|Nvidia
+MSFT,Microsoft
+AMZN,Amazon
+AAPL,Apple
+GOOG,Alphabet|Google
+GOOGL,Alphabet|Google
+META,Meta|Meta Platforms
+AVGO,Broadcom
+FCX,Freeport-McMoRan|Freeport
+V,Visa
+TX,Ternium
+MU,Micron
+DIS,Disney
+COST,Costco
+LLY,Eli Lilly|Lilly
+AMD,AMD
+JPM,JPMorgan|JP Morgan
+NFLX,Netflix
+KLAC,KLA
+MA,Mastercard
+AMAT,Applied Materials
+TSLA,Tesla
+MELI,MercadoLibre|Mercado Libre
+WFC,Wells Fargo
+ASML,ASML
+AXP,American Express|Amex
+ANET,Arista Networks|Arista
+TSM,TSMC|Taiwan Semiconductor
+ISRG,Intuitive Surgical
+INTC,Intel
+LRCX,Lam Research
+UNP,Union Pacific
+BNY,BNY Mellon|BNY
+ORCL,Oracle
+CRM,Salesforce
+UNH,UnitedHealth
+BRKB,Berkshire Hathaway|Berkshire
+XOM,Exxon|ExxonMobil
+PLTR,Palantir

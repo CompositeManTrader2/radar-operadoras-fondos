@@ -137,6 +137,16 @@ h1, h2, h3, h4 {{ font-family: 'Ubuntu', 'Open Sans', sans-serif !important; col
 .pc-fcard dd {{ margin: 0; color: {TINTA}; text-align: right; font-variant-numeric: tabular-nums; }}
 .pc-fcard dd.fuerte {{ font-weight: 700; }}
 
+/* noticias para enviar */
+.pc-nn .cab {{ display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-size: 12.5px; color: {SUAVE}; }}
+.pc-nn .tic {{ font-family: 'Ubuntu', sans-serif; font-weight: 500; font-size: 15px; color: {TINTA}; }}
+.pc-nn .tit {{ margin: 6px 0 4px; font-size: 15px; font-weight: 600; line-height: 1.35; }}
+.pc-nn .tit a {{ color: {TINTA}; text-decoration: none; }}
+.pc-nn .tit a:hover {{ color: {MARCA}; text-decoration: underline; }}
+.pc-nn .pos {{ font-size: 12.5px; color: {TEXTO}; margin-top: 4px; }}
+.pc-nn .pos b {{ color: {TINTA}; }}
+.pc-nn .sube {{ color: #05704F; font-weight: 700; }} .pc-nn .baja {{ color: #A3461F; font-weight: 700; }}
+
 /* componentes de Streamlit */
 .stTabs [data-baseweb="tab-list"] {{ gap: 4px; border-bottom: 1px solid {LINEA}; }}
 .stTabs [data-baseweb="tab"] {{ padding: 10px 16px !important; }}
@@ -227,6 +237,44 @@ def hace(dias: int | None) -> str:
 
 
 @st.cache_data(show_spinner=False)
+def _plan(mtime: float, op: str, _m):
+    from radar.core.contenido import plan_contenido
+
+    return plan_contenido(_m)
+
+
+@st.cache_data(ttl=900, show_spinner=False)
+def _cotizaciones(items: tuple) -> dict:
+    """{emisora: (precio en pesos, hora, símbolo)} — Yahoo Finance, caché 15 min."""
+    from radar.precios import cotizaciones
+
+    return {k: (q.precio_mxn, q.hora, q.simbolo) for k, q in cotizaciones(list(items)).items()}
+
+
+@st.cache_data(ttl=600, show_spinner=False)
+def _noticias_hoy(items: tuple, horas: int) -> dict:
+    """{emisora: [Noticia]} de las últimas `horas` — Google News, caché 10 min."""
+    from radar.noticias import recientes_varias
+
+    return recientes_varias(list(items), horas)
+
+
+def variacion(hoy: float | None, antes: float | None) -> float | None:
+    return hoy / antes - 1 if hoy and antes else None
+
+
+def html_var(v: float | None) -> str:
+    if v is None:
+        return "—"
+    return f'<span class="{"sube" if v >= 0 else "baja"}">{v:+.1%}</span>'
+
+
+def con_noticias(emisoras) -> list:
+    """Emisoras con nombre conocido de México o del SIC (los ETFs no tienen noticias de empresa)."""
+    return [e for e in emisoras if e.mercado in ("México", "SIC") and not e.nombre.startswith("[")]
+
+
+@st.cache_data(show_spinner=False)
 def _vigencia(mtime: float, op: str, _m) -> list[dict]:
     store = Store(ruta_db())
     try:
@@ -247,6 +295,8 @@ def _documentos_fondo(mtime: float, op: str, clave: str, corte: str, _f) -> pd.D
 COL_PCT = st.column_config.NumberColumn(format="percent")
 COL_MDP = st.column_config.NumberColumn(format="%,.1f")
 COL_FECHA = st.column_config.DateColumn(format="DD/MM/YYYY")
+COL_PRECIO = st.column_config.NumberColumn(format="$%,.2f")
+COL_VAR = st.column_config.NumberColumn(format="percent")
 
 
 # ------------------------------------------------------------------ componentes
@@ -456,17 +506,56 @@ def pagina_resumen():
 
 
 @st.cache_data(ttl=6 * 3600, show_spinner=False)
-def _noticias(emisora: str, nombre: str):
-    from radar.noticias import noticias
+def _tarjeta_noticia(e, nota, precio_hoy: float | None, quien: str = "") -> str:
+    from radar.noticias import es_bursatil, hace as hace_nota
 
-    return noticias(emisora, nombre)
+    insignias = badge("Bursátil", "ok") if es_bursatil(nota) else ""
+    insignias += badge("EN") if nota.idioma == "en" else ""
+    var = variacion(precio_hoy, e.precio_corte)
+    precio = (f'Precio prom. al corte {mdp(e.precio_corte, 2)} → hoy {mdp(precio_hoy, 2)} ({html_var(var)})'
+              if e.precio_corte and precio_hoy else "")
+    return (f'<div class="pc-nn"><div class="cab"><span class="tic">{e.emisora}</span><span>{e.nombre}</span>'
+            f'<span>· {nota.fuente} · {hace_nota(nota.fecha)}</span>{insignias}</div>'
+            f'<div class="tit"><a href="{nota.liga}" target="_blank">{nota.titulo}</a></div>'
+            + (f'<div class="pos">{quien}</div>' if quien else "")
+            + (f'<div class="pos">{precio}</div>' if precio else "") + "</div>")
+
+
+def _para_enviar_hoy(m, plan):
+    from radar.noticias import mensaje_bloomberg
+
+    seccion("Para enviar hoy", "Notas recientes de las emisoras que trae en sus fondos, con el mensaje listo para "
+                               "copiar al chat de Bloomberg. Revisa la nota antes de enviarla.")
+    c1, c2 = st.columns([1, 3], vertical_alignment="bottom")
+    horas = c1.segmented_control("Ventana", [24, 48, 168], default=24, key=f"ven_{m.clave}",
+                                 format_func=lambda h: "7 días" if h == 168 else f"{h} h") or 24
+    cand = con_noticias(plan.emisoras)[:10]
+    if not cand:
+        st.info("Sus emisoras clave son ETFs o no tienen nombre identificado: no hay noticias de empresa.")
+        return
+    with st.spinner("Buscando noticias…"):
+        notas = _noticias_hoy(tuple((e.emisora, e.nombre, e.mercado) for e in cand), horas)
+        cot = _cotizaciones(tuple((e.emisora, e.serie, e.mercado) for e in cand))
+    c2.caption(f"Consultado a las {datetime.now():%H:%M}. Se actualiza cada 10 minutos.")
+    sin = []
+    for e in cand:
+        ns = notas.get(e.emisora, [])[:2]
+        if not ns:
+            sin.append(e.emisora)
+            continue
+        for n in ns:
+            with st.container(border=True):
+                quien = f"{e.peso_rv:.1%} de su renta variable · {e.monto / 1e6:,.1f} mdp en {e.fondos} fondo(s)"
+                st.markdown(_tarjeta_noticia(e, n, cot.get(e.emisora, (None,))[0], quien), unsafe_allow_html=True)
+                st.code(mensaje_bloomberg(e.nombre, e.emisora, e.claves_fondos, n), language=None, wrap_lines=True)
+    if sin:
+        st.caption("Sin notas en la ventana: " + ", ".join(sin) + ".")
 
 
 def _tab_que_enviarle(m):
-    from radar.core.contenido import plan_contenido
     from radar.noticias import consulta, url_busqueda
 
-    plan = plan_contenido(m)
+    plan = _plan(_mtime(), m.clave, m)
     st.markdown('<div class="pc-sub">Research, noticias e ideas sugeridos a partir de su cartera: qué emisoras pesan '
                 'más, qué compró o vendió entre los dos últimos cortes (en títulos, sin efecto precio) y cómo reparte '
                 'su renta variable y su renta fija.</div>', unsafe_allow_html=True)
@@ -486,39 +575,34 @@ def _tab_que_enviarle(m):
                         f'<div class="r"><span>Por qué:</span> {t.por_que}</div>'
                         f'<div class="r"><span>Qué enviar:</span> {t.que_enviar}</div></div>', unsafe_allow_html=True)
 
-    seccion("Emisoras clave", "Las de mayor peso en su renta variable y qué hizo con ellas.")
+    _para_enviar_hoy(m, plan)
+
+    seccion("Emisoras clave", "Las de mayor peso en su renta variable, qué hizo con ellas y cómo se ha movido el "
+                              "precio desde el corte.")
+    with st.spinner("Consultando precios…"):
+        cot = _cotizaciones(tuple((e.emisora, e.serie, e.mercado) for e in plan.emisoras))
     df = pd.DataFrame([{
         "Emisora": e.emisora, "Nombre": e.nombre, "Sector": e.sector, "Mercado": e.mercado,
         "Peso en su RV": e.peso_rv, "Monto (mdp)": e.monto / 1e6, "Fondos": e.fondos, "Movimiento": e.movimiento,
-        "Cambio en títulos": e.cambio_titulos, "Noticias": url_busqueda(consulta(e.emisora, e.nombre)),
+        "Cambio en títulos": e.cambio_titulos,
+        f"Precio prom. al {m.corte:%d/%m}": e.precio_corte,
+        "Precio hoy": cot[e.emisora][0] if e.emisora in cot else None,
+        "Desde el corte": variacion(cot[e.emisora][0] if e.emisora in cot else None, e.precio_corte),
+        "Mes previo al corte": e.variacion_entre_cortes,
+        "Noticias": url_busqueda(consulta(e.emisora, e.nombre)),
     } for e in plan.emisoras])
     if len(df):
         st.dataframe(df, hide_index=True, use_container_width=True, column_config={
             "Monto (mdp)": COL_MDP, "Cambio en títulos": COL_PCT,
             "Peso en su RV": st.column_config.ProgressColumn(format="percent", min_value=0,
                                                              max_value=float(df["Peso en su RV"].max() or 1)),
+            f"Precio prom. al {m.corte:%d/%m}": COL_PRECIO, "Precio hoy": COL_PRECIO,
+            "Desde el corte": COL_VAR, "Mes previo al corte": COL_VAR,
             "Noticias": st.column_config.LinkColumn("Noticias", display_text="Ver noticias")})
+        st.caption(T.NOTA_PRECIOS)
     if plan.salidas:
         st.markdown("**Vendió por completo:** " + ", ".join(
             f"{e.emisora} ({-e.monto_movimiento / 1e6:,.1f} mdp)" for e in plan.salidas))
-
-    con_noticias = [e for e in plan.emisoras if e.mercado in ("México", "SIC")
-                    and not e.nombre.startswith("[") and not e.sector.startswith("ETF")][:6]
-    if con_noticias:
-        seccion("Noticias recientes", "Encabezados de los últimos 14 días de sus principales emisoras. "
-                                      "Verificar la nota original antes de reenviarla.")
-        for tab, e in zip(st.tabs([e.emisora for e in con_noticias]), con_noticias):
-            with tab:
-                notas = _noticias(e.emisora, e.nombre)
-                st.markdown(f'<div class="pc-sub"><b>{e.nombre}</b> · {e.sector} · {e.peso_rv:.1%} de su renta '
-                            f'variable</div>', unsafe_allow_html=True)
-                for n in notas:
-                    fecha = n.fecha.strftime("%d/%m/%Y") if n.fecha else ""
-                    st.markdown(f'<div class="pc-nota"><a href="{n.liga}" target="_blank">{n.titulo}</a>'
-                                f'<div class="f">{n.fuente} · {fecha}</div></div>', unsafe_allow_html=True)
-                if not notas:
-                    st.caption("Sin noticias recientes o servicio no disponible.")
-                st.link_button("Más noticias", url_busqueda(consulta(e.emisora, e.nombre)), icon=":material/open_in_new:")
 
 
 def _tarjeta_fondo(v: dict) -> str:
@@ -798,6 +882,70 @@ def pagina_fondo():
                 st.markdown(f"- {n}")
 
 
+def pagina_noticias():
+    from radar.noticias import es_bursatil, mensaje_bloomberg
+
+    u, prm = universo()
+    titulo("Para enviar hoy", "Noticias de sus posiciones",
+           "Notas de las últimas horas sobre las emisoras que traen las operadoras en sus fondos, de la más nueva a la "
+           "más vieja, con el mensaje para el chat de Bloomberg de cada operadora. Revisa la nota antes de enviarla.")
+    c1, c2, c3, c4 = st.columns([1.2, 1, 2.2, 0.9], vertical_alignment="bottom")
+    horas = c1.segmented_control("Ventana", [6, 24, 48], default=24, key="nn_horas",
+                                 format_func=lambda h: f"{h} h") or 24
+    solo = c2.toggle("Solo bursátiles", value=True, key="nn_solo",
+                     help="Resultados, dividendos, recompras, calificaciones, movimientos de precio…")
+    nombres = {k: v.nombre for k, v in u.metricas.items()}
+    elegidas = c3.multiselect("Operadoras", sorted(nombres, key=nombres.get), format_func=nombres.get,
+                              placeholder="Todas", key="nn_ops") or list(nombres)
+    if c4.button("Actualizar", icon=":material/refresh:", use_container_width=True):
+        _noticias_hoy.clear()
+        _cotizaciones.clear()
+
+    # emisora -> [(operadora, EmisoraClave)]: las 6 emisoras de empresa con más peso de cada operadora
+    tenedores: dict[str, list] = {}
+    for op in elegidas:
+        for e in con_noticias(_plan(_mtime(), op, u.metricas[op]).emisoras)[:6]:
+            tenedores.setdefault(e.emisora, []).append((op, e))
+    if not tenedores:
+        st.info("Las operadoras elegidas no tienen emisoras de empresa entre sus principales posiciones.")
+        return
+    items = tuple(sorted((k, v[0][1].nombre, v[0][1].mercado) for k, v in tenedores.items()))
+    with st.spinner(f"Buscando noticias de {len(items)} emisoras…"):
+        notas = _noticias_hoy(items, horas)
+        cot = _cotizaciones(tuple((k, v[0][1].serie, v[0][1].mercado) for k, v in tenedores.items()))
+
+    lista, vistos = [], set()
+    for k, ns in notas.items():
+        for n in ns[:3]:   # a lo más 3 por emisora: que no la llenen AAPL o NVDA
+            if (solo and not es_bursatil(n)) or n.titulo.lower() in vistos:
+                continue
+            vistos.add(n.titulo.lower())
+            lista.append((n, k))
+    lista.sort(key=lambda x: -x[0].fecha.timestamp())
+    ops_a_contactar = {op for _, k in lista for op, _ in tenedores[k]}
+    tarjetas([
+        ("Notas", f"{len(lista)}", f"últimas {horas} h"),
+        ("Emisoras con notas", f"{len({k for _, k in lista})} de {len(items)}", "de sus principales posiciones"),
+        ("Operadoras a contactar", f"{len(ops_a_contactar)}", "traen alguna de esas emisoras"),
+        ("Consultado", f"{datetime.now():%H:%M}", "se actualiza cada 10 minutos"),
+    ], principal=0)
+    if not lista:
+        st.info("Sin notas en la ventana elegida. Prueba con 48 h o desactiva «Solo bursátiles».")
+        return
+    for n, k in lista[:60]:
+        dueños = sorted(tenedores[k], key=lambda x: -x[1].monto)
+        e0 = dueños[0][1]
+        quien = "La traen: " + ", ".join(f"<b>{u.metricas[op].nombre}</b> ({e.monto / 1e6:,.0f} mdp)" for op, e in dueños)
+        with st.container(border=True):
+            st.markdown(_tarjeta_noticia(e0, n, cot.get(k, (None,))[0], quien), unsafe_allow_html=True)
+            with st.expander(f"Mensaje para Bloomberg · {len(dueños)} operadora(s)", expanded=len(dueños) == 1):
+                for op, e in dueños:
+                    st.markdown(f"**{u.metricas[op].nombre}** · {e.peso_rv:.1%} de su renta variable")
+                    st.code(mensaje_bloomberg(e.nombre, e.emisora, e.claves_fondos, n), language=None, wrap_lines=True)
+    st.caption(T.NOTA_PRECIOS + " Noticias: Google News (español e inglés); solo cuentan las notas cuyo encabezado "
+               "nombra a la emisora.")
+
+
 def pagina_estado():
     titulo("Operación", "Estado de los datos",
            "Resultado de la última actualización automática por operadora, documentos y conciliaciones.")
@@ -892,6 +1040,7 @@ def pagina_metodologia():
 # ------------------------------------------------------------------ navegación
 PAGINAS = {
     "resumen": st.Page(pagina_resumen, title="Panorama", icon=":material/dashboard:", default=True),
+    "noticias": st.Page(pagina_noticias, title="Noticias", icon=":material/newspaper:", url_path="noticias"),
     "operadora": st.Page(pagina_operadora, title="Operadora", icon=":material/account_balance:", url_path="operadora"),
     "fondo": st.Page(pagina_fondo, title="Fondo", icon=":material/pie_chart:", url_path="fondo"),
     "estado": st.Page(pagina_estado, title="Estado de los datos", icon=":material/monitor_heart:", url_path="estado"),

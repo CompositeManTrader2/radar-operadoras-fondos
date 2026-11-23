@@ -89,6 +89,19 @@ class EmisoraClave:
     movimiento: str        # Nueva | Aumentó | Redujo | Estable | Salida | Sin corte previo
     cambio_titulos: float | None   # variación de títulos (fracción) en los fondos comparables
     monto_movimiento: float        # compra (+) o venta (−) estimada al precio del corte
+    serie: str = ""
+    titulos: float | None = None          # títulos en los fondos que publican títulos
+    #: Precio promedio ponderado por títulos AL CORTE (valor de mercado / títulos, en pesos). No es su
+    #: costo: ninguna fuente pública trae el costo promedio de adquisición.
+    precio_corte: float | None = None
+    precio_previo: float | None = None    # lo mismo en el corte previo (mide la variación entre cortes)
+    claves_fondos: tuple[str, ...] = ()
+
+    @property
+    def variacion_entre_cortes(self) -> float | None:
+        if self.precio_corte and self.precio_previo:
+            return self.precio_corte / self.precio_previo - 1
+        return None
 
 
 @dataclass
@@ -151,6 +164,13 @@ def plan_contenido(m: MetricasOperadora, n_emisoras: int = 15) -> PlanContenido:
     tit_antes: dict[str, float] = defaultdict(float)
     valor_antes: dict[str, float] = defaultdict(float)
     precio: dict[str, float] = {}
+    # Precio ponderado al corte por (emisora, serie): series distintas (PINFRA * y PINFRA L) tienen
+    # precios distintos; se reporta la serie de mayor valor.
+    valor_serie: dict[tuple[str, str], float] = defaultdict(float)
+    tit_serie: dict[tuple[str, str], float] = defaultdict(float)
+    valor_serie_antes: dict[tuple[str, str], float] = defaultdict(float)
+    tit_serie_antes: dict[tuple[str, str], float] = defaultdict(float)
+    peso_serie: dict[tuple[str, str], float] = defaultdict(float)
     comparables: set[str] = set()
     fechas_previas: list[date] = []
     rf_seg: dict[str, float] = defaultdict(float)
@@ -165,8 +185,11 @@ def plan_contenido(m: MetricasOperadora, n_emisoras: int = 15) -> PlanContenido:
             monto[k] += p.valor_razonable
             mercado.setdefault(k, _mercado(p.clase))
             fondos[k].add(f.clave)
+            peso_serie[(k, p.serie)] += p.valor_razonable
             if p.titulos:
                 precio[k] = p.valor_razonable / p.titulos
+                valor_serie[(k, p.serie)] += p.valor_razonable
+                tit_serie[(k, p.serie)] += p.titulos
             if previa is not None and p.titulos is not None:
                 tit_hoy[k] += p.titulos
             if p.tipo_valor in tv_agr_antes:
@@ -184,6 +207,9 @@ def plan_contenido(m: MetricasOperadora, n_emisoras: int = 15) -> PlanContenido:
                 mercado.setdefault(k, _mercado(p.clase))
                 if p.titulos is not None:
                     tit_antes[k] += p.titulos
+                if p.titulos:
+                    valor_serie_antes[(k, p.serie)] += p.valor_razonable
+                    tit_serie_antes[(k, p.serie)] += p.titulos
                 valor_antes[k] += p.valor_razonable
 
     rv_total = sum(monto.values())
@@ -204,11 +230,25 @@ def plan_contenido(m: MetricasOperadora, n_emisoras: int = 15) -> PlanContenido:
         est = "Aumentó" if cambio >= UMBRAL_MOVIMIENTO else "Redujo" if cambio <= -UMBRAL_MOVIMIENTO else "Estable"
         return est, cambio, (hoy - antes) * precio.get(k, 0.0)
 
+    serie_principal = {}
+    for (k, se), v in sorted(peso_serie.items(), key=lambda x: (x[0][0], -x[1], x[0][1])):
+        serie_principal.setdefault(k, se)
+
+    def precio_serie(valores, titulos, k):
+        ks = (k, serie_principal.get(k, ""))
+        return valores[ks] / titulos[ks] if titulos.get(ks) else None
+
     def clave(k: str) -> EmisoraClave:
         info = info_emisora(k)
         mov, cambio, mmov = movimiento(k)
-        return EmisoraClave(k, info.nombre, info.sector, mercado.get(k, ""), monto.get(k, 0.0),
-                            monto.get(k, 0.0) / rv_total if rv_total else 0.0, len(fondos.get(k, ())), mov, cambio, mmov)
+        return EmisoraClave(
+            k, info.nombre, info.sector, mercado.get(k, ""), monto.get(k, 0.0),
+            monto.get(k, 0.0) / rv_total if rv_total else 0.0, len(fondos.get(k, ())), mov, cambio, mmov,
+            serie=serie_principal.get(k, ""),
+            titulos=sum(t for (e, _s), t in tit_serie.items() if e == k) or None,
+            precio_corte=precio_serie(valor_serie, tit_serie, k),
+            precio_previo=precio_serie(valor_serie_antes, tit_serie_antes, k),
+            claves_fondos=tuple(sorted(fondos.get(k, ()))))
 
     orden = sorted(monto, key=lambda k: (-monto[k], k))
     emisoras = [clave(k) for k in orden[:n_emisoras]]

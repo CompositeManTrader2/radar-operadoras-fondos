@@ -81,3 +81,35 @@ def test_noticias_rss_y_consulta():
     assert ns[0].fuente == "El Economista"
     assert consulta("AMX", "América Móvil").startswith('"América Móvil"')
     assert consulta("ZZZ", "[POR CONFIRMAR]").startswith('"ZZZ" (acciones OR')
+
+
+def test_noticias_del_dia_filtran_por_encabezado_y_arman_mensaje():
+    from datetime import datetime, timezone
+
+    from radar.noticias import Noticia, alias, cuando, es_bursatil, menciona, mensaje_bloomberg
+
+    a = alias("GFNORTE", "Grupo Financiero Banorte")
+    assert "Banorte" in a and "GFNORTE" in a
+    assert menciona("Banorte eleva su dividendo", a)
+    assert not menciona("Resultados del sistema bancario", a)
+    # respeta mayúsculas: "meta" (objetivo) no es Meta Platforms
+    assert menciona("Meta anuncia recompra de acciones", alias("META", "Meta Platforms"))
+    assert not menciona("La meta de inflación de Banxico", alias("META", "Meta Platforms"))
+    # con alias definidos no se usan palabras sueltas del nombre ("América")
+    assert "América" not in alias("AMX", "América Móvil")
+    ahora = datetime(2026, 11, 23, 18, 0, tzinfo=timezone.utc)
+    nota = Noticia("Apple anuncia recompra de acciones por 100 mil mdd", "Reuters",
+                   datetime(2026, 11, 23, 15, 0, tzinfo=timezone.utc), "https://news.google.com/x", "es")
+    assert es_bursatil(nota) and cuando(nota.fecha, ahora) == "Hoy"
+    msj = mensaje_bloomberg("Apple", "AAPL", ["BLKUSEQ", "ACTI500"], nota, ahora)
+    assert msj.startswith("Buen día. He visto que en sus fondos (BLKUSEQ, ACTI500) traen posición en Apple (AAPL).")
+    assert "Hoy salió una nota en Reuters" in msj and msj.endswith("detalle: https://news.google.com/x")
+    assert "en su fondo X traen" in mensaje_bloomberg("Apple", "AAPL", ["X"], nota, ahora)
+
+
+def test_simbolos_de_cotizacion():
+    from radar.precios import simbolos
+
+    assert simbolos("WALMEX", "*", "México") == ["WALMEX.MX"]
+    assert simbolos("GFNORTE", "O", "México") == ["GFNORTEO.MX"]
+    assert simbolos("AAPL", "*", "SIC") == ["AAPL.MX", "AAPL"]
